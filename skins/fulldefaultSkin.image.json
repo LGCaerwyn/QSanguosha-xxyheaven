@@ -51,8 +51,8 @@
 "magatamas3": "image/fullskin/system/magatamas/3.png",
 "magatamas4": "image/fullskin/system/magatamas/4.png",
 "magatamas5": "image/fullskin/system/magatamas/5.png",
-"photoExtraSkillBg": "image/system/huashenSkillBg.png",
-"dashboardExtraSkillBg": "image/system/huashenSkillBg.png",
+"skillNameBg": "image/system/skillBg.png",
+"dashboardSkillBg": "image/system/skillBg.png",
 
 // general default directories
 "playerGeneralIcon-default-0-0": ["image/generals/avatar/%1.png", [71, 28, 134, 134], [40, 40]],
@@ -204,6 +204,7 @@
 "button-player_container": "image/system/button/player_container/%1/%2.png",
 "button-heroskin": "image/system/heroskin/%1/%2.png",
 "button-guhuo": "image/system/guhuo/%1/%2.png",
+"button-promptbox": "image/system/button/promptbox/%1/%2.png",
 
 // icons
 "saveMe": "image/system/death/save-me.png",

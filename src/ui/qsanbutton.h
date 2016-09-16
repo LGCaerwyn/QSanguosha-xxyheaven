@@ -13,45 +13,11 @@ class QSanButton : public QGraphicsObject
     Q_OBJECT
 
 public:
-    //************************************
-    // Method:    QSanButton
-    // FullName:  QSanButton::QSanButton
-    // Access:    public
-    // Returns:
-    // Qualifier:
-    // Parameter: QGraphicsItem * parent
-    // Description: Construct a powerful button with parent.
-    //
-    // Last Updated By Yanguam Siliagim
-    // To optimize performance
-    //
-    // Mogara
-    // March 14 2014
-    //************************************
-    QSanButton(QGraphicsItem *parent);
-    //************************************
-    // Method:    QSanButton
-    // FullName:  QSanButton::QSanButton
-    // Access:    public
-    // Returns:
-    // Qualifier:
-    // Parameter: const QString & groupName
-    // Parameter: const QString & buttonName
-    // Parameter: QGraphicsItem * parent
-    // Parameter: const bool & multi_state
-    // Description: Construct a powerful button with parent. The button will belong to a group named
-    //              groupName and be named buttonName. The names will influence the path of its resource file. It will be a button with 4 states if multi_state is false, or 8 states if true.
-    //
-    // Last Updated By Yanguam Siliagim
-    // To optimize performance
-    //
-    // Mogara
-    // March 14 2014
-    //************************************
+    QSanButton(QGraphicsItem *parent, const int &button_length = 0, const QString &text = QString());
     QSanButton(const QString &groupName, const QString &buttonName, QGraphicsItem *parent, const bool &multi_state = false);
     enum ButtonState
     {
-        S_STATE_UP, S_STATE_HOVER, S_STATE_DOWN, S_STATE_CANPRESHOW,
+        S_STATE_UP, S_STATE_HOVER, S_STATE_DOWN,
         S_STATE_DISABLED, S_NUM_BUTTON_STATES
     };
     enum ButtonStyle
@@ -60,7 +26,7 @@ public:
     };
     void setSize(QSize size);
     void setStyle(ButtonStyle style);
-    virtual void setState(ButtonState state);
+    void setState(ButtonState state);
     inline void setButtonName(QString buttonName)
     {
         _m_buttonName = buttonName;
@@ -81,12 +47,9 @@ public:
     virtual QRectF boundingRect() const;
     bool insideButton(QPointF pos) const;
     bool isMouseInside() const;
-    virtual void setEnabled(bool enabled);
+    void setEnabled(bool enabled);
     bool isDown();
-
-    void setFirstState(bool isFirstState);
     void redraw();
-
 public slots:
     void click();
 
@@ -108,7 +71,6 @@ protected:
     // get rid of it.
     bool _m_mouseEntered;
     QPixmap _m_bgPixmap[S_NUM_BUTTON_STATES * 2];
-    //this property is designed for trust button.
     bool multi_state;
     bool m_isFirstState;
 

@@ -26,7 +26,7 @@ GameRule::GameRule(QObject *)
         << SlashHit << SlashEffected << SlashProceed
         << ConfirmDamage << DamageDone << DamageComplete
         << StartJudge << FinishRetrial << FinishJudge
-        << ChoiceMade;
+        << ChoiceMade << PlayCard;
 }
 
 bool GameRule::triggerable(const ServerPlayer *) const
@@ -80,9 +80,6 @@ void GameRule::onPhaseProceed(ServerPlayer *player) const
     }
     case Player::Play: {
         while (player->isAlive()) {
-            room->addPlayerHistory(NULL, "pushPile");
-			if (player->hasSkill("jishe", true))
-				room->setPlayerMark(player, "#jishe", player->getMaxCards());
 			CardUseStruct card_use;
             room->activate(player, card_use);
             if (card_use.card != NULL){
@@ -710,6 +707,10 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
                     room->setPlayerFlag(p, "-" + flag);
             }
         }
+        break;
+    }
+    case PlayCard: {
+        room->addPlayerHistory(NULL, "pushPile");
         break;
     }
     default:

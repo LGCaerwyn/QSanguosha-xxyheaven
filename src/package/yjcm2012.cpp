@@ -75,7 +75,7 @@ public:
             target->broadcastSkillInvoke(objectName());
             QStringList draw_num;
             for (int i = 1; i <= target->getLostHp(); draw_num << QString::number(i++)) {}
-            int num = room->askForChoice(target, "miji_draw", draw_num.join("+")).toInt();
+            int num = room->askForChoice(target, objectName(), draw_num.join("+"), QVariant(), "@miji-draw").toInt();
             target->drawCards(num, objectName());
 			QList<int> handcards = target->handCards();
 			room->askForRende(target, handcards, objectName(), false, false, true, num, -1);
@@ -204,7 +204,6 @@ public:
     virtual int getDrawNum(ServerPlayer *caozhang, int n) const
     {
         Room *room = caozhang->getRoom();
-		if (!room->askForSkillInvoke(caozhang, "skill_ask", "prompt:::" + objectName())) return false;
         QString choice = room->askForChoice(caozhang, objectName(), "jiang+chi+cancel");
         if (choice == "cancel")
             return n;

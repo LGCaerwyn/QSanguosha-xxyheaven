@@ -414,7 +414,7 @@ public:
 
     virtual int getMaxLostHp(ServerPlayer *zhangchunhua) const
     {
-        return qMin(zhangchunhua->getLostHp(), zhangchunhua->getMaxHp());
+        return zhangchunhua->getLostHp();
     }
 };
 

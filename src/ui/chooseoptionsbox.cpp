@@ -19,11 +19,13 @@
     *********************************************************************/
 
 #include "chooseoptionsbox.h"
-#include "engine.h"
 #include "button.h"
+#include "engine.h"
+#include "qsanbutton.h"
 #include "client.h"
 #include "clientstruct.h"
-#include "timed-progressbar.h"
+#include "roomscene.h"
+#include "stylehelper.h"
 
 #include <QGraphicsProxyWidget>
 
@@ -39,21 +41,20 @@ QRectF ChooseOptionsBox::boundingRect() const
         int buttonwidth = getButtonWidth(card_name);
         allbuttonswidth += buttonwidth;
     }
-    int tempinterval = getInterval();
-    return QRectF(0, 0, (allbuttonswidth + (n+1)*tempinterval), defaultButtonHeight);
+    return QRectF(0, 0, (allbuttonswidth + (n+1)*interval), defaultButtonHeight);
 }
 
-void ChooseOptionsBox::chooseOption(const QStringList &options)
+void ChooseOptionsBox::chooseOption(const QStringList &options, const QStringList &all_options)
 {
     //repaint background
-    this->options = options;
+    this->options = all_options;
     prepareGeometryChange();
 
-    foreach (const QString &choice, options) {
-        Button *button = new Button(translate(choice), QSizeF(getButtonWidth(choice), defaultButtonHeight));
+    foreach (const QString &choice, all_options) {
+        QSanButton *button = new QSanButton(this, getButtonWidth(choice), translate(choice));
         button->setObjectName(choice);
-        buttons[choice] = button;
-        button->setParentItem(this);
+        button->setEnabled(options.contains(choice));
+        buttons << button;
 
         QString original_tooltip = QString(":%1").arg(title);
         QString tooltip = Sanguosha->translate(original_tooltip);
@@ -61,23 +62,26 @@ void ChooseOptionsBox::chooseOption(const QStringList &options)
             original_tooltip = QString(":%1").arg(choice);
             tooltip = Sanguosha->translate(original_tooltip);
         }
-        connect(button, &Button::clicked, this, &ChooseOptionsBox::reply);
+        connect(button, &QSanButton::clicked, this, &ChooseOptionsBox::reply);
         if (tooltip != original_tooltip)
             button->setToolTip(tooltip);
     }
 
-    moveToCenter();
-    moveBy(0, 125);
-    show();
-    int tempinterval = getInterval();
-    int x = tempinterval;
+    const QRectF rect = boundingRect();
+    setPos(RoomSceneInstance->tableCenterPos().x() - rect.width() / 2, RoomSceneInstance->tableCenterPos().y()*2 - 230);
 
-    foreach (const QString &card_name, options) {
+    setFlag(QGraphicsItem::ItemIsMovable, false);
+    show();
+    int x = interval;
+
+    //foreach (const QString &card_name, all_options) {
+    for (int i = 0; i < buttons.length(); ++i) {
+        QSanButton *button = buttons.at(i);
         QPointF apos;
         apos.setX(x);
-        x += (tempinterval + getButtonWidth(card_name));
+        x += (interval + getButtonWidth(button->objectName()));
         apos.setY(0);
-        buttons[card_name]->setPos(apos);
+        button->setPos(apos);
     }
 }
 
@@ -98,22 +102,6 @@ int ChooseOptionsBox::getButtonWidth(const QString &card_name) const
     return width;
 }
 
-int ChooseOptionsBox::getInterval() const
-{
-    int n = options.length();
-    int allbuttonswidth = 0;
-    foreach (const QString &card_name, options) {
-        int buttonwidth = getButtonWidth(card_name);
-        allbuttonswidth += buttonwidth;
-    }
-    int tempinterval = (defaultBoundingWidth-allbuttonswidth)/(n+1);
-    if (tempinterval < minInterval)
-        tempinterval = minInterval;
-    if (tempinterval > maxInterval)
-        tempinterval = maxInterval;
-    return tempinterval;
-}
-
 QString ChooseOptionsBox::translate(const QString &option) const
 {
     QString title = QString("%1:%2").arg(skillName).arg(option);
@@ -125,10 +113,10 @@ QString ChooseOptionsBox::translate(const QString &option) const
 
 void ChooseOptionsBox::clear()
 {
-    foreach(Button *button, buttons.values())
+    foreach (QSanButton *button, buttons)
         button->deleteLater();
 
-    buttons.values().clear();
+    buttons.clear();
 
     disappear();
 }

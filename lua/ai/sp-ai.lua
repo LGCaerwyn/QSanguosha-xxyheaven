@@ -3226,7 +3226,7 @@ sgs.ai_skill_playerchosen.shushen = function(self, targets)
 	return target
 end
 
-sgs.ai_card_intention.ShushenCard = -80
+sgs.ai_playerchosen_intention.shushen = -80
 
 sgs.ai_skill_invoke.shenzhi = function(self, data)
 	if self:getCardsNum("Peach") > 0 then return false end

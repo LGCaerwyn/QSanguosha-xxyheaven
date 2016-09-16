@@ -43,7 +43,6 @@ const char *QSanRoomSkin::S_SKIN_KEY_MIDDLEFRAME = "%1MiddleFrame";
 const char *QSanRoomSkin::S_SKIN_KEY_HANDCARDNUM = "%1HandCardNum-%2";
 const char *QSanRoomSkin::S_SKIN_KEY_FACETURNEDMASK = "%1FaceTurnedMask";
 const char *QSanRoomSkin::S_SKIN_KEY_BLANK_GENERAL = "%1BlankGeneral";
-const char *QSanRoomSkin::S_SKIN_KEY_EXTRA_SKILL_BG = "%1ExtraSkillBg";
 const char *QSanRoomSkin::S_SKIN_KEY_CHAIN = "%1Chain";
 const char *QSanRoomSkin::S_SKIN_KEY_PHASE = "%1Phase%2";
 const char *QSanRoomSkin::S_SKIN_KEY_SELECTED_FRAME = "%1FrameWhenSelected";
@@ -71,8 +70,7 @@ const char *QSanRoomSkin::S_SKIN_KEY_MAGATAMAS = "magatamas%1";
 const char *QSanRoomSkin::S_SKIN_KEY_PROGRESS_BAR_IMAGE = "progressBar";
 const char *QSanRoomSkin::S_SKIN_KEY_GENERAL_CIRCLE_IMAGE = "generalCircleImage-%1";
 const char *QSanRoomSkin::S_SKIN_KEY_GENERAL_CIRCLE_MASK = "generalCircleMask-%1";
-
-const char *QSanRoomSkin::S_SKIN_KEY_CARD_TINY_ICON = "cardTiny-%1";
+const char *QSanRoomSkin::S_SKIN_KEY_SKILL_NAME_BG = "skillNameBg";
 
 // Animations
 const char *QSanRoomSkin::S_SKIN_KEY_ANIMATIONS = "preloads";
@@ -406,19 +404,6 @@ QPixmap QSanRoomSkin::getGeneralPixmap(const QString &generalName, GeneralIconSi
     key = QString(S_SKIN_KEY_PLAYER_GENERAL_ICON) //try the default match
         .arg(size);
     return getPixmap(key, name, id, true);
-}
-
-QPixmap QSanRoomSkin::getCardTinyPixmap(const QString &card_object_name) const
-{
-    static QPixmap empty;
-    QString key = QString(S_SKIN_KEY_CARD_TINY_ICON).arg(card_object_name);
-    if (isImageKeyDefined(key))
-        return getPixmap(key);
-    key = QString(S_SKIN_KEY_CARD_TINY_ICON);
-    if (isImageKeyDefined(key.arg(S_SKIN_KEY_DEFAULT)))
-        return getPixmap(key, card_object_name);
-
-    return empty;
 }
 
 QString QSanRoomSkin::getPlayerAudioEffectPath(const QString &eventName, const QString &category, int index, const Player *player) const
@@ -975,6 +960,8 @@ bool QSanRoomSkin::_loadLayoutConfig(const QVariant &layout)
     tryParse(config["promptInfoSize"], _m_commonLayout.m_promptInfoSize);
     _m_commonLayout.m_promptInfoFont.tryParse(config["promptInfoFont"]);
 
+    _m_commonLayout.m_choiceInfoFont.tryParse(config["choiceInfoFont"]);
+
     JsonArray magatamaFont = config["magatamaFont"].value<JsonArray>();
     for (int i = 0; i < 6 && i < magatamaFont.size(); i++) {
         _m_commonLayout.m_hpFont[i].tryParse(magatamaFont[i]);
@@ -1251,10 +1238,8 @@ bool QSanSkinFactory::switchSkin(QString skinName)
 
 QSanSkinFactory::QSanSkinFactory(const char *fileName)
 {
-    bool use_full = Config.value("UseFullSkin", true).toBool();
-    QString suf = use_full ? "full" : QString();
-    S_DEFAULT_SKIN_NAME = suf + "default";
-    S_COMPACT_SKIN_NAME = suf + "compact";
+    S_DEFAULT_SKIN_NAME = "fulldefault";
+    S_COMPACT_SKIN_NAME = "fullcompact";
 
     JsonDocument doc = JsonDocument::fromFilePath(fileName);
     _m_skinList = doc.object();

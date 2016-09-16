@@ -22,6 +22,7 @@
 #define _CHOOSE_OPTIONS_BOX_H
 
 #include "graphicsbox.h"
+#include "qsanbutton.h"
 
 class Button;
 class QGraphicsProxyWidget;
@@ -42,21 +43,19 @@ public:
     void clear();
 
 public slots:
-    void chooseOption(const QStringList &options);
+    void chooseOption(const QStringList &options, const QStringList &all_options);
     void reply();
 
 private:
     QStringList options;
     QString skillName;
-    QMap<QString, Button *> buttons;
+    QList<QSanButton *> buttons;
 
     static const int defaultButtonHeight = 24;
-    static const int minInterval = 15; //15
-    static const int maxInterval = 40; //15
+    static const int interval = 30; //15
     static const int defaultBoundingWidth = 400;
 
     int getButtonWidth(const QString &card_name) const;
-    int getInterval() const;
 
     QString translate(const QString &option) const;
 };

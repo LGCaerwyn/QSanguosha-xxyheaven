@@ -264,7 +264,7 @@ public:
         if (triggerEvent == CardsMoveOneTime) {
             CardsMoveOneTimeStruct move = data.value<CardsMoveOneTimeStruct>();
             if (move.to == player && move.from && move.from->isAlive() && move.from != move.to && move.card_ids.size() >= 2 && move.reason.m_reason != CardMoveReason::S_REASON_PREVIEWGIVE
-                    && (move.to_place == Player::PlaceHand || move.to_place == Player::PlaceEquip)) {
+                    && (move.to_place == Player::PlaceHand)) {
                 move.from->setFlags("EnyuanDrawTarget");
                 bool invoke = room->askForSkillInvoke(player, objectName(), QVariant::fromValue(move.from));
                 move.from->setFlags("-EnyuanDrawTarget");
@@ -586,7 +586,7 @@ void MingceCard::use(Room *room, ServerPlayer *, QList<ServerPlayer *> &targets)
 	else {
 	    ServerPlayer *victim = copy.takeFirst();
 		victim->setFlags("MingceTarget"); // For AI
-		QString choice = room->askForChoice(target, "mingce", "use+draw");
+        QString choice = room->askForChoice(target, "mingce", "use+draw", QVariant(), "@mingce-choose::"+victim->objectName());
         if (victim && victim->hasFlag("MingceTarget")) victim->setFlags("-MingceTarget");
 
         if (choice == "use") {
@@ -823,7 +823,7 @@ public:
 class Quanji : public MasochismSkill
 {
 public:
-    Quanji() : MasochismSkill("#quanji")
+    Quanji() : MasochismSkill("quanji")
     {
         frequency = Frequent;
     }
@@ -834,20 +834,12 @@ public:
 
         int x = damage.damage;
         for (int i = 0; i < x; i++) {
-            if (zhonghui->askForSkillInvoke("quanji")) {
-                zhonghui->broadcastSkillInvoke("quanji");
+            if (zhonghui->askForSkillInvoke(objectName())) {
+                zhonghui->broadcastSkillInvoke(objectName());
                 room->drawCards(zhonghui, 1, objectName());
                 if (!zhonghui->isKongcheng()) {
-                    int card_id;
-                    if (zhonghui->getHandcardNum() == 1) {
-                        room->getThread()->delay();
-                        card_id = zhonghui->handCards().first();
-                    } else {
-                        const Card *card = room->askForExchange(zhonghui, "quanji", 1, 1, false, "QuanjiPush");
-                        card_id = card->getEffectiveId();
-                        delete card;
-                    }
-                    zhonghui->addToPile("power", card_id);
+                    const Card *card = room->askForExchange(zhonghui, objectName(), 1, 1, false, "QuanjiPush");
+                    zhonghui->addToPile("power", card);
                 }
             }
         }
@@ -858,14 +850,14 @@ public:
 class QuanjiKeep : public MaxCardsSkill
 {
 public:
-    QuanjiKeep() : MaxCardsSkill("quanji")
+    QuanjiKeep() : MaxCardsSkill("#quanji")
     {
         frequency = Frequent;
     }
 
     virtual int getExtra(const Player *target) const
     {
-        if (target->hasSkill(this))
+        if (target->hasSkill("quanji"))
             return target->getPile("power").length();
         else
             return 0;
@@ -985,10 +977,7 @@ Shangshi::Shangshi() : TriggerSkill("shangshi")
 
 int Shangshi::getMaxLostHp(ServerPlayer *zhangchunhua) const
 {
-    int losthp = zhangchunhua->getLostHp();
-    if (losthp > 2)
-        losthp = 2;
-    return qMin(losthp, zhangchunhua->getMaxHp());
+    return qMin(2, zhangchunhua->getLostHp());
 }
 
 bool Shangshi::trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *zhangchunhua, QVariant &data) const
@@ -1003,13 +992,7 @@ bool Shangshi::trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *zhangchu
             can_invoke = true;
         if (!can_invoke)
             return false;
-    } else if (triggerEvent == HpChanged || triggerEvent == MaxHpChanged) {
-        if (zhangchunhua->getPhase() == Player::Discard) {
-            zhangchunhua->addMark("shangshi");
-            return false;
-        }
     }
-
     if (zhangchunhua->getHandcardNum() < losthp && zhangchunhua->askForSkillInvoke(this)) {
         zhangchunhua->broadcastSkillInvoke("shangshi");
         zhangchunhua->drawCards(losthp - zhangchunhua->getHandcardNum(), objectName());

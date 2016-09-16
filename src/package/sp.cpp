@@ -275,19 +275,23 @@ public:
 
     virtual bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &) const
     {
-        ServerPlayer *sun = room->findPlayerBySkillName(objectName());
-        if (sun != NULL && sun->isAlive() && room->askForSkillInvoke(sun, "skill_ask", "prompt:::" + objectName())) {
-            QString choice = room->askForChoice(sun, objectName(), "draw+letdraw+dismiss", QVariant::fromValue(player));
-            if (choice == "dismiss")
-                return false;
-
-            sun->broadcastSkillInvoke(objectName());
-            room->notifySkillInvoked(sun, objectName());
-            if (choice == "draw") {
-                sun->drawCards(1);
-            } else if (choice == "letdraw") {
-                player->drawCards(2);
-                room->setPlayerMark(player, "yuan", 1);
+        foreach (ServerPlayer *sun, room->getAlivePlayers()) {
+            if (!TriggerSkill::triggerable(sun)) continue;
+            QString choice = room->askForChoice(sun, objectName(), "draw+letdraw+cancel", QVariant::fromValue(player), "@liangzhu-choose::"+player->objectName());
+            if (choice != "cancel") {
+                LogMessage log;
+                log.type = "#InvokeSkill";
+                log.from = sun;
+                log.arg = objectName();
+                room->sendLog(log);
+                sun->broadcastSkillInvoke(objectName());
+                room->notifySkillInvoked(sun, objectName());
+                if (choice == "draw") {
+                    sun->drawCards(1, objectName());
+                } else if (choice == "letdraw") {
+                    player->drawCards(2, objectName());
+                    room->setPlayerMark(player, "yuan", 1);
+                }
             }
         }
         return false;
@@ -321,16 +325,15 @@ public:
 			room->sendCompulsoryTriggerLog(player, objectName());
             player->broadcastSkillInvoke(objectName());
 
-                foreach (ServerPlayer *p, room->getAllPlayers()) {
-                    if (p->getMark("yuan") > 0)
-                        room->setPlayerMark(p, "yuan", 0);
-                }
+            foreach (ServerPlayer *p, room->getAllPlayers()) {
+                if (p->getMark("yuan") > 0)
+                    room->setPlayerMark(p, "yuan", 0);
+            }
 
             //room->doLightbox("$fanxiangAnimate", 5000);
             room->notifySkillInvoked(player, objectName());
             room->setPlayerMark(player, "fanxiang", 1);
             if (room->changeMaxHpForAwakenSkill(player, 1) && player->getMark("fanxiang") > 0) {
-
                 room->recover(player, RecoverStruct(player));
                 room->handleAcquireDetachSkills(player, "-liangzhu|xiaoji");
             }
@@ -2473,7 +2476,6 @@ public:
     bool onPhaseChange(ServerPlayer *target) const
     {
         Room *room = target->getRoom();
-        if (!room->askForSkillInvoke(target, "skill_ask", "prompt:::" + objectName())) return false;
         QStringList choices;
 		choices << "self";
 	    QList<ServerPlayer *> playerlist;

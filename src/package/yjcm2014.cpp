@@ -1036,7 +1036,6 @@ public:
                     choices << QString::number(i);
             }
             choices << "draw" << "cancel";
-			if (!room->askForSkillInvoke(caifuren, "skill_ask_to", "prompt:" + player->objectName() + "::" + objectName())) return false;
             QString choice = room->askForChoice(caifuren, objectName(), choices.join("+"), QVariant::fromValue(player));
             if (choice == "cancel") {
                 continue;

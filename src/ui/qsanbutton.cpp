@@ -11,11 +11,38 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QGraphicsView>
 
-QSanButton::QSanButton(QGraphicsItem *parent)
+QSanButton::QSanButton(QGraphicsItem *parent, const int &button_length, const QString &text)
     : QGraphicsObject(parent), _m_state(S_STATE_UP), _m_style(S_STYLE_PUSH),
     _m_mouseEntered(false), multi_state(false), m_isFirstState(true)
 {
-    setSize(QSize(0, 0));
+    if (button_length > 0) {
+        _m_groupName = "promptbox";
+        _m_buttonName = "multichoice";
+        for (int i = 0; i < (int)S_NUM_BUTTON_STATES; i++) {
+            QSanButton::ButtonState state = (QSanButton::ButtonState)i;
+            QPixmap left = G_ROOM_SKIN.getButtonPixmap(_m_groupName, _m_buttonName+"-left", state);
+            QPixmap middle = G_ROOM_SKIN.getButtonPixmap(_m_groupName, _m_buttonName+"-middle", state);
+            QPixmap right = G_ROOM_SKIN.getButtonPixmap(_m_groupName, _m_buttonName+"-right", state);
+            QPixmap pixmap(QSize(button_length, left.size().height()));
+            pixmap.fill(Qt::transparent);
+            QPainter painter(&pixmap);
+            painter.drawPixmap(0, 0, left.size().width(), left.size().height(), left);
+            int x = left.size().width();
+            for (int i = 0; i < button_length - left.size().width() - right.size().width(); i++) {
+                painter.drawPixmap(x, 0, 1, left.size().height(), middle);
+                x++;
+            }
+            painter.drawPixmap(button_length - right.size().width(), 0, right.size().width(), left.size().height(), right);
+
+            G_COMMON_LAYOUT.m_choiceInfoFont.paintText(&painter, QRect(0, -2, button_length, left.size().height()), Qt::AlignCenter, text);
+
+            _m_bgPixmap[i] = pixmap;
+        }
+        setSize(_m_bgPixmap[0].size());
+
+    } else {
+        setSize(QSize(0, 0));
+    }
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -122,7 +149,7 @@ bool QSanButton::isMouseInside() const
 
 void QSanButton::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if (_m_state == S_STATE_DISABLED || _m_state == S_STATE_CANPRESHOW) return;
+    if (_m_state == S_STATE_DISABLED) return;
     QPointF point = event->pos();
     if (_m_mouseEntered || !insideButton(point)) return; // fake event;
 
@@ -134,10 +161,10 @@ void QSanButton::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void QSanButton::hoverLeaveEvent(QGraphicsSceneHoverEvent *)
 {
-    if (_m_state == S_STATE_DISABLED || _m_state == S_STATE_CANPRESHOW) return;
+    if (_m_state == S_STATE_DISABLED) return;
     if (!_m_mouseEntered) return;
 
-    Q_ASSERT(_m_state != S_STATE_DISABLED && _m_state != S_STATE_CANPRESHOW);
+    Q_ASSERT(_m_state != S_STATE_DISABLED);
     if (_m_state == S_STATE_HOVER)
         setState(S_STATE_UP);
     _m_mouseEntered = false;
@@ -159,8 +186,7 @@ void QSanButton::mousePressEvent(QGraphicsSceneMouseEvent *event)
     if (!insideButton(point)) return;
 
     if ((_m_style == S_STYLE_TOGGLE && !multi_state)
-        || _m_state == S_STATE_DISABLED
-        || _m_state == S_STATE_CANPRESHOW) return;
+        || _m_state == S_STATE_DISABLED) return;
     setState(S_STATE_DOWN);
 }
 
@@ -203,19 +229,13 @@ bool QSanButton::isDown()
     return (_m_state == S_STATE_DOWN);
 }
 
-void QSanButton::setFirstState(bool isFirstState)
-{
-    if (m_isFirstState != isFirstState) {
-        m_isFirstState = isFirstState;
-        update();
-    }
-}
-
 void QSanButton::redraw()
 {
-    for (int i = 0; i < (int)S_NUM_BUTTON_STATES; ++i)
-        _m_bgPixmap[i] = G_ROOM_SKIN.getButtonPixmap(_m_groupName, _m_buttonName, (const ButtonState &)i);
-
+    const int state_count = multi_state ? (int)S_NUM_BUTTON_STATES * 2 : (int)S_NUM_BUTTON_STATES;
+    for (int i = 0; i < state_count; i++) {
+        const bool state1 = i < S_NUM_BUTTON_STATES;
+        _m_bgPixmap[i] = G_ROOM_SKIN.getButtonPixmap(_m_groupName, _m_buttonName, (QSanButton::ButtonState)(state1 ? i : (i - S_NUM_BUTTON_STATES)), state1);
+    }
     setSize(_m_bgPixmap[0].size());
 }
 

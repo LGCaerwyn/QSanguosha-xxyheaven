@@ -3,8 +3,8 @@ sgs.LoadSkinTransltionTable {
 
 	["illustrator:zhenji"] = "木美人",	
 	
-	["$fanxiang1"] = "如有缘，再相见。",
-	["$fanxiang2"] = "哎，近乡情怯啊。",
+	["$fanxiang2"] = "如有缘，再相见。",
+	["$fanxiang1"] = "哎，近乡情切啊。",
 
 	["$liangzhu1"] = "结发为夫妻，恩爱两不移。",
 	["$liangzhu2"] = "望君更上一层楼。",
@@ -12,5 +12,5 @@ sgs.LoadSkinTransltionTable {
 	["$sp_sunshangxiang-xiaoji1"] = "如果不坚强，懦弱给谁看？",
 	["$sp_sunshangxiang-xiaoji2"] = "待本姑娘再换把兵器！",
 	
-	["~sp_sunshangxiang"] = "一缕香魂散，空留枭姬祠…"
+	["~sp_sunshangxiang"] = "一缕香魂散，空留枭姬祠……"
 }

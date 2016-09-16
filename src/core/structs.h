@@ -540,6 +540,8 @@ enum TriggerEvent
     BeforeCardsMove, // sometimes we need to record cards before the move
     CardsMoveOneTime,
 
+    PlayCard,
+
     PreCardUsed, // for AI to filter events only.
     CardExtraCost, // for skill like jiushi
     TargetChosen,

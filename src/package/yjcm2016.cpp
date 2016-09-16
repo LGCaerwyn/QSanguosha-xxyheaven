@@ -236,7 +236,7 @@ public:
 				room->addPlayerMark(target, "danxin_modify");
 				QString translate = Sanguosha->translate(":jiaozhao");
 				switch (target->getMark("danxin_modify")) {
-                case 1: translate.replace("基本牌", "基本牌或非延时类锦囊牌"); break;
+                case 1: translate.replace("基本牌", "基本牌或普通锦囊牌"); break;
 				case 2: translate.replace("选择距离最近的一名其他角色，该角色", "你"); break;
 				default:
                     return;
@@ -369,7 +369,7 @@ void DuliangCard::onEffect(const CardEffectStruct &effect) const
 	int card_id = room->askForCardChosen(effect.from, effect.to, "h", "duliang");
     CardMoveReason reason(CardMoveReason::S_REASON_EXTRACTION, effect.from->objectName());
     room->obtainCard(effect.from, Sanguosha->getCard(card_id), reason, room->getCardPlace(card_id) != Player::PlaceHand);
-	if (room->askForChoice(effect.from, "duliang", "send+delay") == "delay")
+    if (room->askForChoice(effect.from, "duliang", "send+delay", QVariant(), "@duliang-choose::"+effect.to->objectName()) == "delay")
 		room->addPlayerMark(effect.to, "#duliang");
 	else {
 		QList<int> ids = room->getNCards(2, false);
@@ -685,7 +685,7 @@ class Jishe : public TriggerSkill
 public:
     Jishe() : TriggerSkill("jishe")
     {
-        events << EventPhaseChanging << EventPhaseStart;
+        events << EventPhaseChanging << EventPhaseStart << PlayCard;
         view_as_skill = new JisheViewAsSkill;
     }
 
@@ -709,7 +709,8 @@ public:
 			int x = qMin(targets.length(), player->getHp());
 			if (x > 0)
                 room->askForUseCard(player, "@@jishe", "@jishe-chain:::" + QString::number(x), -1, Card::MethodNone);
-		}
+        } else if (triggerEvent == PlayCard && TriggerSkill::triggerable(player))
+            room->setPlayerMark(player, "#jishe", player->getMaxCards());
         return false;
     }
 
@@ -950,27 +951,25 @@ public:
 					return false;
 				}
             }
-			if (room->askForSkillInvoke(player, "skill_ask", "prompt:::" + objectName())){
-			    QStringList choices;
-			    if (player->isWounded())
-			    	choices << "recover";
-			    choices << "draw" << "cancel";
-		        QString choice = room->askForChoice(player, objectName(), choices.join("+"), data);
-                if (choice != "cancel") {
-                    LogMessage log;
-                    log.type = "#InvokeSkill";
-                    log.from = player;
-                     log.arg = objectName();
-                    room->sendLog(log);
+            QStringList choices;
+            if (player->isWounded())
+                choices << "recover";
+            choices << "draw" << "cancel";
+            QString choice = room->askForChoice(player, objectName(), choices.join("+"), data, QString(), "recover+draw+cancel");
+            if (choice != "cancel") {
+                LogMessage log;
+                log.type = "#InvokeSkill";
+                log.from = player;
+                 log.arg = objectName();
+                room->sendLog(log);
 
-                    room->notifySkillInvoked(player, objectName());
-                    player->broadcastSkillInvoke(objectName());
-                    if (choice == "recover")
-                        room->recover(player, RecoverStruct(player));
-                    else
-                        player->drawCards(1, objectName());
-                }
-		    }
+                room->notifySkillInvoked(player, objectName());
+                player->broadcastSkillInvoke(objectName());
+                if (choice == "recover")
+                    room->recover(player, RecoverStruct(player));
+                else
+                    player->drawCards(1, objectName());
+            }
         } else if (triggerEvent == EventPhaseChanging) {
             if (data.value<PhaseChangeStruct>().to == Player::Discard) {
                 player->tag.remove("GuizaoRecord");
@@ -1042,16 +1041,11 @@ TaoluanCard::TaoluanCard()
 
 bool TaoluanCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
 {
-    if (Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_RESPONSE_USE) {
-        const Card *card = NULL;
-        if (!user_string.isEmpty())
-            card = Sanguosha->cloneCard(user_string.split("+").first());
-        return card && card->targetFilter(targets, to_select, Self) && !Self->isProhibited(to_select, card, targets);
-    }
-
-    Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
+    Card *card = Sanguosha->cloneCard(user_string);
     if (card == NULL)
         return false;
+    card->addSubcard(this);
+    card->setSkillName("taoluan");
     card->setCanRecast(false);
     card->deleteLater();
     return card && card->targetFilter(targets, to_select, Self) && !Self->isProhibited(to_select, card, targets);
@@ -1059,16 +1053,11 @@ bool TaoluanCard::targetFilter(const QList<const Player *> &targets, const Playe
 
 bool TaoluanCard::targetFixed() const
 {
-    if (Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_RESPONSE_USE) {
-        const Card *card = NULL;
-        if (!user_string.isEmpty())
-            card = Sanguosha->cloneCard(user_string.split("+").first());
-        return card && card->targetFixed();
-    }
-
-    Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
+    Card *card = Sanguosha->cloneCard(user_string);
     if (card == NULL)
         return false;
+    card->addSubcard(this);
+    card->setSkillName("taoluan");
     card->setCanRecast(false);
     card->deleteLater();
     return card && card->targetFixed();
@@ -1076,16 +1065,11 @@ bool TaoluanCard::targetFixed() const
 
 bool TaoluanCard::targetsFeasible(const QList<const Player *> &targets, const Player *Self) const
 {
-    if (Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_RESPONSE_USE) {
-        const Card *card = NULL;
-        if (!user_string.isEmpty())
-            card = Sanguosha->cloneCard(user_string.split("+").first());
-        return card && card->targetsFeasible(targets, Self);
-    }
-
-    Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
+    Card *card = Sanguosha->cloneCard(user_string);
     if (card == NULL)
         return false;
+    card->addSubcard(this);
+    card->setSkillName("taoluan");
     card->setCanRecast(false);
     card->deleteLater();
     return card && card->targetsFeasible(targets, Self);
@@ -1096,8 +1080,7 @@ const Card *TaoluanCard::validate(CardUseStruct &card_use) const
     ServerPlayer *zhangrang = card_use.from;
     Room *room = zhangrang->getRoom();
 
-    QString to_guhuo = user_string;
-    Card *c = Sanguosha->cloneCard(to_guhuo, Card::NoSuit, 0);
+    Card *c = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
 
     QString classname;
     if (c->isKindOf("Slash"))
@@ -1111,6 +1094,7 @@ const Card *TaoluanCard::validate(CardUseStruct &card_use) const
     taoluanList << classname;
     zhangrang->tag["taoluanClassName"] = taoluanList;
 
+    c->addSubcard(this);
     c->setSkillName("taoluan");
     c->deleteLater();
     return c;
@@ -1120,8 +1104,7 @@ const Card *TaoluanCard::validateInResponse(ServerPlayer *zhangrang) const
 {
     Room *room = zhangrang->getRoom();
 
-    QString to_guhuo = user_string;
-    Card *c = Sanguosha->cloneCard(to_guhuo, Card::NoSuit, 0);
+    Card *c = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
 
     QString classname;
     if (c->isKindOf("Slash"))
@@ -1135,33 +1118,37 @@ const Card *TaoluanCard::validateInResponse(ServerPlayer *zhangrang) const
     taoluanList << classname;
     zhangrang->tag["taoluanClassName"] = taoluanList;
 
+    c->addSubcard(this);
     c->setSkillName("taoluan");
     c->deleteLater();
     return c;
 
 }
 
-class TaoluanVS : public ZeroCardViewAsSkill
+class TaoluanVS : public OneCardViewAsSkill
 {
 public:
-    TaoluanVS() : ZeroCardViewAsSkill("taoluan")
+    TaoluanVS() : OneCardViewAsSkill("taoluan")
     {
-        
+        filter_pattern = ".!";
+        response_or_use = true;
     }
 
-    const Card *viewAs() const
+    const Card *viewAs(const Card *originalCard) const
     {
-        return new TaoluanCard;
+        TaoluanCard *skill_card = new TaoluanCard;
+        skill_card->addSubcard(originalCard);
+        return skill_card;
     }
 
-    bool isEnabledAtPlay(const Player *) const
+    bool isEnabledAtPlay(const Player *player) const
     {
-        return true; // for DIY!!!!!!!
+        return !player->hasFlag("TaoluanInvalid");
     }
 
     bool isEnabledAtResponse(const Player *player, const QString &pattern) const
     {
-        if (Sanguosha->currentRoomState()->getCurrentCardUseReason() != CardUseStruct::CARD_USE_REASON_RESPONSE_USE)
+        if (Sanguosha->currentRoomState()->getCurrentCardUseReason() != CardUseStruct::CARD_USE_REASON_RESPONSE_USE || player->hasFlag("TaoluanInvalid"))
             return false;
 
 #define TAOLUAN_CAN_USE(x) (player->getMark("Taoluan_" #x) == 0)
@@ -1182,6 +1169,7 @@ public:
 
     virtual bool isEnabledAtNullification(const ServerPlayer *player) const
     {
+        if (player->hasFlag("TaoluanInvalid") || (player->isNude() && player->getHandPile().isEmpty())) return false;
         return TAOLUAN_CAN_USE(Nullification);
 
 #undef TAOLUAN_CAN_USE
@@ -1195,7 +1183,7 @@ public:
     Taoluan() : TriggerSkill("taoluan")
     {
         view_as_skill = new TaoluanVS;
-        events << CardFinished;
+        events << CardFinished << EventPhaseChanging;
     }
 
     QString getSelectBox() const
@@ -1224,25 +1212,36 @@ public:
         return target != NULL;
     }
 
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *zhangrang, QVariant &data) const
+    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *zhangrang, QVariant &data) const
     {
-        CardUseStruct use = data.value<CardUseStruct>();
-		if (use.card->getSkillName() != objectName()) return false;
-        ServerPlayer *target = room->askForPlayerChosen(zhangrang, room->getOtherPlayers(zhangrang), objectName(), "@taoluan-choose");
-		QString type_name[4] = { QString(), "BasicCard", "TrickCard", "EquipCard" };
-		QStringList types;
-        types << "BasicCard" << "TrickCard" << "EquipCard";
-        types.removeOne(type_name[use.card->getTypeId()]);
-		const Card *card = room->askForCard(target, types.join(",") + "|.|.|.", 
-		        "@taoluan-give:" + zhangrang->objectName() + "::" + use.card->getType(), data, Card::MethodNone);
-		if (card) {
-			CardMoveReason reason(CardMoveReason::S_REASON_GIVE, target->objectName(), zhangrang->objectName(), objectName(), QString());
-            reason.m_playerId = zhangrang->objectName();
-            room->moveCardTo(card, target, zhangrang, Player::PlaceHand, reason);
-            delete card;
-		} else
-			room->loseHp(zhangrang);
-
+        if (triggerEvent == CardFinished) {
+            CardUseStruct use = data.value<CardUseStruct>();
+            if (use.card->getSkillName() != objectName()) return false;
+            ServerPlayer *target = room->askForPlayerChosen(zhangrang, room->getOtherPlayers(zhangrang), objectName(), "@taoluan-choose");
+            QString type_name[4] = { QString(), "BasicCard", "TrickCard", "EquipCard" };
+            QStringList types;
+            types << "BasicCard" << "TrickCard" << "EquipCard";
+            types.removeOne(type_name[use.card->getTypeId()]);
+            const Card *card = room->askForCard(target, types.join(",") + "|.|.|.",
+                    "@taoluan-give:" + zhangrang->objectName() + "::" + use.card->getType(), data, Card::MethodNone);
+            if (card) {
+                CardMoveReason reason(CardMoveReason::S_REASON_GIVE, target->objectName(), zhangrang->objectName(), objectName(), QString());
+                reason.m_playerId = zhangrang->objectName();
+                room->moveCardTo(card, target, zhangrang, Player::PlaceHand, reason);
+                delete card;
+            } else {
+                room->loseHp(zhangrang);
+                room->setPlayerFlag(zhangrang, "TaoluanInvalid");
+            }
+        } else if (triggerEvent == EventPhaseChanging) {
+            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
+            if (change.to == Player::NotActive) {
+                foreach (ServerPlayer *p, room->getAlivePlayers()) {
+                    if (p->hasFlag("TaoluanInvalid"))
+                        room->setPlayerFlag(p, "-TaoluanInvalid");
+                }
+            }
+        }
         return false;
     }
 };

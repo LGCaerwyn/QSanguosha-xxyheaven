@@ -5,13 +5,13 @@
 #include "clientplayer.h"
 #include "skin-bank.h"
 #include "roomscene.h"
+#include "stylehelper.h"
 
 #include <QPropertyAnimation>
 #include <QGraphicsSceneMouseEvent>
 
-const int SelectBox::defaultButtonHeight = 24;
-const int SelectBox::minInterval = 15; //15
-const int SelectBox::maxInterval = 40; //15
+const int SelectBox::defaultButtonHeight = 26;
+const int SelectBox::interval = 30;
 const int SelectBox::defaultBoundingWidth = 400;
 
 SelectBox::SelectBox(const QString &skillname, const QStringList &options)
@@ -28,8 +28,7 @@ QRectF SelectBox::boundingRect() const
         int buttonwidth = getButtonWidth(card_name);
         allbuttonswidth += buttonwidth;
     }
-    int tempinterval = getInterval();
-    return QRectF(0, 0, (allbuttonswidth + (n+1)*tempinterval), defaultButtonHeight);
+    return QRectF(0, 0, (allbuttonswidth + (n+1)*interval), defaultButtonHeight);
 }
 
 bool SelectBox::isButtonEnable(const QString &card_name) const
@@ -40,28 +39,18 @@ bool SelectBox::isButtonEnable(const QString &card_name) const
     return skill->buttonEnabled(card_name);
 }
 
-int SelectBox::getInterval() const
-{
-    int n = options.length();
-    int allbuttonswidth = 0;
-    foreach (const QString &card_name, options) {
-        int buttonwidth = getButtonWidth(card_name);
-        allbuttonswidth += buttonwidth;
-    }
-    int tempinterval = (defaultBoundingWidth-allbuttonswidth)/(n+1);
-    if (tempinterval < minInterval)
-        tempinterval = minInterval;
-    if (tempinterval > maxInterval)
-        tempinterval = maxInterval;
-    return tempinterval;
-}
-
 int SelectBox::getButtonWidth(const QString &card_name) const
 {
+    //IQSanComponentSkin::QSanShadowTextFont textfont = G_COMMON_LAYOUT.m_choiceInfoFont;
+    //QString fontname = textfont.m_fontName;
+    //QString fontname = "wqy-microhei";
+    //QFont font = StyleHelper::getFontByFileName(fontname + ".ttc");
+    //font.setPixelSize(textfont.m_fontSize.width());
+    //QFontMetrics fontMetrics(font);
     QFontMetrics fontMetrics(Button::defaultFont());
     int width = fontMetrics.width(translate(card_name));
     // Otherwise it would look compact
-    width += 30;
+    width += 28;
     return width;
 }
 
@@ -80,9 +69,8 @@ void SelectBox::popup()
     RoomSceneInstance->current_select_box = this;
 
     foreach (const QString &card_name, options) {
-        Button *button = new Button(translate(card_name), QSizeF(getButtonWidth(card_name), defaultButtonHeight));
+        QSanButton *button = new QSanButton(this, getButtonWidth(card_name), translate(card_name));
         button->setObjectName(card_name);
-        button->setParentItem(this);
 
         buttons[card_name] = button;
 
@@ -94,21 +82,22 @@ void SelectBox::popup()
             original_tooltip = QString(":%1").arg(card_name);
             tooltip = Sanguosha->translate(original_tooltip);
         }
-        connect(button, &Button::clicked, this, &SelectBox::reply);
+        connect(button, &QSanButton::clicked, this, &SelectBox::reply);
         if (tooltip != original_tooltip)
             button->setToolTip(tooltip);
     }
 
-    moveToCenter();
-    moveBy(0, 125);
+    const QRectF rect = boundingRect();
+    setPos(RoomSceneInstance->tableCenterPos().x() - rect.width() / 2, RoomSceneInstance->tableCenterPos().y()*2 - 230);
+
+    setFlag(QGraphicsItem::ItemIsMovable, false);
     show();
-    int tempinterval = getInterval();
-    int x = tempinterval;
+    int x = interval;
 
     foreach (const QString &card_name, options) {
         QPointF apos;
         apos.setX(x);
-        x += (tempinterval + getButtonWidth(card_name));
+        x += (interval + getButtonWidth(card_name));
         apos.setY(0);
         buttons[card_name]->setPos(apos);
     }
@@ -135,7 +124,7 @@ void SelectBox::clear()
     if (!isVisible())
         return;
 
-    foreach(Button *button, buttons.values())
+    foreach(QSanButton *button, buttons.values())
         button->deleteLater();
 
     buttons.values().clear();

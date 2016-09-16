@@ -2,8 +2,7 @@
 #define SELECTBOX
 
 #include "graphicsbox.h"
-#include "title.h"
-#include "button.h"
+#include "qsanbutton.h"
 
 class SelectBox : public GraphicsBox
 {
@@ -29,7 +28,6 @@ protected:
 
     bool isButtonEnable(const QString &card) const;
 
-    int getInterval() const;
     int getButtonWidth(const QString &card) const;
 
     QString translate(const QString &option) const;
@@ -39,11 +37,10 @@ protected:
 
     QMap<QString, QStringList> card_list;
 
-    QMap<QString, Button *> buttons;
+    QMap<QString, QSanButton *> buttons;
 
     static const int defaultButtonHeight;
-    static const int minInterval;
-    static const int maxInterval;
+    static const int interval;
     static const int defaultBoundingWidth;
 };
 

@@ -275,6 +275,8 @@ public:
         QSize m_promptInfoSize;
         QSanShadowTextFont m_promptInfoFont;
 
+        QSanShadowTextFont m_choiceInfoFont;
+
         QSanShadowTextFont m_hpFont[6];
         int m_hpExtraSpaceHolder;
 
@@ -350,7 +352,6 @@ public:
     QPixmap getCardFramePixmap(const QString &frameType) const;
     QPixmap getCardAvatarPixmap(const QString &generalName) const;
     QPixmap getGeneralPixmap(const QString &generalName, GeneralIconSize size, const int skinId = 0) const;
-    QPixmap getCardTinyPixmap(const QString &card_object_name) const;
     QString getPlayerAudioEffectPath(const QString &eventName, bool isMale, int index = -1) const;
     QString getPlayerAudioEffectPath(const QString &eventName, const QString &category, int index = -1, const Player *player = NULL) const;
     QPixmap getProgressBarPixmap(int percentile) const;
@@ -417,8 +418,7 @@ public:
     static const char *S_SKIN_KEY_PROGRESS_BAR_IMAGE;
     static const char *S_SKIN_KEY_GENERAL_CIRCLE_IMAGE;
     static const char *S_SKIN_KEY_GENERAL_CIRCLE_MASK;
-
-    static const char *S_SKIN_KEY_CARD_TINY_ICON;
+    static const char *S_SKIN_KEY_SKILL_NAME_BG;
 
     // Animations
     static const char *S_SKIN_KEY_ANIMATIONS;

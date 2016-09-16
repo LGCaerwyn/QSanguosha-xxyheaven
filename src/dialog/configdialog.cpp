@@ -28,9 +28,6 @@ ConfigDialog::ConfigDialog(QWidget *parent)
 
     ui->enableBgMusicCheckBox->setChecked(Config.EnableBgMusic);
 
-    bool enabled_full = QFile::exists("skins/fulldefaultSkin.layout.json");
-    ui->fullSkinCheckBox->setEnabled(enabled_full);
-    ui->fullSkinCheckBox->setChecked(enabled_full && Config.value("UseFullSkin", true).toBool());
     ui->noIndicatorCheckBox->setChecked(Config.value("NoIndicator", false).toBool());
     ui->noEquipAnimCheckBox->setChecked(Config.value("NoEquipAnim", false).toBool());
 
@@ -126,7 +123,6 @@ void ConfigDialog::saveConfig()
     Config.EnableBgMusic = enabled;
     Config.setValue("EnableBgMusic", enabled);
 
-    Config.setValue("UseFullSkin", ui->fullSkinCheckBox->isChecked());
     Config.setValue("NoIndicator", ui->noIndicatorCheckBox->isChecked());
     Config.setValue("NoEquipAnim", ui->noEquipAnimCheckBox->isChecked());
 

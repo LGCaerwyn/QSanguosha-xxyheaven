@@ -950,8 +950,7 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
     AI *ai = player->getAI();
     if (ai) {
         invoked = ai->askForSkillInvoke(skill_name, data);
-        if ((skill_name != "shefu_cancel" && skill_name != "skill_ask" && skill_name != "skill_ask_to") || invoked)
-            thread->delay();
+        thread->delay();
     } else {
         JsonArray skillCommand;
         if (data.type() == QVariant::String)
@@ -990,10 +989,13 @@ bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, co
     return invoked;
 }
 
-QString Room::askForChoice(ServerPlayer *player, const QString &skill_name, const QString &choices, const QVariant &data)
+QString Room::askForChoice(ServerPlayer *player, const QString &skill_name, const QString &choices, const QVariant &data, const QString &prompt, QString all_choices)
 {
     tryPause();
     notifyMoveFocus(player, S_COMMAND_MULTIPLE_CHOICE);
+
+    if (all_choices.isEmpty())
+        all_choices = choices;
 
     QStringList validChoices = choices.split("+");
 
@@ -1001,20 +1003,20 @@ QString Room::askForChoice(ServerPlayer *player, const QString &skill_name, cons
 
     AI *ai = player->getAI();
     QString answer;
-    if (validChoices.size() == 1)
-        answer = validChoices.first();
-    else {
-        if (ai) {
+
+    if (ai) {
+        if (validChoices.size() == 1)
+            answer = validChoices.first();
+        else
             answer = ai->askForChoice(skill_name, choices, data);
-            thread->delay();
-        } else {
-            bool success = doRequest(player, S_COMMAND_MULTIPLE_CHOICE, JsonArray() << skill_name << choices, true);
-            QVariant clientReply = player->getClientReply();
-            if (!success || !clientReply.canConvert(QVariant::String))
-                answer = "cancel";
-            else
-                answer = clientReply.toString();
-        }
+        thread->delay();
+    } else {
+        bool success = doRequest(player, S_COMMAND_MULTIPLE_CHOICE, JsonArray() << skill_name << choices << prompt << all_choices, true);
+        QVariant clientReply = player->getClientReply();
+        if (!success || !clientReply.canConvert(QVariant::String))
+            answer = "cancel";
+        else
+            answer = clientReply.toString();
     }
 
     if (!validChoices.contains(answer))
@@ -5058,6 +5060,8 @@ void Room::activate(ServerPlayer *player, CardUseStruct &card_use)
         return;
     }
 
+    thread->trigger(PlayCard, this, player);
+
     notifyMoveFocus(player, S_COMMAND_PLAY_CARD);
 
     _m_roomState.setCurrentCardUsePattern(QString());
@@ -5405,21 +5409,20 @@ const Card *Room::askForExchange(ServerPlayer *player, const QString &reason, in
 
     if (player->isNude()) return NULL;
 
-    if (!optional && player->getCardCount(include_equip) <= min_num) {
-        DummyCard *card = new DummyCard;
-        QString flag = include_equip ? "he" : "h";
-        card->addSubcards(player->getCards(flag));
-        return card;
-    }
-
     QList<int> to_exchange;
     AI *ai = player->getAI();
     if (ai) {
+        thread->delay();
+        if (!optional && player->getCardCount(include_equip) <= min_num) {
+            DummyCard *card = new DummyCard;
+            QString flag = include_equip ? "he" : "h";
+            card->addSubcards(player->getCards(flag));
+            return card;
+        }
         // share the same callback interface
         player->setFlags("Global_AIDiscardExchanging");
         to_exchange = ai->askForDiscard(reason, discard_num, min_num, optional, include_equip, pattern);
         player->setFlags("-Global_AIDiscardExchanging");
-        thread->delay();
     } else {
         JsonArray exchange_str;
         exchange_str << discard_num;

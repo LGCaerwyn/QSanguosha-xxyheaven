@@ -39,7 +39,7 @@ public:
         Room *room = caocao->getRoom();
         QVariant data = QVariant::fromValue(damage);
 		QStringList choices;
-        choices << "draw";
+        choices << "draw" << "cancel";
 
         const Card *card = damage.card;
         if (card) {
@@ -59,24 +59,21 @@ public:
                 if (all_place_table) choices.append("obtain");
             }
         }
-		choices << "cancel";
-        if (room->askForSkillInvoke(caocao, "skill_ask", "prompt:::" + objectName())){
-		    QString choice = room->askForChoice(caocao, objectName(), choices.join("+"), data);
-            if (choice != "cancel") {
-                LogMessage log;
-                log.type = "#InvokeSkill";
-                log.from = caocao;
-                log.arg = objectName();
-                room->sendLog(log);
+        QString choice = room->askForChoice(caocao, objectName(), choices.join("+"), data, QString(), "draw+obtain+cancel");
+        if (choice != "cancel") {
+            LogMessage log;
+            log.type = "#InvokeSkill";
+            log.from = caocao;
+            log.arg = objectName();
+            room->sendLog(log);
 
-                room->notifySkillInvoked(caocao, objectName());
-                caocao->broadcastSkillInvoke(objectName());
-                if (choice == "obtain")
-                    caocao->obtainCard(card);
-                else
-                    caocao->drawCards(1, objectName());
-            }
-		}
+            room->notifySkillInvoked(caocao, objectName());
+            caocao->broadcastSkillInvoke(objectName());
+            if (choice == "obtain")
+                caocao->obtainCard(card);
+            else
+                caocao->drawCards(1, objectName());
+        }
     }
 };
 

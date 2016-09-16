@@ -132,17 +132,11 @@ class RoomScene : public QGraphicsScene
     Q_OBJECT
 
 public:
-    enum ShefuAskState
-    {
-        ShefuAskAll, ShefuAskNecessary, ShefuAskNone
-    };
-
     RoomScene(QMainWindow *main_window);
     ~RoomScene();
     void changeTextEditBackground();
     void adjustItems();
     void showIndicator(const QString &from, const QString &to);
-    void showPromptBox();
     static void FillPlayerNames(QComboBox *ComboBox, bool add_none);
     void updateTable();
     void updateVolumeConfig();
@@ -177,7 +171,6 @@ public:
     }
 
     bool m_skillButtonSank;
-    ShefuAskState m_ShefuAskState;
 
 public slots:
     void addPlayer(ClientPlayer *player);
@@ -193,7 +186,7 @@ public slots:
     void chooseCard(const ClientPlayer *playerName, const QString &flags, const QString &reason,
         bool handcard_visible, Card::HandlingMethod method, QList<int> disabled_ids, QList<int> handcards, int min_num, int max_num);
     void chooseKingdom(const QStringList &kingdoms);
-    void chooseOption(const QString &skillName, const QStringList &options);
+    void chooseOption(const QString &skillName, const QStringList &options, const QStringList &all_options);
     void chooseOrder(QSanProtocol::Game3v3ChooseOrderCommand reason);
     void chooseRole(const QString &scheme, const QStringList &roles);
     void chooseDirection();

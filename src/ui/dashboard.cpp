@@ -66,7 +66,6 @@ Dashboard::Dashboard(QGraphicsPixmapItem *widget)
     connect(_m_smallAvatarIcon, &GraphicsPixmapHoverItem::skin_changing_finished, this, &Dashboard::onSkinChangingFinished);
 
     _m_sort_menu = new QMenu(RoomSceneInstance->mainWindow());
-    _m_shefu_menu = new QMenu(RoomSceneInstance->mainWindow());
 }
 
 bool Dashboard::isAvatarUnderMouse()
@@ -79,7 +78,6 @@ void Dashboard::hideControlButtons()
     m_trustButton->hide();
     m_btnReverseSelection->hide();
     m_btnSortHandcard->hide();
-    m_btnShefu->hide();
 }
 
 void Dashboard::showControlButtons()
@@ -277,17 +275,10 @@ void Dashboard::_paintRightFrame()
 
     _paintPixmap(_m_rightFrame, QRect(0, 0, rect.width(), rect.height()), rightFramePixmap, _m_groupMain);
 
-    if (Config.value("UseFullSkin", true).toBool()) {
-        _m_skillDock->setPos(G_DASHBOARD_LAYOUT.m_skillDockLeftMargin,
-                             rightFrameHeight - G_DASHBOARD_LAYOUT.m_skillDockBottomMargin);
-        _m_skillDock->setWidth(rightFrameWidth - G_DASHBOARD_LAYOUT.m_skillDockRightMargin);
-    }
-    else {
-        QRect avatar = G_DASHBOARD_LAYOUT.m_avatarArea;
-        _m_skillDock->setPos(avatar.left(), avatar.bottom() +
-                             G_DASHBOARD_LAYOUT.m_skillButtonsSize[0].height());
-        _m_skillDock->setWidth(avatar.width());
-    }
+    _m_skillDock->setPos(G_DASHBOARD_LAYOUT.m_skillDockLeftMargin,
+                         rightFrameHeight - G_DASHBOARD_LAYOUT.m_skillDockBottomMargin);
+    _m_skillDock->setWidth(rightFrameWidth - G_DASHBOARD_LAYOUT.m_skillDockRightMargin);
+
 }
 
 void Dashboard::setTrust(bool trust)
@@ -567,8 +558,6 @@ QSanSkillButton *Dashboard::addSkillButton(const QString &skillName)
     const Skill *skill = Sanguosha->getSkill(skillName);
     Q_ASSERT(skill && !skill->inherits("WeaponSkill") && !skill->inherits("ArmorSkill") && !skill->inherits("TreasureSkill"));
 #endif
-    if (skillName == "shefu")
-        m_btnShefu->show();
     return _m_skillDock->addSkillButtonByName(skillName);
 }
 
@@ -588,8 +577,6 @@ QSanSkillButton *Dashboard::removeSkillButton(const QString &skillName)
     }
     _mutexEquipAnim.unlock();
     if (btn == NULL) {
-        if (skillName == "shefu")
-            m_btnShefu->hide();
         btn = _m_skillDock->removeSkillButtonByName(skillName);
     }
     return btn;
@@ -615,7 +602,6 @@ void Dashboard::_createExtraButtons()
     m_btnSortHandcard = new QSanButton("handcard", "sort", this);
     m_btnNoNullification = new QSanButton("handcard", "nullification", this);
     m_btnNoNullification->setStyle(QSanButton::S_STYLE_TOGGLE);
-    m_btnShefu = new QSanButton("handcard", "shefu", this);
     // @todo: auto hide.
     qreal pos = 0, height = 24-m_trustButton->boundingRect().height();
     m_trustButton->setPos(pos, height);
@@ -623,19 +609,13 @@ void Dashboard::_createExtraButtons()
     m_btnReverseSelection->setPos(pos, height);
     pos += m_btnReverseSelection->boundingRect().right();
     m_btnSortHandcard->setPos(pos, height);
-    pos += m_btnSortHandcard->boundingRect().right();
-    m_btnNoNullification->setPos(pos, height);
-    pos += m_btnNoNullification->boundingRect().right();
-    m_btnShefu->setPos(pos, height);
 
     m_btnNoNullification->hide();
-    m_btnShefu->hide();
     connect(m_trustButton, &QSanButton::clicked, RoomSceneInstance, &RoomScene::trust);
     connect(Self, &ClientPlayer::state_changed, this, &Dashboard::updateTrustButton);
     connect(m_btnReverseSelection, SIGNAL(clicked()), this, SLOT(reverseSelection()));
     connect(m_btnSortHandcard, SIGNAL(clicked()), this, SLOT(sortCards()));
     connect(m_btnNoNullification, SIGNAL(clicked()), this, SLOT(cancelNullification()));
-    connect(m_btnShefu, SIGNAL(clicked()), this, SLOT(setShefuState()));
     m_trustButton->setEnabled(false);
 }
 
@@ -1095,55 +1075,6 @@ void Dashboard::controlNullificationButton(bool show)
     if (ClientInstance->getReplayer()) return;
     m_btnNoNullification->setState(QSanButton::S_STATE_UP);
     m_btnNoNullification->setVisible(show);
-}
-
-void Dashboard::setShefuState()
-{
-    QMenu *menu = _m_shefu_menu;
-    menu->clear();
-    menu->setTitle(tr("Shefu"));
-
-    foreach (QString mark_name, Self->getMarkNames()) {
-        if (mark_name.startsWith("Shefu_")) {
-            int id = Self->getMark(mark_name) - 1;
-            if (id == -1) continue;
-            const Card *c = Sanguosha->getCard(id);
-            QString card_name = mark_name.mid(6);
-            QString name = QString("%1 [%2]").arg(c->getFullName()).arg(Sanguosha->translate(card_name));
-            menu->addAction(G_ROOM_SKIN.getCardSuitPixmap(c->getSuit()), name);
-        }
-    }
-
-    menu->addSeparator();
-
-    QAction *action1 = menu->addAction(tr("Shefu Ask All"));
-    action1->setData((int)RoomScene::ShefuAskAll);
-    action1->setCheckable(true);
-    action1->setChecked(RoomSceneInstance->m_ShefuAskState == RoomScene::ShefuAskAll);
-
-    QAction *action2 = menu->addAction(tr("Shefu Ask Necessary"));
-    action2->setData((int)RoomScene::ShefuAskNecessary);
-    action2->setCheckable(true);
-    action2->setChecked(RoomSceneInstance->m_ShefuAskState == RoomScene::ShefuAskNecessary);
-
-    QAction *action3 = menu->addAction(tr("Shefu Ask None"));
-    action3->setData((int)RoomScene::ShefuAskNone);
-    action3->setCheckable(true);
-    action3->setChecked(RoomSceneInstance->m_ShefuAskState == RoomScene::ShefuAskNone);
-
-    connect(action1, SIGNAL(triggered()), this, SLOT(changeShefuState()));
-    connect(action2, SIGNAL(triggered()), this, SLOT(changeShefuState()));
-    connect(action3, SIGNAL(triggered()), this, SLOT(changeShefuState()));
-
-    QPointF posf = QCursor::pos();
-    menu->popup(QPoint(posf.x(), posf.y()));
-}
-
-void Dashboard::changeShefuState()
-{
-    QAction *action = qobject_cast<QAction *>(sender());
-    Q_ASSERT(action);
-    RoomSceneInstance->m_ShefuAskState = (RoomScene::ShefuAskState)(action->data().toInt());
 }
 
 void Dashboard::disableAllCards()

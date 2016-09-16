@@ -1480,10 +1480,20 @@ void Client::askForKingdom(const QVariant &)
 void Client::askForChoice(const QVariant &ask_str)
 {
     JsonArray ask = ask_str.value<JsonArray>();
-    if (!JsonUtils::isStringArray(ask, 0, 1)) return;
+    if (!JsonUtils::isStringArray(ask, 0, 3)) return;
     QString skill_name = ask[0].toString();
     QStringList options = ask[1].toString().split("+");
-    emit options_got(skill_name, options);
+    QString prompt = ask[2].toString();
+    QStringList all_options = ask[3].toString().split("+");
+
+    if (prompt.isEmpty()) {
+        prompt_doc->setHtml(tr("%1: please choose a operation").arg(Sanguosha->translate(skill_name)));
+    } else {
+        QStringList texts = prompt.split(":");
+        setPromptList(texts);
+    }
+
+    emit options_got(skill_name, options, all_options);
     setStatus(AskForChoice);
 }
 
@@ -1946,7 +1956,6 @@ void Client::askForPlayerChosen(const QVariant &players)
 	skill_to_invoke = skill_name;
 
     QString text;
-    QString description = Sanguosha->translate(ClientInstance->skill_name);
     QString prompt = args[2].toString();
     if (!prompt.isEmpty()) {
         QStringList texts = prompt.split(":");

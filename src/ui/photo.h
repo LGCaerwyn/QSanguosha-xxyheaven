@@ -105,10 +105,15 @@ protected:
     FrameType _m_frameType;
     QGraphicsPixmapItem *_m_mainFrame;
     Sprite *emotion_item;
-    QGraphicsPixmapItem *_m_skillNameItem;
     QGraphicsPixmapItem *_m_focusFrame;
     QGraphicsPixmapItem *_m_onlineStatusItem;
     QGraphicsRectItem *_m_duanchangMask;
+
+    QList<QString> skill_names;
+    QGraphicsProxyWidget *_m_skillNameRegion;
+    QLabel *_m_skillNameLabel;
+    QParallelAnimationGroup *_m_skillNameAnim;
+    QMutex _mutexSkillNameAnim;
 };
 
 #endif

@@ -83,7 +83,6 @@ RoomScene::RoomScene(QMainWindow *main_window)
     _m_commonLayout = &(G_ROOM_SKIN.getCommonLayout());
 
     m_skillButtonSank = false;
-    m_ShefuAskState = ShefuAskNecessary;
 
     current_guhuo_box = NULL;
 
@@ -772,10 +771,8 @@ void RoomScene::adjustItems()
     // switch between default & compact skin depending on scene size
     QSanSkinFactory &factory = QSanSkinFactory::getInstance();
 
-    bool use_full = Config.value("UseFullSkin", true).toBool();
-    QString suf = use_full ? "full" : QString();
-    factory.S_DEFAULT_SKIN_NAME = suf + "default";
-    factory.S_COMPACT_SKIN_NAME = suf + "compact";
+    factory.S_DEFAULT_SKIN_NAME = "fulldefault";
+    factory.S_COMPACT_SKIN_NAME = "fullcompact";
 
     QString skinName = factory.getCurrentSkinName();
 
@@ -1035,15 +1032,8 @@ void RoomScene::updateTable()
     m_chooseOptionsBox->setPos(m_tableCenterPos - QPointF(m_chooseOptionsBox->boundingRect().width() / 2, m_chooseOptionsBox->boundingRect().height() / 2));
     m_playerCardBox->setPos(m_tableCenterPos);
 
-    if (NULL != prompt_box_widget) {
-        QRectF promptBoxRect = prompt_box_widget->boundingRect();
-        int promptBoxWidth = promptBoxRect.width();
-        int promptBoxHeight = promptBoxRect.height();
-        QRectF progressBarRect = dashboard->getProgressBarSceneBoundingRect();
-        int xShift = (promptBoxWidth - progressBarRect.width()) / 2;
-        prompt_box_widget->setPos(progressBarRect.x() - xShift,
-            progressBarRect.y() - promptBoxHeight);
-    }
+    if (NULL != prompt_box_widget)
+        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 300);
 
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
     pausing_item->setRect(sceneRect());
@@ -1693,12 +1683,12 @@ void RoomScene::chooseKingdom(const QStringList &kingdoms)
     m_choiceDialog = dialog;
 }
 
-void RoomScene::chooseOption(const QString &skillName, const QStringList &options)
+void RoomScene::chooseOption(const QString &skillName, const QStringList &options, const QStringList &all_options)
 {
     QApplication::alert(main_window);
 
     m_chooseOptionsBox->setSkillName(skillName);
-    m_chooseOptionsBox->chooseOption(options);
+    m_chooseOptionsBox->chooseOption(options, all_options);
 }
 
 void RoomScene::chooseCard(const ClientPlayer *player, const QString &flags, const QString &reason,
@@ -2490,11 +2480,6 @@ void RoomScene::doTimeout()
     }
 }
 
-void RoomScene::showPromptBox()
-{
-
-}
-
 void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
 {
     foreach (QSanSkillButton *button, m_skillButtons) {
@@ -2550,6 +2535,7 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
 			break;
         }
         case Client::AskForChoice: {
+            prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 300);
             m_chooseOptionsBox->clear();
             break;
         }
@@ -2578,7 +2564,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         break;
     }
     case Client::Responding: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2634,7 +2619,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         break;
     }
     case Client::AskForShowOrPindian: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(false);
@@ -2656,7 +2640,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
     }
     case Client::Discarding:
     case Client::Exchanging: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2682,16 +2665,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
     }
     case Client::AskForSkillInvoke: {
         QString skill_name = ClientInstance->getSkillNameToInvoke();
-		bool can_ok = true;
-        if (skill_name == "shefu_cancel") {
-            QString data = ClientInstance->getSkillNameToInvokeData().split(":").last();
-            if (m_ShefuAskState == ShefuAskNone || (m_ShefuAskState == ShefuAskNecessary && Self->getMark("Shefu_" + data) == 0)) {
-                ClientInstance->onPlayerInvokeSkill(false);
-                return;
-            } else if (m_ShefuAskState == ShefuAskAll && Self->getMark("Shefu_" + data) == 0) {
-				can_ok = false;
-			}
-        }
         dashboard->highlightEquip(skill_name, true);
         foreach (QSanSkillButton *button, m_skillButtons) {
             if (button->getSkill()->objectName() == skill_name) {
@@ -2703,14 +2676,12 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
             }
         }
 
-        showPromptBox();
-        ok_button->setEnabled(can_ok);
+        ok_button->setEnabled(true);
         cancel_button->setEnabled(true);
         discard_button->setEnabled(false);
         break;
     }
     case Client::AskForPlayerChoose: {
-        showPromptBox();
 
         ok_button->setEnabled(false);
         cancel_button->setEnabled(ClientInstance->m_isDiscardActionRefusable);
@@ -2743,8 +2714,6 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         yiji_skill->setPlayerNames(yiji_info.last().split("+"));
         dashboard->startPending(yiji_skill);
 
-        showPromptBox();
-
         break;
     }
     case Client::AskForMoveCards:{
@@ -2761,11 +2730,17 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
 
         break;
     }
+    case Client::AskForChoice: {
+        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 340);
+        ok_button->setEnabled(false);
+        cancel_button->setEnabled(false);
+        discard_button->setEnabled(false);
+        break;
+    }
 	case Client::AskForGeneralChosen:
     case Client::AskForGeneralTaken:
     case Client::AskForArrangement:
-    case Client::AskForChoice:
-	case Client::AskForCardChosen: {
+    case Client::AskForCardChosen: {
         ok_button->setEnabled(false);
         cancel_button->setEnabled(false);
         discard_button->setEnabled(false);

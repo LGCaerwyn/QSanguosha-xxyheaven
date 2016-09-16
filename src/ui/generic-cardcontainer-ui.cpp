@@ -590,7 +590,9 @@ void PlayerCardContainer::updateHandcardNum()
     int num = 0;
     if (m_player && m_player->getGeneral()) num = m_player->getHandcardNum();
     Q_ASSERT(num >= 0);
-    _m_layout->m_handCardFont.paintText(_m_handCardNumText, _m_layout->m_handCardArea,
+    QRect handCardArea = _m_layout->m_handCardArea;
+    handCardArea.adjust(0,-4,0,-4);
+    _m_layout->m_handCardFont.paintText(_m_handCardNumText, handCardArea,
         Qt::AlignCenter, QString::number(num));
     _m_handCardNumText->setVisible(true);
 }
@@ -966,14 +968,12 @@ void PlayerCardContainer::startHuaShen(QString generalName, QString skillName)
     stopHuaShen();
     _m_huashenAnimation = G_ROOM_SKIN.createHuaShenAnimation(pixmap, animRect.topLeft(), _getAvatarParent(), _m_huashenItem);
     _m_huashenAnimation->start();
-    _paintPixmap(_m_extraSkillBg, _m_layout->m_extraSkillArea, QSanRoomSkin::S_SKIN_KEY_EXTRA_SKILL_BG, _getAvatarParent());
-    if (!skillName.isEmpty())
-        _m_extraSkillBg->show();
-    _m_layout->m_extraSkillFont.paintText(_m_extraSkillText, _m_layout->m_extraSkillTextArea, Qt::AlignCenter,
-        Sanguosha->translate(skillName).left(2));
-    if (!skillName.isEmpty()) {
-        _m_extraSkillText->show();
-        _m_extraSkillBg->setToolTip(Sanguosha->getSkill(skillName)->getDescription());
+    if (getResourceKeyName() == "photo") {
+        _m_layout->m_extraSkillFont.paintText(_m_extraSkillText, _m_layout->m_extraSkillTextArea, Qt::AlignCenter,
+            Sanguosha->translate(skillName).left(2));
+        if (!skillName.isEmpty()) {
+            _m_extraSkillText->show();
+        }
     }
     _adjustComponentZValues();
 }
@@ -986,7 +986,6 @@ void PlayerCardContainer::stopHuaShen()
         delete _m_huashenItem;
         _m_huashenAnimation = NULL;
         _m_huashenItem = NULL;
-        _clearPixmap(_m_extraSkillBg);
         _clearPixmap(_m_extraSkillText);
     }
 }
@@ -1030,7 +1029,6 @@ PlayerCardContainer::PlayerCardContainer()
 
     _m_huashenItem = NULL;
     _m_huashenAnimation = NULL;
-    _m_extraSkillBg = NULL;
     _m_extraSkillText = NULL;
 
     _m_floatingArea = NULL;
@@ -1116,7 +1114,6 @@ void PlayerCardContainer::_adjustComponentZValues(bool killed)
     for (int i = 0; i < 5; i++)
         _layUnder(_m_equipRegions[i]);
     _layUnder(_m_extraSkillText);
-    _layUnder(_m_extraSkillBg);
     _layUnder(_m_backgroundFrame);
     _layUnder(_m_selectedFrame);
     _layUnder(_m_faceTurnedIcon);

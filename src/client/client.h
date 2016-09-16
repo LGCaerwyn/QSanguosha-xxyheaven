@@ -313,7 +313,7 @@ signals:
     void generals_got(const QStringList &generals, bool single_result, const QString &reason, bool convert_enabled);
     void kingdoms_got(const QStringList &kingdoms);
     void suits_got(const QStringList &suits);
-    void options_got(const QString &skillName, const QStringList &options);
+    void options_got(const QString &skillName, const QStringList &options, const QStringList &all_options);
     void cards_got(const ClientPlayer *player, const QString &flags, const QString &reason, bool handcard_visible,
         Card::HandlingMethod method, QList<int> disabled_ids, QList<int> handcards, int min_num, int max_num);
     void roles_got(const QString &scheme, const QStringList &roles);

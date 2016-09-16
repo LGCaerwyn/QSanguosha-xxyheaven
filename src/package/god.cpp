@@ -413,26 +413,28 @@ public:
         QList<ServerPlayer *> all_players = room->getAllPlayers();
         foreach (ServerPlayer *player, all_players) {
             if (player->isWounded()) {
-                choices.prepend("up");
+                choices.append("up");
                 break;
             }
         }
-		if (room->askForSkillInvoke(shenzhouyu, "skill_ask", "prompt:::" + objectName())){
-            QString result = room->askForChoice(shenzhouyu, objectName(), choices.join("+"));
-            if (result == "cancel")
-                return;
-            else
-                room->notifySkillInvoked(shenzhouyu, "qinyin");
-            if (result == "up") {
-                shenzhouyu->broadcastSkillInvoke(objectName(), 1);
-                foreach(ServerPlayer *player, all_players)
-                    room->recover(player, RecoverStruct(shenzhouyu));
-            } else if (result == "down") {
-                shenzhouyu->broadcastSkillInvoke(objectName(), 2);
-                foreach(ServerPlayer *player, all_players)
-                    room->loseHp(player);
-            }
-		}
+        QString result = room->askForChoice(shenzhouyu, objectName(), choices.join("+"), QVariant(), QString(), "up+down+cancel");
+        if (result == "cancel")
+            return;
+        LogMessage log;
+        log.type = "#InvokeSkill";
+        log.from = shenzhouyu;
+        log.arg = objectName();
+        room->sendLog(log);
+        room->notifySkillInvoked(shenzhouyu, objectName());
+        if (result == "up") {
+            shenzhouyu->broadcastSkillInvoke(objectName(), 1);
+            foreach(ServerPlayer *player, all_players)
+                room->recover(player, RecoverStruct(shenzhouyu));
+        } else if (result == "down") {
+            shenzhouyu->broadcastSkillInvoke(objectName(), 2);
+            foreach(ServerPlayer *player, all_players)
+                room->loseHp(player);
+        }
     }
 
     virtual bool trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *shenzhouyu, QVariant &data) const

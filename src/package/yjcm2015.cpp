@@ -312,7 +312,7 @@ void HuaiyiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) 
     if (reds.isEmpty() || blacks.isEmpty())
         return;
 
-    QString to_discard = room->askForChoice(source, "huaiyi", "black+red");
+    QString to_discard = room->askForChoice(source, "huaiyi", "black+red", QVariant(), "@huaiyi-choose");
     QList<int> *pile = NULL;
     if (to_discard == "black")
         pile = &blacks;

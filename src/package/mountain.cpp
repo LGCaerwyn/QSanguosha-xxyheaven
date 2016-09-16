@@ -418,7 +418,7 @@ public:
         frequency = Frequent;
     }
 
-    virtual bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *sunce, QVariant &data) const
+    virtual bool trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *sunce, QVariant &data) const
     {
         CardUseStruct use = data.value<CardUseStruct>();
 		if (use.card->isKindOf("Duel") || (use.card->isKindOf("Slash") && use.card->isRed())) {

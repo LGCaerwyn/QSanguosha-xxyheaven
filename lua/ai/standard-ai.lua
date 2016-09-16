@@ -1,6 +1,3 @@
-sgs.ai_skill_invoke.skill_ask = true
-sgs.ai_skill_invoke.skill_ask_to = true
-
 sgs.ai_skill_invoke.jianxiong = function(self, data)
 	if self.jianxiong then self.jianxiong = nil return true end
 	return not self:needKongcheng(self.player, true)

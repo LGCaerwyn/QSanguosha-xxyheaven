@@ -181,7 +181,7 @@ function sgs.ai_skill_invoke.zhenlie(self, data)
 	return false
 end
 
-sgs.ai_skill_choice.miji_draw = function(self, choices)
+sgs.ai_skill_choice.miji = function(self, choices)
 	return "" .. self.player:getLostHp()
 end
 

@@ -45,7 +45,15 @@ Photo::Photo() : PlayerCardContainer()
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
     setTransform(QTransform::fromTranslate(-G_PHOTO_LAYOUT.m_normalWidth / 2, -G_PHOTO_LAYOUT.m_normalHeight / 2), true);
-    _m_skillNameItem = new QGraphicsPixmapItem(_m_groupMain);
+
+    _m_skillNameLabel = new QLabel;
+    _m_skillNameLabel->setStyleSheet("QLabel { background-color: transparent; }");
+    _m_skillNameRegion = new QGraphicsProxyWidget();
+    _m_skillNameRegion->setWidget(_m_skillNameLabel);
+    _m_skillNameRegion->setPos(G_PHOTO_LAYOUT.m_skillNameArea.topLeft());
+    _m_skillNameRegion->setParentItem(this);
+    _m_skillNameRegion->hide();
+    _m_skillNameAnim = new QParallelAnimationGroup(this);
 
     emotion_item = new Sprite(_m_groupMain);
 
@@ -113,7 +121,7 @@ void Photo::_adjustComponentZValues(bool killed)
     PlayerCardContainer::_adjustComponentZValues(killed);
     _layBetween(_m_mainFrame, _m_faceTurnedIcon, _m_equipRegions[3]);
     _layBetween(emotion_item, _m_chainIcon, _m_roleComboBox);
-    _layBetween(_m_skillNameItem, _m_chainIcon, _m_roleComboBox);
+    _layBetween(_m_skillNameRegion, _m_chainIcon, _m_roleComboBox);
     _m_progressBarItem->setZValue(_m_groupMain->zValue() + 1);
 }
 
@@ -164,17 +172,66 @@ void Photo::tremble()
 
 void Photo::showSkillName(const QString &skill_name)
 {
-    G_PHOTO_LAYOUT.m_skillNameFont.paintText(_m_skillNameItem,
-        G_PHOTO_LAYOUT.m_skillNameArea,
-        Qt::AlignCenter,
-        Sanguosha->translate(skill_name));
-    _m_skillNameItem->show();
-    QTimer::singleShot(1000, this, SLOT(hideSkillName()));
+    QRect rect = G_PHOTO_LAYOUT.m_skillNameArea;
+    QPixmap bg = _getPixmap(QSanRoomSkin::S_SKIN_KEY_SKILL_NAME_BG);
+    QPixmap pixmap(rect.size());
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.drawPixmap((rect.width()-bg.size().width())/2, rect.height()-bg.size().height(), bg.size().width(), bg.size().height(), bg);
+
+    G_PHOTO_LAYOUT.m_skillNameFont.paintText(&painter, QRect(0,0,rect.width(),rect.height()), Qt::AlignCenter, Sanguosha->translate(skill_name));
+
+    _m_skillNameRegion->setWidget(NULL);
+    _m_skillNameLabel = new QLabel;
+    _m_skillNameLabel->setStyleSheet("QLabel { background-color: transparent; }");
+    _m_skillNameLabel->setPixmap(pixmap);
+    _m_skillNameRegion->setWidget(_m_skillNameLabel);
+
+    _mutexSkillNameAnim.lock();
+    _m_skillNameRegion->setZValue(10000);
+    _m_skillNameRegion->setPos(rect.topLeft() - QPoint(50, 0));
+    _m_skillNameRegion->setOpacity(0);
+    _m_skillNameRegion->show();
+    _m_skillNameAnim->stop();
+    _m_skillNameAnim->clear();
+    QPropertyAnimation *anim = new QPropertyAnimation(_m_skillNameRegion, "pos");
+    anim->setEndValue(rect.topLeft());
+    anim->setDuration(200);
+    _m_skillNameAnim->addAnimation(anim);
+    connect(anim, SIGNAL(finished()), anim, SLOT(deleteLater()));
+    anim = new QPropertyAnimation(_m_skillNameRegion, "opacity");
+    anim->setEndValue(255);
+    anim->setDuration(200);
+    _m_skillNameAnim->addAnimation(anim);
+    connect(anim, SIGNAL(finished()), anim, SLOT(deleteLater()));
+    _m_skillNameAnim->start();
+    _mutexSkillNameAnim.unlock();
+
+    skill_names << skill_name;
+    QTimer::singleShot(2000, this, SLOT(hideSkillName()));
 }
 
 void Photo::hideSkillName()
 {
-    _m_skillNameItem->hide();
+    if (!skill_names.isEmpty())
+        skill_names.removeFirst();
+    if (skill_names.isEmpty()) {
+        _mutexSkillNameAnim.lock();
+        _m_skillNameAnim->stop();
+        _m_skillNameAnim->clear();
+        QPropertyAnimation *anim = new QPropertyAnimation(_m_skillNameRegion, "pos");
+        anim->setEndValue(G_PHOTO_LAYOUT.m_skillNameArea.topLeft() + QPoint(50, 0));
+        anim->setDuration(200);
+        _m_skillNameAnim->addAnimation(anim);
+        connect(anim, SIGNAL(finished()), anim, SLOT(deleteLater()));
+        anim = new QPropertyAnimation(_m_skillNameRegion, "opacity");
+        anim->setEndValue(0);
+        anim->setDuration(200);
+        _m_skillNameAnim->addAnimation(anim);
+        connect(anim, SIGNAL(finished()), anim, SLOT(deleteLater()));
+        _m_skillNameAnim->start();
+        _mutexSkillNameAnim.unlock();
+    }
 }
 
 void Photo::hideEmotion()

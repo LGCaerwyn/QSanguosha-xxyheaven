@@ -994,6 +994,18 @@ sgs.ai_skill_cardask["@qiuyuan-give"] = function(self, data, pattern, target)
 	return "."
 end
 
+function sgs.ai_slash_prohibit.qiuyuan(self, from, to)
+	if self:isFriend(to, from) then return false end
+	for _, friend in ipairs(self:getFriendsNoself(from)) do
+		if self:isWeak(to) then
+			if self:isWeak(friend) then return true end
+		else
+			return true
+		end
+	end
+	return false
+end
+
 sgs.ai_skill_playerchosen.juece = function(self, targetlist)
 	local targets = sgs.QList2Table(targetlist)
 	self:sort(targets)
