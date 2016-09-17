@@ -196,6 +196,7 @@ public:
 
     void attachSkill(const QVariant &skill);
     void updateSkill(const QVariant &);
+    void setTurn(const QVariant &arg);
 
     inline virtual RoomState *getRoomState()
     {
@@ -389,6 +390,7 @@ signals:
     void start_in_xs();
 
     void skill_updated(const QString &skill_name);
+    void set_turn(int num);
 };
 
 extern Client *ClientInstance;

@@ -40,7 +40,7 @@ Room::Room(QObject *parent, const QString &mode)
     game_started(false), game_finished(false), game_paused(false), L(NULL), thread(NULL),
     thread_3v3(NULL), thread_xmode(NULL), thread_1v1(NULL), _m_semRaceRequest(0), _m_semRoomMutex(1),
     _m_raceStarted(false), provided(NULL), has_provided(false),
-    m_surrenderRequestReceived(false), _virtual(false), _m_roomState(false)
+    m_surrenderRequestReceived(false), _virtual(false), _m_roomState(false), m_turn(0)
 {
     static int s_global_room_id = 0;
     _m_Id = s_global_room_id++;
@@ -6956,6 +6956,19 @@ int Room::getBossModeExpMult(int level) const
         lua_pop(L, 1);
     }
     return res;
+}
+
+void Room::setTurn(int turn)
+{
+    m_turn = turn;
+    JsonArray arg;
+    arg << turn;
+    doBroadcastNotify(S_COMMAND_SET_TURN, arg);
+}
+
+void Room::incTurn()
+{
+    setTurn(m_turn + 1);
 }
 
 bool Room::isSkillValidForPlayer(const ServerPlayer *player, const Skill *skill)

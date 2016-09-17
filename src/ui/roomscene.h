@@ -171,6 +171,7 @@ public:
     }
 
     bool m_skillButtonSank;
+    void setTurn(int number);
 
 public slots:
     void addPlayer(ClientPlayer *player);
@@ -315,6 +316,7 @@ private:
     QPixmap m_rolesBoxBackground;
     QGraphicsPixmapItem *m_rolesBox;
     QGraphicsTextItem *m_pileCardNumInfoTextBox;
+    QGraphicsSimpleTextItem *turn_box;
 
     QGraphicsPixmapItem *m_tableBg;
     QPixmap m_tableBgPixmap;

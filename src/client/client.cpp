@@ -77,6 +77,7 @@ Client::Client(QObject *parent, const QString &filename)
     m_callbacks[S_COMMAND_CARD_FLAG] = &Client::setCardFlag;
     m_callbacks[S_COMMAND_MIRROR_GUANXING_STEP] = &Client::mirrorGuanxingStep;
     m_callbacks[S_COMMAND_MIRROR_MOVECARDS_STEP] = &Client::mirrorMoveCardsStep;
+    m_callbacks[S_COMMAND_SET_TURN] = &Client::setTurn;
 
     // interactive methods
     m_interactions[S_COMMAND_CHOOSE_GENERAL] = &Client::askForGeneral;
@@ -2315,4 +2316,14 @@ void Client::updateSkill(const QVariant &skill_name)
         return;
 
     emit skill_updated(skill_name.toString());
+}
+
+void Client::setTurn(const QVariant &arg)
+{
+    JsonArray args = arg.value<JsonArray>();
+    if (args.size() != 1) return;
+
+    int turn_num = args[0].toInt();
+
+    emit set_turn(turn_num);
 }

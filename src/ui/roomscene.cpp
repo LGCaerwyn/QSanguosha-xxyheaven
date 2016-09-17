@@ -196,6 +196,7 @@ RoomScene::RoomScene(QMainWindow *main_window)
     connect(ClientInstance, SIGNAL(start_in_xs()), this, SLOT(startInXs()));
 
     connect(ClientInstance, &Client::skill_updated, this, &RoomScene::updateSkill);
+    connect(ClientInstance, &Client::set_turn, this, &RoomScene::setTurn);
 
     m_guanxingBox = new GuanxingBox;
     m_guanxingBox->hide();
@@ -331,6 +332,15 @@ RoomScene::RoomScene(QMainWindow *main_window)
     prompt_box_widget = new PromptInfoItem();
     addItem(prompt_box_widget);
     prompt_box_widget->setDocument(ClientInstance->getPromptDoc());
+
+    turn_box = new QGraphicsSimpleTextItem(tr("%1Turn").arg(0));
+    QFont turn_font = Config.BigFont;
+    turn_font.setPixelSize(30);
+    turn_box->setFont(turn_font);
+    turn_box->setBrush(Qt::yellow);
+    turn_box->setZValue(1000);
+    turn_box->hide();
+    addItem(turn_box);
 
     m_tableBg = new QGraphicsPixmapItem;
     m_tableBg->setZValue(-100000);
@@ -1035,6 +1045,7 @@ void RoomScene::updateTable()
     if (NULL != prompt_box_widget)
         prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 300);
 
+    turn_box->setPos(_m_infoPlane.x() - turn_box->boundingRect().width(), 0);
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
     pausing_item->setRect(sceneRect());
     pausing_item->setPos(0, 0);
@@ -2971,6 +2982,17 @@ HeroSkinContainer *RoomScene::findHeroSkinContainer(const QString &generalName) 
 Dashboard *RoomScene::getDasboard() const
 {
     return dashboard;
+}
+
+void RoomScene::setTurn(int number)
+{
+    if (number == 0)
+        turn_box->hide();
+    else if (number > 0) {
+        turn_box->setText(tr("%1Turn").arg(number));
+        turn_box->setPos(_m_infoPlane.x() - turn_box->boundingRect().width(), 0);
+        turn_box->show();
+    }
 }
 
 void RoomScene::changeHp(const QString &who, int delta, DamageStruct::Nature, bool losthp)

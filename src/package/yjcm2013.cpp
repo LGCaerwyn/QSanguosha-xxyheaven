@@ -868,15 +868,10 @@ public:
 
             player->broadcastSkillInvoke(objectName());
             AskForMoveCardsStruct result = room->askForMoveCards(player, zongxuan_card, QList<int>(), true, objectName(), "", 0, zongxuan_card.length());
-            for (int i = result.bottom.length() - 1; i >= 0; i--)
-                room->getDrawPile().prepend(result.bottom.at(i));
-            room->doBroadcastNotify(QSanProtocol::S_COMMAND_UPDATE_PILE, QVariant(room->getDrawPile().length()));
-            if (!result.bottom.isEmpty()) {
-                LogMessage log;
-                log.type = "$GuanxingTop";
-                log.from = player;
-                log.card_str = IntList2StringList(result.bottom).join("+");
-                room->sendLog(log);
+            CardMoveReason reason(CardMoveReason::S_REASON_PUT, player->objectName(), objectName(), QString());
+            for (int i = result.bottom.length() - 1; i >= 0; i--) {
+                int card_id = result.bottom.at(i);
+                room->moveCardTo(Sanguosha->getCard(card_id), player, NULL, Player::DrawPile, reason);
             }
         }
         return false;

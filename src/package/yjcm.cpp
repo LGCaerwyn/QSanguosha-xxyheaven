@@ -47,7 +47,7 @@ public:
                     && move.to_place == Player::DiscardPile)
                     || (move.reason.m_reason != CardMoveReason::S_REASON_JUDGEDONE
                     && (move.from_places[i] == Player::PlaceHand || move.from_places[i] == Player::PlaceEquip))))
-					&& move.active_ids.contains(card_id))
+                    && move.active_ids.contains(card_id) && room->getDiscardPile().contains(card_id))
                     card_ids << card_id;
                 i++;
             }
