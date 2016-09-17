@@ -342,6 +342,7 @@ void CardItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if (auto_back) {
         goBack(true, false);
     }
+    update();
 }
 
 void CardItem::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
