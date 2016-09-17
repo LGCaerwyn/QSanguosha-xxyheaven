@@ -7,6 +7,7 @@
 #include "maneuvering.h"
 
 #include "settings.h"
+#include "json.h"
 
 class dummyVS : public ZeroCardViewAsSkill
 {
@@ -2292,8 +2293,18 @@ void MumuCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) co
 	}
 	int used_id = subcards.first();
     const Card *c = Sanguosha->getCard(used_id);
-    if (c->isKindOf("Slash") || (c->isBlack() && c->isKindOf("TrickCard")))
+    if (c->isKindOf("Slash") || (c->isBlack() && c->isKindOf("TrickCard"))) {
         source->addMark("mumu");
+        QString translation = Sanguosha->translate(":meibu");
+        QString in_attack = Sanguosha->translate("meibu_in_attack");
+        if (translation.endsWith(in_attack)) {
+            translation.remove(in_attack);
+            Sanguosha->addTranslationEntry(":meibu", translation.toStdString().c_str());
+            JsonArray args;
+            args << QSanProtocol::S_GAME_EVENT_UPDATE_SKILL;
+            room->doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, args);
+        }
+    }
 }
 
 class MumuVS : public OneCardViewAsSkill
@@ -2339,7 +2350,18 @@ public:
 
     bool onPhaseChange(ServerPlayer *target) const
     {
-        target->setMark("mumu", 0);
+        if (target->getMark("mumu") > 0) {
+            target->setMark("mumu", 0);
+            QString translation = Sanguosha->translate(":meibu");
+            QString in_attack = Sanguosha->translate("meibu_in_attack");
+            if (!translation.endsWith(in_attack)) {
+                translation.append(in_attack);
+                Sanguosha->addTranslationEntry(":meibu", translation.toStdString().c_str());
+                JsonArray args;
+                args << QSanProtocol::S_GAME_EVENT_UPDATE_SKILL;
+                target->getRoom()->doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, args);
+            }
+        }
         return false;
     }
 };
