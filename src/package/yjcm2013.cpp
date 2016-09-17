@@ -839,57 +839,12 @@ public:
     }
 };
 
-ZongxuanCard::ZongxuanCard()
-{
-    will_throw = false;
-    handling_method = Card::MethodNone;
-    target_fixed = true;
-}
-
-void ZongxuanCard::use(Room *, ServerPlayer *source, QList<ServerPlayer *> &) const
-{
-    QVariantList subcardsList;
-    foreach(int id, subcards)
-        subcardsList << id;
-    source->tag["zongxuan"] = QVariant::fromValue(subcardsList);
-}
-
-class ZongxuanViewAsSkill : public ViewAsSkill
-{
-public:
-    ZongxuanViewAsSkill() : ViewAsSkill("zongxuan")
-    {
-        response_pattern = "@@zongxuan";
-    }
-
-    bool viewFilter(const QList<const Card *> &, const Card *to_select) const
-    {
-        QStringList zongxuan = Self->property("zongxuan").toString().split("+");
-        foreach (QString id, zongxuan) {
-            bool ok;
-            if (id.toInt(&ok) == to_select->getEffectiveId() && ok)
-                return true;
-        }
-        return false;
-    }
-
-    const Card *viewAs(const QList<const Card *> &cards) const
-    {
-        if (cards.isEmpty()) return NULL;
-
-        ZongxuanCard *card = new ZongxuanCard;
-        card->addSubcards(cards);
-        return card;
-    }
-};
-
 class Zongxuan : public TriggerSkill
 {
 public:
     Zongxuan() : TriggerSkill("zongxuan")
     {
-        events << BeforeCardsMove;
-        view_as_skill = new ZongxuanViewAsSkill;
+        events << CardsMoveOneTime;
     }
 
     virtual bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
@@ -903,43 +858,26 @@ public:
             int i = 0;
             QList<int> zongxuan_card;
             foreach (int card_id, move.card_ids) {
-                if (room->getCardOwner(card_id) == move.from
-                    && (move.from_places[i] == Player::PlaceHand || move.from_places[i] == Player::PlaceEquip)) {
+                if (move.from_places[i] == Player::PlaceHand || move.from_places[i] == Player::PlaceEquip) {
                     zongxuan_card << card_id;
                 }
                 i++;
             }
-            if (zongxuan_card.isEmpty())
+            if (zongxuan_card.isEmpty() || !player->askForSkillInvoke(this))
                 return false;
 
-            room->setPlayerProperty(player, "zongxuan", IntList2StringList(zongxuan_card).join("+"));
-			DummyCard *dummy = new DummyCard;
-            dummy->deleteLater();
-            do {
-                if (!room->askForUseCard(player, "@@zongxuan", "@zongxuan-put")) break;
-
-                QList<int> subcards;
-                QVariantList subcards_variant = player->tag["zongxuan"].toList();
-                if (!subcards_variant.isEmpty()) {
-                    subcards = VariantList2IntList(subcards_variant);
-                    QStringList zongxuan = player->property("zongxuan").toString().split("+");
-                    foreach (int id, subcards) {
-                        zongxuan_card.removeOne(id);
-                        zongxuan.removeOne(QString::number(id));
-                        room->setPlayerProperty(player, "zongxuan", zongxuan.join("+"));
-                        QList<int> _id;
-                        _id << id;
-                        move.removeCardIds(_id);
-                        data = QVariant::fromValue(move);
-                        room->setPlayerProperty(player, "zongxuan_move", QString::number(id)); // For UI to translate the move reason
-                        
-						room->moveCardTo(Sanguosha->getCard(id), player, NULL, Player::DrawPile, move.reason, false);
-                        if (!player->isAlive())
-                            break;
-                    }
-                }
-                player->tag.remove("zongxuan");
-            } while (!zongxuan_card.isEmpty());
+            player->broadcastSkillInvoke(objectName());
+            AskForMoveCardsStruct result = room->askForMoveCards(player, zongxuan_card, QList<int>(), true, objectName(), "", 0, zongxuan_card.length());
+            for (int i = result.bottom.length() - 1; i >= 0; i--)
+                room->getDrawPile().prepend(result.bottom.at(i));
+            room->doBroadcastNotify(QSanProtocol::S_COMMAND_UPDATE_PILE, QVariant(room->getDrawPile().length()));
+            if (!result.bottom.isEmpty()) {
+                LogMessage log;
+                log.type = "$GuanxingTop";
+                log.from = player;
+                log.card_str = IntList2StringList(result.bottom).join("+");
+                room->sendLog(log);
+            }
         }
         return false;
     }
@@ -1560,7 +1498,6 @@ YJCM2013Package::YJCM2013Package()
     addMetaObject<QiaoshuiCard>();
     addMetaObject<XiansiCard>();
     addMetaObject<XiansiSlashCard>();
-    addMetaObject<ZongxuanCard>();
     addMetaObject<MiejiCard>();
     addMetaObject<FenchengCard>();
     addMetaObject<ExtraCollateralCard>();

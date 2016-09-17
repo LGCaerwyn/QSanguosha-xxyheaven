@@ -4968,8 +4968,8 @@ void Room::acquireSkill(ServerPlayer *player, const Skill *skill, bool open)
     QString skill_name = skill->objectName();
     bool acquired = false;
     if (player->getAcquiredSkills().contains(skill_name)) acquired = true;
-    player->acquireSkill(skill_name);
     if (acquired) return;
+    player->acquireSkill(skill_name);
 
     if (skill->inherits("TriggerSkill")) {
         const TriggerSkill *trigger_skill = qobject_cast<const TriggerSkill *>(skill);
