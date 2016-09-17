@@ -2369,7 +2369,15 @@ void DingpanCard::onEffect(const CardEffectStruct &effect) const
     Room *room = source->getRoom();
     target->drawCards(1, "dingpan");
     if (!target->hasEquip()) return;
-    if (room->askForChoice(target, "dingpan", "disequip+takeback", QVariant::fromValue(source), "@dingpan-choose:"+source->objectName()) == "disequip")
+    QStringList choices;
+    foreach (const Card *card, target->getEquips()) {
+        if (source->canDiscard(target, card->getEffectiveId())) {
+            choices << "disequip";
+            break;
+        }
+    }
+    choices << "takeback";
+    if (room->askForChoice(target, "dingpan", choices.join("+"), QVariant::fromValue(source), "@dingpan-choose:"+source->objectName(), "disequip+takeback") == "disequip")
         room->throwCard(room->askForCardChosen(source, target, "e", "dingpan", false, Card::MethodDiscard), target, source);
     else {
         QList<const Card *> equips = target->getEquips();
