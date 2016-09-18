@@ -241,7 +241,7 @@ public:
         Room *room = target->getRoom();
         if (target->askForSkillInvoke(this)){
             target->broadcastSkillInvoke(objectName());
-            if (target->getMark("danxin_modify") > 1 || room->askForChoice(target, objectName(), "modify+draw") == "draw")
+            if (!target->hasSkill("jiaozhao", true) || target->getMark("danxin_modify") > 1 || room->askForChoice(target, objectName(), "modify+draw") == "draw")
 				target->drawCards(1, objectName());
 			else {
 				room->addPlayerMark(target, "danxin_modify");
