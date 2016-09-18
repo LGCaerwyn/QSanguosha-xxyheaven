@@ -36,11 +36,6 @@ bool JiaozhaoCard::targetFilter(const QList<const Player *> &targets, const Play
     return Self->distanceTo(to_select) == nearest;
 }
 
-bool JiaozhaoCard::targetFixed() const
-{
-    return Self->getMark("danxin_modify") > 1;
-}
-
 void JiaozhaoCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
     room->showCard(source, getEffectiveId());
@@ -54,7 +49,7 @@ void JiaozhaoCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &
     QString pattern = "@@jiaozhao_first!";
     if (source->getMark("danxin_modify") > 0)
         pattern = "@@jiaozhao_second!";
-    const Card *card = room->askForCard(source, pattern, "@jiaozhao-declare:" + source->objectName(), QVariant(), Card::MethodNone);
+    const Card *card = room->askForCard(target, pattern, "@jiaozhao-declare:" + source->objectName(), QVariant(), Card::MethodNone);
 
     QString card_name = "slash";
     if (card != NULL)
@@ -106,6 +101,8 @@ public:
 		if (Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_PLAY && !Self->hasUsed("JiaozhaoCard")) {
 		    JiaozhaoCard *jiaozhao = new JiaozhaoCard;
             jiaozhao->addSubcard(originalCard);
+            if (Self->getMark("danxin_modify") > 1)
+                jiaozhao->setTargetFixed(true);
             return jiaozhao;
 		}
 		QString record_name = Self->property("jiaozhao_record_name").toString();

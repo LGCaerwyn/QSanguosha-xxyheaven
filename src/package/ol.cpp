@@ -1256,7 +1256,7 @@ public:
 			if (!TriggerSkill::triggerable(player))
 				return false;
 			CardUseStruct use = data.value<CardUseStruct>();
-		    if (player->getHp() >= room->getTag("Global_TurnCount").toInt())
+		    if (player->getHp() >= room->getTurn())
 			    return false;
             if (use.card->isKindOf("SavageAssault") || use.card->isKindOf("ArcheryAttack")) {
                 if (player->askForSkillInvoke(objectName())){

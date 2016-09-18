@@ -143,6 +143,7 @@ public:
     bool viewFilter(const Card *to_select) const
     {
         Card *trick = Sanguosha->cloneCard(to_select->objectName());
+        if (trick == NULL) return false;
         trick->setSkillName("qice");
         trick->addSubcards(Self->getHandcards());
         trick->setCanRecast(false);
@@ -608,8 +609,10 @@ void GongqiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) 
             if (source->canDiscard(p, "he")) targets << p;
         if (!targets.isEmpty()) {
             ServerPlayer *to_discard = room->askForPlayerChosen(source, targets, "gongqi", "@gongqi-discard", true);
-            if (to_discard)
+            if (to_discard) {
+                room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, source->objectName(), to_discard->objectName());
                 room->throwCard(room->askForCardChosen(source, to_discard, "he", "gongqi", false, Card::MethodDiscard), to_discard, source);
+            }
         }
     } 
 }
