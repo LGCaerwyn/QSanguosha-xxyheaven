@@ -47,26 +47,8 @@ void RendeCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &tar
     int new_value = old_value + subcards.length();
     room->setPlayerMark(source, "rende", new_value);
 
-    if (old_value < 2 && new_value >= 2) {
-		QList<int> basics;
-		QList<const Card *> cards = Sanguosha->findChildren<const Card *>();
-        foreach (const Card *card, cards) {
-            if (card->getTypeId() == Card::TypeBasic && !ServerInfo.Extensions.contains("!" + card->getPackage())) {
-                bool repeat = false;
-				foreach (int id, basics) {
-				    if (Sanguosha->getCard(id)->objectName() == card->objectName())
-						repeat = true;
-				}
-				if (repeat) continue;
-				basics << card->getEffectiveId();
-            }
-        }
-		if (!basics.isEmpty()) {
-            room->notifyMoveToPile(source, basics, "rende", Player::PlaceTable, true, true);
-            if (!room->askForUseCard(source, "@@rende_basic", "@rende-basic"))
-                room->notifyMoveToPile(source, basics, "rende", Player::PlaceTable, false, false);
-		}
-	}
+    if (old_value < 2 && new_value >= 2)
+        room->askForUseCard(source, "@@rende_basic", "@rende-basic");
 
     QSet<QString> rende_prop = source->property("rende").toString().split("+").toSet();
     rende_prop.insert(target->objectName());

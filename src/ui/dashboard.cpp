@@ -32,6 +32,7 @@ Dashboard::Dashboard(QGraphicsPixmapItem *widget)
     //_m_rightFrameBg = NULL;
     animations = new EffectAnimation();
     pending_card = NULL;
+    _m_guhuo_expanded = QList<CardItem *>();
     _m_pile_expanded = QMap<QString, QList<int> >();
     for (int i = 0; i < S_EQUIP_AREA_LENGTH; i++) {
         _m_equipSkillBtns[i] = NULL;
@@ -1109,6 +1110,7 @@ void Dashboard::startPending(const ViewAsSkill *skill)
     unselectAll();
 
     retractAllSkillPileCards();
+
     if (skill && !skill->getExpandPile().isEmpty()) {
         foreach(const QString &pile_name, skill->getExpandPile().split(","))
             expandPileCards(pile_name, false);
@@ -1119,6 +1121,14 @@ void Dashboard::startPending(const ViewAsSkill *skill)
             connect(_m_equipCards[i], SIGNAL(mark_changed()), this, SLOT(onMarkChanged()));
     }
 
+    QString skill_name = skill->objectName();
+    if (skill_name == "rende_basic" || skill_name == "jiaozhao_first")
+        expandGuhuoCards("b");
+    else if (skill_name == "qice")
+        expandGuhuoCards("t");
+    else if (skill_name == "jiaozhao_second") {
+        expandGuhuoCards("bt");
+    }
     updatePending();
     m_mutexEnableCards.unlock();
 }
@@ -1129,6 +1139,7 @@ void Dashboard::stopPending()
 
     if (view_as_skill && !view_as_skill->getExpandPile().isEmpty())
         retractPileCards(view_as_skill->getExpandPile());
+    retractGuhuoCards();
 
     view_as_skill = NULL;
     pending_card = NULL;
@@ -1153,6 +1164,76 @@ void Dashboard::stopPending()
     pendings.clear();
     adjustCards(true);
     m_mutexEnableCards.unlock();
+}
+
+void Dashboard::expandGuhuoCards(const QString &guhuo_type)
+{
+    if (!_m_guhuo_expanded.isEmpty()) return;
+    QStringList card_list;
+    if (guhuo_type.contains("b")) {
+        QList<const BasicCard*> basics = Sanguosha->findChildren<const BasicCard*>();
+        foreach (const BasicCard *card, basics) {
+            if (!card_list.contains(card->objectName()) && !ServerInfo.Extensions.contains("!" + card->getPackage())
+                && !(guhuo_type.contains("s") && card_list.contains("slash") && card->objectName().contains("slash")))
+                card_list.append(card->objectName());
+        }
+    }
+    if (guhuo_type.contains("t")) {
+        QList<const TrickCard*> tricks = Sanguosha->findChildren<const TrickCard*>();
+        foreach (const TrickCard *card, tricks) {
+            if (!ServerInfo.Extensions.contains("!" + card->getPackage()) && card->isNDTrick()
+                && !card_list.contains(card->objectName()))
+                    card_list.append(card->objectName());
+        }
+    }
+    if (guhuo_type.contains("d")) {
+        QList<const DelayedTrick*> delays = Sanguosha->findChildren<const DelayedTrick*>();
+        foreach (const DelayedTrick *card, delays) {
+            if (!card_list.contains(card->objectName())
+                && !ServerInfo.Extensions.contains("!" + card->getPackage()))
+                card_list.append(card->objectName());
+        }
+    }
+    QList<CardItem *> card_items;
+    foreach (QString card_name, card_list) {
+        Card *card = Sanguosha->cloneCard(card_name, Card::NoSuit, 0);
+        if (card) {
+            CardItem *item = new CardItem(card);
+            item->setOpacity(0.0);
+            card_items.append(item);
+        }
+    }
+    foreach (CardItem *card_item, card_items) {
+        card_item->setPos(mapFromScene(card_item->scenePos()));
+        card_item->setParentItem(this);
+    }
+
+    foreach(CardItem *card_item, card_items)
+        _addHandCard(card_item, 1);
+
+    adjustCards(card_items, true, CardItem::FromRight);
+    update();
+    _m_guhuo_expanded = card_items;
+}
+
+void Dashboard::retractGuhuoCards()
+{
+    if (_m_guhuo_expanded.isEmpty())
+        return;
+    foreach (CardItem *card_item, _m_guhuo_expanded) {
+        if (card_item == selected) selected = NULL;
+        Q_ASSERT(card_item);
+        if (card_item) {
+            _m_guhuo_expanded.removeOne(card_item);
+            m_rightCards.removeOne(card_item);
+            m_handCards.removeOne(card_item);
+            card_item->disconnect(this);
+            delete card_item;
+            card_item = NULL;
+        }
+    }
+    adjustCards();
+    update();
 }
 
 void Dashboard::expandPileCards(const QString &pile_name, bool prepend)
@@ -1261,6 +1342,7 @@ void Dashboard::retractAllSkillPileCards()
         if (!(pileName.startsWith("&") || pileName == "wooden_ox"))
             retractPileCards(pileName);
     }
+    retractGuhuoCards();
 }
 
 void Dashboard::onCardItemClicked()

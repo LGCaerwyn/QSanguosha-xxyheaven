@@ -412,6 +412,9 @@ public:
     void updateCardsOnGet(const CardsMoveStruct &move);
 
     int getBossModeExpMult(int level) const;
+    void setTurn(int turn);
+    void incTurn();
+    inline int getTurn() const { return m_turn; }
 
 protected:
     virtual void run();
@@ -591,6 +594,7 @@ private:
     void _setupChooseGeneralRequestArgs(ServerPlayer *player, bool single_result = true, bool convert_enabled = false);
 	
 	static bool isSkillValidForPlayer(const ServerPlayer *player, const Skill *skill);
+    int m_turn;
 
 private slots:
     void reportDisconnection();

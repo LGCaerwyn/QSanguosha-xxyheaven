@@ -1256,7 +1256,7 @@ public:
 			if (!TriggerSkill::triggerable(player))
 				return false;
 			CardUseStruct use = data.value<CardUseStruct>();
-		    if (player->getHp() >= room->getTag("Global_TurnCount").toInt())
+		    if (player->getHp() >= room->getTurn())
 			    return false;
             if (use.card->isKindOf("SavageAssault") || use.card->isKindOf("ArcheryAttack")) {
                 if (player->askForSkillInvoke(objectName())){
@@ -1676,10 +1676,12 @@ public:
                     log.arg = objectName();
                     room->sendLog(log);
 					use.to.append(ybh);
+                    room->sortByActionOrder(use.to);
+                    data = QVariant::fromValue(use);
+                    room->getThread()->trigger(TargetConfirming, room, ybh, data);
+                    use = data.value<CardUseStruct>();//some terrible situation
 				}
-			}
-			room->sortByActionOrder(use.to);
-            data = QVariant::fromValue(use);
+            }
         }
         return false;
     }
@@ -2369,7 +2371,15 @@ void DingpanCard::onEffect(const CardEffectStruct &effect) const
     Room *room = source->getRoom();
     target->drawCards(1, "dingpan");
     if (!target->hasEquip()) return;
-    if (room->askForChoice(target, "dingpan", "disequip+takeback", QVariant::fromValue(source), "@dingpan-choose:"+source->objectName()) == "disequip")
+    QStringList choices;
+    foreach (const Card *card, target->getEquips()) {
+        if (source->canDiscard(target, card->getEffectiveId())) {
+            choices << "disequip";
+            break;
+        }
+    }
+    choices << "takeback";
+    if (room->askForChoice(target, "dingpan", choices.join("+"), QVariant::fromValue(source), "@dingpan-choose:"+source->objectName(), "disequip+takeback") == "disequip")
         room->throwCard(room->askForCardChosen(source, target, "e", "dingpan", false, Card::MethodDiscard), target, source);
     else {
         QList<const Card *> equips = target->getEquips();

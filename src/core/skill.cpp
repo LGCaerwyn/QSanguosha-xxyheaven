@@ -206,9 +206,6 @@ bool Skill::buttonEnabled(const QString &button_name) const
             return card->isKindOf("Slash");
         } else
             return pattern.contains(button_name);
-
-
-
     }
     return false;
 }

@@ -226,6 +226,9 @@ public:
     virtual QString toString(bool hidden = false) const;
 	
 	virtual void extraCost(Room *room, const CardUseStruct &card_use) const;
+    inline void setTargetFixed(bool target_fixed) {
+        this->target_fixed = target_fixed;
+    }
 
 protected:
     QString user_string;

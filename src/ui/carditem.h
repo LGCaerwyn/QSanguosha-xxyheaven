@@ -82,6 +82,7 @@ public:
     {
         m_isChosen = selected;
     }
+
     bool isEquipped() const;
 
     void setFrozen(bool is_frozen);
@@ -97,11 +98,6 @@ public:
     inline void hideFootnote()
     {
         _m_showFootnote = false;
-    }
-
-    inline void changeSuit(Card::Suit suit)
-    {
-        _m_validate_suit = suit;
     }
 
     static CardItem *FindItem(const QList<CardItem *> &items, int card_id);
@@ -157,7 +153,6 @@ private:
 	QColor outerGlowColor;
     QGraphicsDropShadowEffect *outerGlowEffect;
     QPointF _m_lastMousePressScenePos;
-    bool m_isShiny;
 
 signals:
     void toggle_discards();

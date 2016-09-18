@@ -170,6 +170,15 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     switch (triggerEvent) {
     case TurnStart: {
         player = room->getCurrent();
+
+        if (player->isLord()) {
+            QStringList extraTurnList;
+            if (!room->getTag("ExtraTurnList").isNull())
+                extraTurnList = room->getTag("ExtraTurnList").toStringList();
+            if (extraTurnList.isEmpty() || !extraTurnList.contains(player->objectName()))
+                room->incTurn();
+        }
+
         if (room->getTag("FirstRound").toBool()) {
             room->setTag("FirstRound", false);
             room->setPlayerFlag(player, "Global_FirstRound");

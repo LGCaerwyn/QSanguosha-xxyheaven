@@ -132,22 +132,29 @@ const Card *QiceCard::validate(CardUseStruct &) const
     return use_card;
 }
 
-class Qice : public ZeroCardViewAsSkill
+class Qice : public OneCardViewAsSkill
 {
 public:
-    Qice() : ZeroCardViewAsSkill("qice")
+    Qice() : OneCardViewAsSkill("qice")
     {
+
     }
 
-    QString getSelectBox() const
+    bool viewFilter(const Card *to_select) const
     {
-        return "guhuo_t";
+        Card *trick = Sanguosha->cloneCard(to_select->objectName());
+        if (trick == NULL) return false;
+        trick->setSkillName("qice");
+        trick->addSubcards(Self->getHandcards());
+        trick->setCanRecast(false);
+        return to_select->isVirtualCard() && trick->isAvailable(Self);
     }
 
-    virtual const Card *viewAs() const
+    const Card *viewAs(const Card *originalCard) const
     {
         QiceCard *card = new QiceCard;
         card->addSubcards(Self->getHandcards());
+        card->setUserString(originalCard->objectName());
         return card;
     }
 
@@ -602,8 +609,10 @@ void GongqiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) 
             if (source->canDiscard(p, "he")) targets << p;
         if (!targets.isEmpty()) {
             ServerPlayer *to_discard = room->askForPlayerChosen(source, targets, "gongqi", "@gongqi-discard", true);
-            if (to_discard)
+            if (to_discard) {
+                room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, source->objectName(), to_discard->objectName());
                 room->throwCard(room->askForCardChosen(source, to_discard, "he", "gongqi", false, Card::MethodDiscard), to_discard, source);
+            }
         }
     } 
 }

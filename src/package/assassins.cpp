@@ -21,7 +21,7 @@ void MixinCard::onEffect(const CardEffectStruct &effect) const
     ServerPlayer *source = effect.from;
     ServerPlayer *target = effect.to;
     Room *room = source->getRoom();
-    room->broadcastSkillInvoke("mixin", 1);
+    source->broadcastSkillInvoke("mixin", 1);
     target->obtainCard(this, false);
     QList<ServerPlayer *> others;
     foreach (ServerPlayer *p, room->getOtherPlayers(target)) {
@@ -39,9 +39,9 @@ void MixinCard::onEffect(const CardEffectStruct &effect) const
     room->sendLog(log);
     room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, target->objectName(), target2->objectName());
     if (room->askForUseSlashTo(target, target2, "#mixin", false)) {
-        room->broadcastSkillInvoke("mixin", 2);
+        source->broadcastSkillInvoke("mixin", 2);
     } else {
-        room->broadcastSkillInvoke("mixin", 3);
+        source->broadcastSkillInvoke("mixin", 3);
         QList<int> card_ids = target->handCards();
         room->fillAG(card_ids, target2);
         int cdid = room->askForAG(target2, card_ids, false, objectName());
@@ -105,7 +105,7 @@ public:
             } else
                 player->drawCards(2);
 
-            room->broadcastSkillInvoke("cangni", 1);
+            player->broadcastSkillInvoke("cangni", 1);
             player->turnOver();
             return false;
         } else if (triggerEvent == CardsMoveOneTime && !player->faceUp()) {
@@ -129,7 +129,7 @@ public:
 
                 if (invoke && !target->isNude() && player->askForSkillInvoke(this)) {
                     room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, player->objectName(), target->objectName());
-                    room->broadcastSkillInvoke("cangni", 3);
+                    player->broadcastSkillInvoke("cangni", 3);
                     room->askForDiscard(target, objectName(), 1, 1, false, true);
                 }
 
@@ -145,7 +145,7 @@ public:
                     if (!target->hasFlag("cangni_used") && player->askForSkillInvoke(this)) {
                         room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, player->objectName(), target->objectName());
                         room->setPlayerFlag(target, "cangni_used");
-                        room->broadcastSkillInvoke("cangni", 2);
+                        player->broadcastSkillInvoke("cangni", 2);
                         target->drawCards(1);
                     }
 
@@ -182,9 +182,9 @@ void DuyiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) co
         log.to << target;
         log.arg = "duyi";
         room->sendLog(log);
-        room->broadcastSkillInvoke("duyi", 1);
+        source->broadcastSkillInvoke("duyi", 1);
     } else
-        room->broadcastSkillInvoke("duyi", 2);
+        source->broadcastSkillInvoke("duyi", 2);
 
     room->getThread()->delay();
     room->clearAG();
@@ -373,7 +373,7 @@ public:
         log.from = player;
         log.arg = "chizhong";
         room->sendLog(log);
-        room->broadcastSkillInvoke("chizhong", 2);
+        player->broadcastSkillInvoke("chizhong", 2);
 
         return false;
     }

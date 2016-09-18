@@ -165,13 +165,16 @@ bool TablePile::_addCardItems(QList<CardItem *> &card_items, const CardsMoveStru
             card_item->setPos(rightMostPos);
             rightMostPos += QPointF(G_COMMON_LAYOUT.m_cardNormalWidth, 0);
         }
-        if (((moveInfo.reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) || moveInfo.reason.m_reason == CardMoveReason::S_REASON_RESPONSE) &&
-                !moveInfo.reason.m_skillName.isEmpty() && card_item->getId() != Card::S_UNKNOWN_CARD_ID) {
-            const Card *view_as_card = moveInfo.reason.m_extraData.value<const Card *>();
-            if (view_as_card)
+        card_item->m_uiHelper.tablePileClearTimeStamp = INT_MAX;
+    }
+    if (((moveInfo.reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) || moveInfo.reason.m_reason == CardMoveReason::S_REASON_RESPONSE) &&
+        !moveInfo.reason.m_skillName.isEmpty()) {
+        const Card *view_as_card = moveInfo.reason.m_extraData.value<const Card *>();
+        if (view_as_card) {
+            CardItem *card_item = card_items.last();
+            if (card_item->getId() != Card::S_UNKNOWN_CARD_ID)
                 card_item->showSmallCard(view_as_card->objectName());
         }
-        card_item->m_uiHelper.tablePileClearTimeStamp = INT_MAX;
     }
 
     _m_mutex_pileCards.unlock();
