@@ -461,11 +461,11 @@ void PlayerCardContainer::updateCount(const QString &pile_name, int value)
 
 		QString text = Sanguosha->translate(pile_name);
 		if (pile_name == "shixie_distance") {
-			text.prepend(QString("【"));
+            text.prepend(QString("["));
 			if (value > 0)
-				text.append(QString("+%1】").arg(value));
+                text.append(QString("+%1]").arg(value));
 			else
-				text.append(QString("%1】").arg(value));
+                text.append(QString("%1]").arg(value));
 		} else
 			text.append(QString("[%1]").arg(value));
 		

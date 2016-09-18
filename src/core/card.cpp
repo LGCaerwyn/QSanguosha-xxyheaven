@@ -76,19 +76,9 @@ int Card::getEffectiveId() const
 
 int Card::getNumber() const
 {
-    if (m_number > 0) return m_number;
-    if (isVirtualCard()) {
-        if (subcardsLength() == 0)
-            return 0;
-        else {
-            int num = 0;
-            foreach (int id, subcards) {
-                num += Sanguosha->getCard(id)->getNumber();
-            }
-            return qMin(num, 13);
-        }
-    } else
-        return m_number;
+    if (isVirtualCard())
+        return 0;
+    return m_number;
 }
 
 void Card::setNumber(int number)
@@ -438,7 +428,7 @@ int Card::subcardsLength() const
 
 bool Card::isVirtualCard() const
 {
-    return m_id < 0;
+    return m_id == -1;
 }
 
 const Card *Card::Parse(const QString &str)

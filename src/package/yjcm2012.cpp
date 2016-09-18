@@ -132,22 +132,28 @@ const Card *QiceCard::validate(CardUseStruct &) const
     return use_card;
 }
 
-class Qice : public ZeroCardViewAsSkill
+class Qice : public OneCardViewAsSkill
 {
 public:
-    Qice() : ZeroCardViewAsSkill("qice")
+    Qice() : OneCardViewAsSkill("qice")
     {
+
     }
 
-    QString getSelectBox() const
+    bool viewFilter(const Card *to_select) const
     {
-        return "guhuo_t";
+        Card *trick = Sanguosha->cloneCard(to_select->objectName());
+        trick->setSkillName("qice");
+        trick->addSubcards(Self->getHandcards());
+        trick->setCanRecast(false);
+        return to_select->isVirtualCard() && trick->isAvailable(Self);
     }
 
-    virtual const Card *viewAs() const
+    const Card *viewAs(const Card *originalCard) const
     {
         QiceCard *card = new QiceCard;
         card->addSubcards(Self->getHandcards());
+        card->setUserString(originalCard->objectName());
         return card;
     }
 

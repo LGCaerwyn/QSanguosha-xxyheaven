@@ -107,6 +107,8 @@ public:
     const ViewAsSkill *currentSkill() const;
     const Card *pendingCard() const;
 
+    void expandGuhuoCards(const QString &guhuo_type);
+    void retractGuhuoCards();
     void expandPileCards(const QString &pile_name, bool prepend = true);
     void retractPileCards(const QString &pile_name);
     void updateHandPile(const QString &pile_name, bool add, QList<int> card_ids);
@@ -259,6 +261,7 @@ protected:
     const ViewAsSkill *view_as_skill;
     const FilterSkill *filter;
     QMap<QString, QList<int> > _m_pile_expanded;
+    QList<CardItem *> _m_guhuo_expanded;
 
     // for equip skill/selections
     PixmapAnimation *_m_equipBorders[S_EQUIP_AREA_LENGTH];

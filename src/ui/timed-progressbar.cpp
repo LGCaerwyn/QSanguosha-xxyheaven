@@ -94,7 +94,7 @@ void QSanCommandProgressBar::paintEvent(QPaintEvent *)
     double percent = 1 - (double)val / (double)max;
     QRectF rect = QRectF(0, 0, percent * width, height);
 
-    //以rect的右边为中轴，7为半径画一个椭圆
+
     QRectF ellipseRect;
     ellipseRect.setTopLeft(QPointF(rect.right() - 7, rect.top()));
     ellipseRect.setBottomRight(QPointF(rect.right() + 7, rect.bottom()));

@@ -350,7 +350,7 @@ void PlayerCardBox::selectCardItem()
 		selected << item;
 		if (selected.length() == max_num)
 			reply2();
-	}
+    }
 	confirm->setEnabled(selected.length() >= min_num);
 }
 

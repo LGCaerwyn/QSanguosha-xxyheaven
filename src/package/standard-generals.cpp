@@ -723,13 +723,11 @@ public:
     RendeBasic() : OneCardViewAsSkill("rende_basic")
     {
         response_pattern = "@@rende_basic";
-		expand_pile = "#rende";
     }
 
     bool viewFilter(const Card *to_select) const
     {
-		Card *basic = Sanguosha->cloneCard(to_select->objectName());
-        return Self->getPile("#rende").contains(to_select->getEffectiveId()) && basic->isAvailable(Self);
+        return to_select->isVirtualCard() && to_select->isAvailable(Self);
     }
 
     const Card *viewAs(const Card *originalCard) const
@@ -777,7 +775,7 @@ class Rende : public TriggerSkill
 public:
     Rende() : TriggerSkill("rende")
     {
-        events << EventPhaseChanging << PreCardUsed;
+        events << EventPhaseChanging;
         view_as_skill = new RendeViewAsSkill;
     }
 
@@ -792,11 +790,6 @@ public:
 			if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
             room->setPlayerMark(player, "rende", 0);
             room->setPlayerProperty(player, "rende", QVariant());
-		} else if (triggerEvent == PreCardUsed) {
-			if (data.value<CardUseStruct>().card->getSkillName() == "rende") {
-                QList<int> ids = StringList2IntList(player->tag["rende_forAI"].toString().split("+"));
-			    room->notifyMoveToPile(player, ids, "rende", Player::PlaceTable, false, false);
-            }
 		}
         return false;
     }

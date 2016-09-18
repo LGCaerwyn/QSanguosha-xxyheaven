@@ -1676,10 +1676,12 @@ public:
                     log.arg = objectName();
                     room->sendLog(log);
 					use.to.append(ybh);
+                    room->sortByActionOrder(use.to);
+                    data = QVariant::fromValue(use);
+                    room->getThread()->trigger(TargetConfirming, room, ybh, data);
+                    use = data.value<CardUseStruct>();//some terrible situation
 				}
-			}
-			room->sortByActionOrder(use.to);
-            data = QVariant::fromValue(use);
+            }
         }
         return false;
     }

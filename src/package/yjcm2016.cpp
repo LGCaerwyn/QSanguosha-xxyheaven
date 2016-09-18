@@ -49,48 +49,24 @@ void JiaozhaoCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &
 	if (targets.isEmpty())
 		target = source;
 	else
-		target = targets.first();
+        target = targets.first();
 
-	QStringList basics, tricks1, tricks2;
-	QList<const Card *> cards = Sanguosha->findChildren<const Card *>();
-    foreach (const Card *card, cards) {
-        if (card->getTypeId() == Card::TypeBasic && !basics.contains(card->objectName())
-            && !ServerInfo.Extensions.contains("!" + card->getPackage())) {
-            basics << card->objectName();
-        } else if (card->isNDTrick() && !tricks1.contains(card->objectName()) && !tricks2.contains(card->objectName())
-            && !ServerInfo.Extensions.contains("!" + card->getPackage())) {
-			if (card->isKindOf("SingleTargetTrick"))
-                tricks1 << card->objectName();
-			else
-				tricks2 << card->objectName();
-        }
-    }
-    QString card_names;
-	bool has_option = false;
-	if (!basics.isEmpty()) {
-		has_option = true;
-		card_names = basics.join("+");
-	}
-	if (source->getMark("danxin_modify") > 0) {
-		if (!tricks1.isEmpty()) {
-		    has_option = true;
-		    card_names = card_names + "|" + tricks1.join("+");
-	    }
-		if (!tricks2.isEmpty()) {
-		    has_option = true;
-		    card_names = card_names + "|" + tricks2.join("+");
-	    }
-	}
-	if (has_option) {
-		QString card_name = room->askForChoice(target, "jiaozhao", card_names);
-		LogMessage log;
-        log.type = "$JiaozhaoDeclare";
-	    log.arg = card_name;
-        log.from = target;
-        room->sendLog(log);
-		room->setPlayerProperty(source, "jiaozhao_record_id", QString::number(getEffectiveId()));
-		room->setPlayerProperty(source, "jiaozhao_record_name", card_name);
-	}
+    QString pattern = "@@jiaozhao_first!";
+    if (source->getMark("danxin_modify") > 0)
+        pattern = "@@jiaozhao_second!";
+    const Card *card = room->askForCard(source, pattern, "@jiaozhao-declare:" + source->objectName(), QVariant(), Card::MethodNone);
+
+    QString card_name = "slash";
+    if (card != NULL)
+        card_name = card->objectName();
+
+    LogMessage log;
+    log.type = "$JiaozhaoDeclare";
+    log.arg = card_name;
+    log.from = target;
+    room->sendLog(log);
+    room->setPlayerProperty(source, "jiaozhao_record_id", QString::number(getEffectiveId()));
+    room->setPlayerProperty(source, "jiaozhao_record_name", card_name);
 }
 
 class JiaozhaoViewAsSkill : public OneCardViewAsSkill
@@ -218,6 +194,44 @@ public:
     }
 };
 
+class JiaozhaoFirst : public OneCardViewAsSkill
+{
+public:
+    JiaozhaoFirst() : OneCardViewAsSkill("jiaozhao_first")
+    {
+        response_pattern = "@@jiaozhao_first!";
+    }
+
+    bool viewFilter(const Card *to_select) const
+    {
+        return to_select->isVirtualCard();
+    }
+
+    const Card *viewAs(const Card *originalCard) const
+    {
+        return Sanguosha->cloneCard(originalCard->objectName());
+    }
+};
+
+class JiaozhaoSecond : public OneCardViewAsSkill
+{
+public:
+    JiaozhaoSecond() : OneCardViewAsSkill("jiaozhao_second")
+    {
+        response_pattern = "@@jiaozhao_second!";
+    }
+
+    bool viewFilter(const Card *to_select) const
+    {
+        return to_select->isVirtualCard();
+    }
+
+    const Card *viewAs(const Card *originalCard) const
+    {
+        return Sanguosha->cloneCard(originalCard->objectName());
+    }
+};
+
 class Danxin : public MasochismSkill
 {
 public:
@@ -234,13 +248,9 @@ public:
 				target->drawCards(1, objectName());
 			else {
 				room->addPlayerMark(target, "danxin_modify");
-				QString translate = Sanguosha->translate(":jiaozhao");
-				switch (target->getMark("danxin_modify")) {
-                case 1: translate.replace("基本牌", "基本牌或普通锦囊牌"); break;
-				case 2: translate.replace("选择距离最近的一名其他角色，该角色", "你"); break;
-				default:
-                    return;
-				}
+                QString translate = Sanguosha->translate(":jiaozhao");
+                int i = target->getMark("danxin_modify");
+                translate.replace(Sanguosha->translate("jiaozhao:modify"+QString::number(i)), Sanguosha->translate("jiaozhao:modified"+QString::number(i)));
 				Sanguosha->addTranslationEntry(":jiaozhao", translate.toStdString().c_str());
 				JsonArray args;
                 args << QSanProtocol::S_GAME_EVENT_UPDATE_SKILL;
@@ -379,7 +389,7 @@ void DuliangCard::onEffect(const CardEffectStruct &effect) const
         log.card_str = IntList2StringList(ids).join("+");
         room->sendLog(log, effect.to);
 		room->fillAG(ids, effect.to);
-        room->getThread()->delay();
+        room->getThread()->delay(2000);
         room->clearAG(effect.to);
 		room->returnToTopDrawPile(ids);
 		QList<int> to_obtain;
@@ -1292,7 +1302,7 @@ YJCM2016Package::YJCM2016Package()
 	addMetaObject<JiyuCard>();
 	addMetaObject<TaoluanCard>();
 
-	skills << new FulinDiscard << new HuishengObtain;
+    skills << new FulinDiscard << new HuishengObtain << new JiaozhaoFirst << new JiaozhaoSecond;
 }
 
 ADD_PACKAGE(YJCM2016)

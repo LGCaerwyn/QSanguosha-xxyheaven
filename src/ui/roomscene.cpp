@@ -238,7 +238,7 @@ RoomScene::RoomScene(QMainWindow *main_window)
     m_playerCardBox->setZValue(30000.0);
     m_playerCardBox->moveBy(-120, 0);
 
-    m_cardContainer = new CardContainer();
+    m_cardContainer = new CardContainer;
     m_cardContainer->hide();
     addItem(m_cardContainer);
     m_cardContainer->setZValue(9.0);
@@ -4023,7 +4023,7 @@ void RoomScene::setEmotion(const QString &who, const QString &emotion)
             if (emotion == "damage" || emotion == "chain") {
                 pma->moveBy(576, -6);
             }
-			//技能动画
+            //skill animation
             else if (emotion.startsWith("skill/")) {
                 pma->moveBy(-100, -240);
             }
