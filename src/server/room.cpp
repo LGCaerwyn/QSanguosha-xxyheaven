@@ -1091,7 +1091,7 @@ bool Room::askForNullification(const CardEffectStruct &effect)
 
     JsonArray arg;
     arg << trick_name;
-    arg << (from ? QVariant(from->objectName()) : QVariant());
+    arg << (effect.from ? QVariant(effect.from->objectName()) : QVariant());
     arg << (to ? QVariant(to->objectName()) : QVariant());
 
     QVariant data = QVariant::fromValue(effect);
@@ -1149,7 +1149,7 @@ bool Room::askForNullification(const CardEffectStruct &effect)
 
     LogMessage log;
     log.type = "#NullificationDetails";
-    log.from = from;
+    log.from = effect.from;
     log.to << to;
     log.arg = trick_name;
     sendLog(log);
