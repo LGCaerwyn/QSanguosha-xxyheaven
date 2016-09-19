@@ -717,8 +717,6 @@ public:
         if (!room->askForCard(liubei, "..", "@qinwang-discard", data, "qinwang", target))
             return false;
 
-        liubei->broadcastSkillInvoke("qinwang");
-
 		foreach (ServerPlayer *liege, lieges) {
             const Card *slash = room->askForCard(liege, "slash", "@qinwang-slash:" + liubei->objectName(),
                 QVariant(), Card::MethodResponse, liubei, false, QString(), true);

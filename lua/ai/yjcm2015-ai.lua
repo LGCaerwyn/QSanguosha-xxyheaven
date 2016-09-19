@@ -365,7 +365,17 @@ zhanjue_skill.getTurnUseCard = function(self)
     return duel
 end
 
--- qinwang buhui!!!
+sgs.ai_skill_cardask["@qinwang-discard"]=function(self)
+    local cards = sgs.QList2Table(self.player:getHandcards())
+    for _,card in ipairs(cards) do
+        if isCard("Slash", card, self.player) or isCard("Peach", card, self.player) then
+            return "."
+        end
+    end
+    table.insert(cards, sgs.QList2Table(self.player:getEquips()))
+    local to_discard = self:askForDiscard("dummyreason", 1, 1, false, true)
+    if #to_discard > 0 then return "$" .. to_discard[1] end
+end
 
 -- zhenshan buhui!!!
 
