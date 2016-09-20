@@ -33,7 +33,7 @@ void QuhuCard::use(Room *room, ServerPlayer *xunyu, QList<ServerPlayer *> &targe
     ServerPlayer *tiger = targets.first();
 
 
-    bool success = xunyu->pindian(tiger, "quhu", NULL);
+    bool success = xunyu->pindian(xunyu->pindianSelect(tiger, "quhu"));
     if (success) {
         
 
@@ -498,7 +498,7 @@ bool TianyiCard::targetFilter(const QList<const Player *> &targets, const Player
 
 void TianyiCard::use(Room *room, ServerPlayer *taishici, QList<ServerPlayer *> &targets) const
 {
-    bool success = taishici->pindian(targets.first(), "tianyi", NULL);
+    bool success = taishici->pindian(taishici->pindianSelect(targets.first(), "tianyi"));
     if (success)
         room->setPlayerFlag(taishici, "TianyiSuccess");
     else

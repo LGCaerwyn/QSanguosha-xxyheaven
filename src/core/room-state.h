@@ -47,6 +47,16 @@ public:
         m_currentCardUseReason = reason;
     }
 
+    inline QString getCurrentCardResponsePrompt() const
+    {
+        return m_currentCardResponsePrompt;
+    }
+
+    inline void setCurrentCardResponsePrompt(const QString &prompt)
+    {
+        m_currentCardResponsePrompt = prompt;
+    }
+
     // Update a card in the room.
     // @param cardId
     //        Id of card to be updated.
@@ -63,6 +73,7 @@ protected:
     Player *m_currentPlayer;
     QString m_currentCardUsePattern;
     CardUseStruct::CardUseReason m_currentCardUseReason;
+    QString m_currentCardResponsePrompt;
 };
 
 #endif

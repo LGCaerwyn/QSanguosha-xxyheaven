@@ -866,7 +866,7 @@ public:
 				if (target->isAlive() && !target->isKongcheng() && room->askForSkillInvoke(zhurong, objectName(), QVariant::fromValue(target))) {
                     zhurong->broadcastSkillInvoke(objectName());
 					room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, zhurong->objectName(), target->objectName());
-					if (zhurong->pindian(target, objectName(), NULL) && !target->isNude()) {
+					if (zhurong->pindian(zhurong->pindianSelect(target, objectName())) && !target->isNude()) {
 						int card_id = room->askForCardChosen(zhurong, target, "he", objectName());
 						CardMoveReason reason(CardMoveReason::S_REASON_EXTRACTION, zhurong->objectName());
 						room->obtainCard(zhurong, Sanguosha->getCard(card_id), reason, room->getCardPlace(card_id) != Player::PlaceHand);

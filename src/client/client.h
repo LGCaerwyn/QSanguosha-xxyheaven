@@ -391,6 +391,10 @@ signals:
 
     void skill_updated(const QString &skill_name);
     void set_turn(int num);
+
+    void startPindian(const QString &requestor, const QString &reason, const QStringList &targets);
+    void onPindianReply(const QString &who, int card_id);
+    void pindianSuccess(int type, int index);
 };
 
 extern Client *ClientInstance;

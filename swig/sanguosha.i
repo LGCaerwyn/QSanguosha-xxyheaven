@@ -299,7 +299,9 @@ public:
     QList<const Card *> getCards(const char *flags) const;
     DummyCard *wholeHandCards() const;
     bool hasNullification() const;
-    bool pindian(ServerPlayer *target, const char *reason, const Card *card1 = NULL);
+    PindianStruct *pindianSelect(ServerPlayer *target, const char *reason, const Card *card1 = NULL);
+    PindianStruct *pindianSelect(const QList<ServerPlayer *> &target, const char *reason, const Card *card1 = NULL);
+    bool pindian(PindianStruct *pd, int index = 1);
     void turnOver();
     void play(QList<Player::Phase> set_phases = QList<Player::Phase>());
     bool changePhase(Player::Phase from, Player::Phase to);
@@ -604,10 +606,13 @@ struct PindianStruct {
     PindianStruct();
 
     ServerPlayer *from;
+    QList<ServerPlayer *>tos;
     ServerPlayer *to;
     const Card *from_card;
+    QList<const Card *> to_cards;
     const Card *to_card;
     int from_number;
+    QList<int> to_numbers;
     int to_number;
     QString reason;
     bool success;
@@ -1231,8 +1236,7 @@ public:
                     bool is_preview = false, bool visible = false, bool optional = true, int max_num = -1,
                     QList<ServerPlayer *> players = QList<ServerPlayer *>(), CardMoveReason reason = CardMoveReason(),
                     const char *prompt = NULL, bool notify_skill = false);
-    const Card *askForPindian(ServerPlayer *player, ServerPlayer *from, ServerPlayer *to, const char *reason);
-    QList<const Card *> askForPindianRace(ServerPlayer *from, ServerPlayer *to, const char *reason);
+    QList<const Card *> askForPindianRace(ServerPlayer *from, const QList<ServerPlayer *> &to, const QString &reason, const Card *card = NULL);
     ServerPlayer *askForPlayerChosen(ServerPlayer *player, const QList<ServerPlayer *> &targets, const char *reason,
                                      const char *prompt = NULL, bool optional = false, bool notify_skill = false);
     QString askForGeneral(ServerPlayer *player, const char *generals, char *default_choice = NULL);

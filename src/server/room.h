@@ -219,6 +219,7 @@ public:
     bool notifyMoveFocus(ServerPlayer *player);
     bool notifyMoveFocus(ServerPlayer *player, QSanProtocol::CommandType command);
     bool notifyMoveFocus(const QList<ServerPlayer *> &players, QSanProtocol::CommandType command, QSanProtocol::Countdown countdown);
+    bool notifyMoveFocus(const QList<ServerPlayer *> &focuses, const QSanProtocol::Countdown &countdown, ServerPlayer *except = NULL);
 
     // Notify client side to move cards from one place to another place. A movement should always be completed by
     // calling notifyMoveCards in pairs, one with isLostPhase equaling true followed by one with isLostPhase
@@ -375,9 +376,7 @@ public:
         bool is_preview = false, bool visible = false, bool optional = true, int max_num = -1, int min_num = 0,
         QList<ServerPlayer *> players = QList<ServerPlayer *>(), CardMoveReason reason = CardMoveReason(),
         const QString &prompt = QString(), bool notify_skill = false);
-    const Card *askForPindian(ServerPlayer *player, ServerPlayer *from, ServerPlayer *to, const QString &reason);
-	QList<const Card *> askForPindianRace(ServerPlayer *from, ServerPlayer *to, const QString &reason);
-    QMap<ServerPlayer *, const Card *> multiPindianRace(ServerPlayer *from, QList<ServerPlayer *> tos, const QString &reason, bool include_from = true);
+    QList<const Card *> askForPindianRace(ServerPlayer *from, const QList<ServerPlayer *> &to, const QString &reason, const Card *card = NULL);
     ServerPlayer *askForPlayerChosen(ServerPlayer *player, const QList<ServerPlayer *> &targets, const QString &reason,
         const QString &prompt = QString(), bool optional = false, bool notify_skill = false);
     QString askForGeneral(ServerPlayer *player, const QStringList &generals, bool single_result = true, const QString &reason = QString(), bool convert_enabled = false, QString default_choice = QString());
@@ -392,6 +391,7 @@ public:
     void pauseCommand(ServerPlayer *player, const QVariant &arg);
     void processClientReply(ServerPlayer *player, const QSanProtocol::Packet &packet);
     void addRobotCommand(ServerPlayer *player, const QVariant &arg);
+    void onPindianReply(ServerPlayer *, const QVariant &arg);
     void changeSkinCommand(ServerPlayer *player, const QVariant &arg);
     void broadcastInvoke(const QSanProtocol::AbstractPacket *packet, ServerPlayer *except = NULL);
     void networkDelayTestCommand(ServerPlayer *player, const QVariant &);

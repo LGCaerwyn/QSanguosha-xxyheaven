@@ -1177,9 +1177,10 @@ void FurongCard::onEffect(const CardEffectStruct &effect) const
 {
     Room *room = effect.from->getRoom();
 
-	QList<const Card *> cards = room->askForPindianRace(effect.from, effect.to, "furong");
-    const Card *card1 = cards.first();
-    const Card *card2 = cards.last();
+    PindianStruct *pd = effect.from->pindianSelect(effect.to, "furong");
+    effect.from->pindian(pd);
+    const Card *card1 = pd->from_card;
+    const Card *card2 = pd->to_card;
 
     room->showCard(effect.from, card1->getEffectiveId());
     room->showCard(effect.to, card2->getEffectiveId());

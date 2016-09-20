@@ -92,16 +92,6 @@ RecoverStruct::RecoverStruct(ServerPlayer *who, const Card *card, int recover)
 {
 }
 
-PindianStruct::PindianStruct()
-    : from(NULL), to(NULL), from_card(NULL), to_card(NULL), success(false)
-{
-}
-
-bool PindianStruct::isSuccess() const
-{
-    return success;
-}
-
 JudgeStruct::JudgeStruct()
     : who(NULL), card(NULL), pattern("."), good(true), time_consuming(false),
     negative(false), play_animation(true), retrial_by_response(NULL),

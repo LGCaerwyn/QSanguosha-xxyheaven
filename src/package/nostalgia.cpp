@@ -1155,7 +1155,7 @@ public:
                 && player != fuhuanghou && fuhuanghou->isWounded() && !fuhuanghou->isKongcheng()
                 && room->askForSkillInvoke(fuhuanghou, objectName())) {
                 fuhuanghou->broadcastSkillInvoke("zhuikong");
-                if (fuhuanghou->pindian(player, objectName(), NULL)) {
+                if (fuhuanghou->pindian(fuhuanghou->pindianSelect(player, objectName()))) {
                     if (!skip) {
                         player->skip(Player::Play);
                         skip = true;

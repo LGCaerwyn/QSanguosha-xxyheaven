@@ -17,6 +17,7 @@ class Window;
 class Button;
 class CardContainer;
 class GuanxingBox;
+class PindianBox;
 class CardChooseBox;
 class QSanButton;
 class QGroupBox;
@@ -201,6 +202,7 @@ public slots:
     void useSelectedCard();
     void updateStatus(Client::Status oldStatus, Client::Status newStatus);
     void cardMovedinCardchooseBox(const bool enable);
+    void playPindianSuccess(int type, int index);
     void killPlayer(const QString &who);
     void revivePlayer(const QString &who);
     void showServerInformation();
@@ -268,8 +270,7 @@ private:
     QMainWindow *main_window;
     QSanButton *ok_button, *cancel_button, *discard_button;
     QMenu *miscellaneous_menu, *change_general_menu;
-    Window *pindian_box;
-    CardItem *pindian_from_card, *pindian_to_card;
+    PindianBox *m_pindianBox;
     QGraphicsItem *control_panel;
     QMap<PlayerCardContainer *, const ClientPlayer *> item2player;
     QDialog *m_choiceDialog; // Dialog for choosing generals, suits, card/equip, or kingdoms
@@ -382,7 +383,6 @@ private:
     void fillGenerals1v1(const QStringList &names);
     void fillGenerals3v3(const QStringList &names);
 
-    void showPindianBox(const QString &from_name, int from_id, const QString &to_name, int to_id, const QString &reason);
     void setChatBoxVisible(bool show);
     QRect getBubbleChatBoxShowArea(const QString &who) const;
 
@@ -470,8 +470,6 @@ private slots:
     void updateSkill(const QString &skill_name);
 
     void startAssign();
-
-    void doPindianAnimation();
 
     // 3v3 mode & 1v1 mode
     void fillGenerals(const QStringList &names);

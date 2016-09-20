@@ -446,7 +446,7 @@ bool XianzhenCard::targetFilter(const QList<const Player *> &targets, const Play
 void XianzhenCard::onEffect(const CardEffectStruct &effect) const
 {
     Room *room = effect.from->getRoom();
-    if (effect.from->pindian(effect.to, "xianzhen", NULL)) {
+    if (effect.from->pindian(effect.from->pindianSelect(effect.to, "xianzhen"))) {
         ServerPlayer *target = effect.to;
         effect.from->tag["XianzhenTarget"] = QVariant::fromValue(target);
         room->setPlayerFlag(effect.from, "XianzhenSuccess");

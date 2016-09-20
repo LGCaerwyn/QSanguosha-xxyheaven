@@ -95,7 +95,7 @@ void XiechanCard::use(Room *room, ServerPlayer *xuchu, QList<ServerPlayer *> &ta
     room->removePlayerMark(xuchu, "@twine");
     //room->doLightbox("$XiechanAnimate");
 
-    bool success = xuchu->pindian(targets.first(), "xiechan", NULL);
+    bool success = xuchu->pindian(xuchu->pindianSelect(targets.first(), "xiechan"));
     Duel *duel = new Duel(Card::NoSuit, 0);
     duel->setSkillName("_xiechan");
     ServerPlayer *from = NULL, *to = NULL;

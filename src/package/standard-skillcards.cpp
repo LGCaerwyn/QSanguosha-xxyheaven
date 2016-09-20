@@ -67,7 +67,7 @@ bool YijueCard::targetFilter(const QList<const Player *> &targets, const Player 
 void YijueCard::use(Room *room, ServerPlayer *guanyu, QList<ServerPlayer *> &targets) const
 {
     ServerPlayer *target = targets.first();
-    bool success = guanyu->pindian(target, "yijue", NULL);
+    bool success = guanyu->pindian(guanyu->pindianSelect(target, "yijue"));
     if (success) {
         target->addMark("yijue");
         room->setPlayerCardLimitation(target, "use,response", ".|.|.|hand", true);

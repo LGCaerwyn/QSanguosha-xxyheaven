@@ -308,7 +308,7 @@ bool QiaoshuiCard::targetFilter(const QList<const Player *> &targets, const Play
 
 void QiaoshuiCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
-    bool success = source->pindian(targets.first(), "qiaoshui", NULL);
+    bool success = source->pindian(source->pindianSelect(targets.first(), "qiaoshui"));
     if (success)
         source->setFlags("QiaoshuiSuccess");
     else
@@ -1322,7 +1322,7 @@ public:
                 && room->askForSkillInvoke(fuhuanghou, objectName(), QVariant::fromValue(player))) {
 				room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, fuhuanghou->objectName(), player->objectName());
                 fuhuanghou->broadcastSkillInvoke("zhuikong");
-                if (fuhuanghou->pindian(player, objectName(), NULL)) {
+                if (fuhuanghou->pindian(fuhuanghou->pindianSelect(player, objectName()))) {
                     room->setPlayerFlag(player, "zhuikong");
                 } else {
                     room->setFixedDistance(player, fuhuanghou, 1);

@@ -78,6 +78,7 @@ Client::Client(QObject *parent, const QString &filename)
     m_callbacks[S_COMMAND_MIRROR_GUANXING_STEP] = &Client::mirrorGuanxingStep;
     m_callbacks[S_COMMAND_MIRROR_MOVECARDS_STEP] = &Client::mirrorMoveCardsStep;
     m_callbacks[S_COMMAND_SET_TURN] = &Client::setTurn;
+    m_callbacks[S_COMMAND_PINDIAN] = &Client::askForPindian;
 
     // interactive methods
     m_interactions[S_COMMAND_CHOOSE_GENERAL] = &Client::askForGeneral;
@@ -638,6 +639,10 @@ void Client::onPlayerResponseCard(const Card *card, const QList<const Player *> 
         }
 
         replyToServer(S_COMMAND_RESPONSE_CARD, JsonArray() << card->toString() << QVariant::fromValue(targetNames));
+        if (_m_roomState.getCurrentCardResponsePrompt() == "pindian" && card != NULL) {
+            _m_roomState.setCurrentCardResponsePrompt(QString());
+            notifyServer(S_COMMAND_PINDIAN, JsonArray() << S_GUANXING_MOVE << QVariant::fromValue(Self->objectName()) << card->getEffectiveId());
+        }
 
         if (card->isVirtualCard() && !card->parent())
             delete card;
@@ -939,10 +944,13 @@ void Client::askForCardOrUseCard(const QVariant &cardUsage)
     QString textsString = usage[1].toString();
     QStringList texts = textsString.split(":");
 
-    if (texts.isEmpty())
+    if (texts.isEmpty()) {
+        _m_roomState.setCurrentCardResponsePrompt(QString());
         return;
-    else
+    } else {
         setPromptList(texts);
+        _m_roomState.setCurrentCardResponsePrompt(textsString);
+    }
 
     if (card_pattern.endsWith("!"))
         m_isDiscardActionRefusable = false;
@@ -1882,25 +1890,63 @@ void Client::onPlayerReplyGongxin(int card_id)
 void Client::askForPindian(const QVariant &ask_str)
 {
     JsonArray ask = ask_str.value<JsonArray>();
-    if (!JsonUtils::isStringArray(ask, 0, 2)) return;
-    QString from = ask[0].toString();
-	QString reason = ask[2].toString();
-	if (reason == "furong") {
-		if (from == Self->objectName())
-			setPromptList(QStringList() << "@furong-source");
-		else {
-			setPromptList(QStringList() <<"@furong-target" << from);
-		}
-	} else {
-		if (from == Self->objectName())
-			prompt_doc->setHtml(tr("Please play a card for pindian"));
-		else {
-			QString requestor = getPlayerName(from);
-			prompt_doc->setHtml(tr("%1 ask for you to play a card to pindian").arg(requestor));
-		}
-	}
-    _m_roomState.setCurrentCardUsePattern(".");
-    setStatus(AskForShowOrPindian);
+    if (ask.size() == 2 && JsonUtils::isStringArray(ask, 0, 1)) {
+        QString from = ask[0].toString();
+        if (from == Self->objectName())
+            prompt_doc->setHtml(tr("Please play a card for pindian"));
+        else {
+            QString requestor = getPlayerName(from);
+            prompt_doc->setHtml(tr("%1 ask for you to play a card to pindian").arg(requestor));
+        }
+        _m_roomState.setCurrentCardUsePattern(".");
+        _m_roomState.setCurrentCardResponsePrompt("pindian");
+        setStatus(AskForShowOrPindian);
+    } else {
+        if (ask.isEmpty())
+            return;
+
+        GuanxingStep step = static_cast<GuanxingStep>(ask.at(0).toInt());
+        if (step == S_GUANXING_START) {
+
+            QString who = ask.at(1).toString();
+            QString reason = ask.at(2).toString();
+            QStringList targets;
+            JsonUtils::tryParse(ask[3], targets);
+            emit startPindian(who, reason, targets);
+
+            if (recorder) {
+                JsonArray stepArgs;
+                stepArgs << S_GUANXING_START << ask[1] << ask[2] << ask[3];
+                Packet packet(S_SRC_ROOM | S_TYPE_NOTIFICATION | S_DEST_CLIENT, S_COMMAND_PINDIAN);
+                packet.setMessageBody(stepArgs);
+                recorder->recordLine(packet.toJson());
+            }
+        } else if (step == S_GUANXING_MOVE) {
+            QString who = ask.at(1).toString();
+            int id = ask.at(2).toInt();
+            emit onPindianReply(who, id);
+
+            if (recorder) {
+                JsonArray stepArgs;
+                stepArgs << S_GUANXING_MOVE << ask[1] << ask[2];
+                Packet packet(S_SRC_ROOM | S_TYPE_NOTIFICATION | S_DEST_CLIENT, S_COMMAND_PINDIAN);
+                packet.setMessageBody(stepArgs);
+                recorder->recordLine(packet.toJson());
+            }
+        } else if (step == S_GUANXING_FINISH) {
+            int type = ask.at(1).toInt();
+            int index = ask.at(2).toInt();
+            emit pindianSuccess(type, index);
+
+            if (recorder) {
+                JsonArray stepArgs;
+                stepArgs << S_GUANXING_FINISH << ask[1] << ask[2];
+                Packet packet(S_SRC_ROOM | S_TYPE_NOTIFICATION | S_DEST_CLIENT, S_COMMAND_PINDIAN);
+                packet.setMessageBody(stepArgs);
+                recorder->recordLine(packet.toJson());
+            }
+        }
+    }
 }
 
 void Client::askForYiji(const QVariant &ask_str)
@@ -2129,8 +2175,13 @@ void Client::moveFocus(const QVariant &focus)
         countdown.type = Countdown::S_COUNTDOWN_USE_SPECIFIED;
         countdown.current = 0;
         countdown.max = ServerInfo.getCommandTimeout(S_COMMAND_UNKNOWN, S_CLIENT_INSTANCE);
-    } else // focus[1] is the moveFocus reason, which is unused for now.
-        countdown.tryParse(args[2]);
+    } else {// focus[1] is the moveFocus reason, which is unused for now.
+        unsigned countdown_index = args.size() >= 3 ? 2 : 1;
+        if (!countdown.tryParse(args[countdown_index])) {
+            return;
+        }
+    }
+
     emit focus_moved(players, countdown);
 }
 
