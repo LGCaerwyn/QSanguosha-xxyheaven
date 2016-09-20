@@ -662,14 +662,16 @@ mingce_skill.getTurnUseCard = function(self)
 	end
 	if not card then
 		local ecards = self.player:getCards("e")
-		ecards = sgs.QList2Table(ecards)
+        if not ecards:isEmpty() then
+            ecards = sgs.QList2Table(ecards)
 
-		for _, ecard in ipairs(ecards) do
-			if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
-				card = ecard
-				break
-			end
-		end
+            for _, ecard in ipairs(ecards) do
+                if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
+                    card = ecard
+                    break
+                end
+            end
+        end
 	end
 	if card then
 		card = sgs.Card_Parse("@MingceCard=" .. card:getEffectiveId())
@@ -685,6 +687,7 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	self.MingceTarget = nil
 
+    
 	local canMingceTo = function(player)
 		local canGive = not self:needKongcheng(player, true)
 		return canGive or (not canGive and self:getEnemyNumBySeat(self.player, player) == 0)
@@ -718,7 +721,25 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 					end
 				end
 				if #targets > 0 then
-				    victim = sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
+                    for _,slash_target in ipairs(targets) do
+                        local def = sgs.getDefense(slash_target)
+                        local slash = sgs.Sanguosha:cloneCard("slash")
+                        local eff = self:slashIsEffective(slash, slash_target) and sgs.isGoodTarget(slash_target, targets, self)
+
+                        if not self.player:canSlash(slash_target, slash, false) then
+                        elseif self:slashProhibit(nil, slash_target) then
+                        elseif eff and def < 8 then victim = slash_target
+                        end
+                    end
+                    if victim == nil then
+                        self:sort(targets)
+                        for _,t in ipairs(targets) do
+                            if self:isEnemy(t) and not self:needToLoseHp(t) then
+                                victim = t
+                                break
+                            end
+                        end
+                    end
 				end
 				break
 			end

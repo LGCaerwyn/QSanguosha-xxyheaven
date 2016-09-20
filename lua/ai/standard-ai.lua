@@ -1242,30 +1242,20 @@ sgs.ai_skill_use["@@rende_basic"] = function(self)
     local basic_name
     local peach = sgs.Sanguosha:cloneCard("peach")
     peach:setSkillName("_rende")
-    local slash = sgs.Sanguosha:cloneCard("slash")
-    slash:setSkillName("_rende")
     if self:isWeak() then
         if peach:isAvailable(self.player) then
             return peach:toString()
         end
     else
-        self:sort(self.enemies, "defense")
-        for _, enemy in ipairs(self.enemies) do
-            if (self:isWeak(enemy))
-            and self.player:canSlash(enemy) and self:slashIsEffective(slash, enemy, self.player)
-            and self.player:inMyAttackRange(enemy) then
-                --if not has_analeptic and not ban:match("maneuvering") and self.player:getMark("drank") == 0
-                    --and getKnownCard(enemy, self.player, "Jink") == 0 and #BasicCards > 2 then return "analeptic" end
-                local dummy_use = { isDummy = true, to = sgs.SPlayerList(), current_targets = {} }
-                self:useCardSlash(slash, dummy_use)
-                if dummy_use.card and dummy_use.to:length() > 0 then
-                    local target_objectname = {}
-                    for _, p in sgs.qlist(dummy_use.to) do
-                        table.insert(target_objectname, p:objectName())
-                    end
-                    return dummy_use.card:toString() .. "->" .. table.concat(target_objectname, "+")
-                end
+        local slash_name, targets = self:findSlashKindToUse()
+        local slash = sgs.Sanguosha:cloneCard(slash_name)
+        if slash ~= nil then
+            slash:setSkillName("_rende")
+            local target_names = {}
+            for _,tar in sgs.qlist(targets) do
+                table.insert(target_names, tar:objectName())
             end
+            return slash:toString() .. "->" .. table.concat(target_names, "+")
         end
     end
     if peach:isAvailable(self.player) then
@@ -2449,7 +2439,7 @@ sgs.ai_skill_use_func.FanjianCard = function(card, use, self)
                 and not (self.player:hasSkill("kofliegong") and target:getHandcardNum() >= self.player:getHp()) then
                 if target:hasSkill("qingguo") then
                     for _, card in ipairs(cards) do
-                        if self:getUseValue(card) < 6 and card:isBlack() then
+                        if self:getUseValue(card) < 6 and card:isBlack() and not isCard("Peach", card, target) and not isCard("Analeptic", card, target) then
                             use.card = sgs.Card_Parse("@FanjianCard=" .. card:getEffectiveId())
                             if use.to then use.to:append(target) end
                             return
@@ -2457,7 +2447,7 @@ sgs.ai_skill_use_func.FanjianCard = function(card, use, self)
                     end
                 end
                 for _, card in ipairs(cards) do
-                    if self:getUseValue(card) < 6 and card:getSuit() == sgs.Card_Diamond then
+                    if self:getUseValue(card) < 6 and card:getSuit() == sgs.Card_Diamond and not isCard("Peach", card, target) and not isCard("Analeptic", card, target) then
                         use.card = sgs.Card_Parse("@FanjianCard=" .. card:getEffectiveId())
                         if use.to then use.to:append(target) end
                         return
@@ -2518,7 +2508,7 @@ sgs.ai_skill_use_func.FanjianCard = function(card, use, self)
                 end
             end
             for _, card in ipairs(cards) do
-                if self:getUseValue(card) < 6 and table.contains(max_suit, card:getSuit()) then
+                if self:getUseValue(card) < 6 and table.contains(max_suit, card:getSuit()) and not isCard("Peach", card, enemy) and not isCard("Analeptic", card, enemy) then
                     use.card = sgs.Card_Parse("@FanjianCard=" .. card:getEffectiveId())
                     if use.to then use.to:append(enemy) end
                     return
@@ -2526,7 +2516,7 @@ sgs.ai_skill_use_func.FanjianCard = function(card, use, self)
             end
             if getCardsNum("Peach", enemy, self.player) < 2 then
                 for _, card in ipairs(cards) do
-                    if self:getUseValue(card) < 6 and not self:isValuableCard(card) then
+                    if self:getUseValue(card) < 6 and not self:isValuableCard(card) and not isCard("Peach", card, enemy) and not isCard("Analeptic", card, enemy) then
                         use.card = sgs.Card_Parse("@FanjianCard=" .. card:getEffectiveId())
                         if use.to then use.to:append(enemy) end
                         return

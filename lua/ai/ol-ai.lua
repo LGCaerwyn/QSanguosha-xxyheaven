@@ -182,3 +182,67 @@ sgs.ai_skill_choice.dingpan = function(self, choices, data)
 	end
 	return "disequip"
 end
+
+local gushe_skill = {}
+gushe_skill.name = "gushe"
+table.insert(sgs.ai_skills, gushe_skill)
+gushe_skill.getTurnUseCard = function(self)
+    if self.player:isKongcheng() or self.player:hasUsed("GusheCard") then return end
+    return sgs.Card_Parse("@GusheCard=.")
+end
+
+sgs.ai_skill_use_func.GusheCard = function(card, use, self)
+    local targets = sgs.SPlayerList()
+    self:sort(self.enemies)
+    for _,enemy in ipairs(self.enemies) do
+        if not enemy:isKongcheng() or not (self:needKongcheng(enemy, true) and enemy:getHandcardNum() <= 2) or not (enemy:hasSkills(sgs.lose_equip_skill) and enemy:hasEquip()) then
+            targets:append(enemy)
+            if targets:length() == 3 then break end
+        end
+    end
+    if targets:length() > 0 then
+        use.to = targets
+        use.card = card
+        
+        local max_card
+        local max_number = 0
+        local cards = sgs.QList2Table(self.player:getCards("h"))
+        self:sortByKeepValue(cards)
+        
+        local rap_num = self.player:getMark("#rap")
+        for _,c in ipairs(cards) do
+            local number = c:getNumber()
+            if number < rap_num then number = number + rap_num end
+            if number > max_number then
+                max_card = c
+                max_number = number
+            end
+        end
+        if rap_num == 6 and max_number < 10 then 
+            use.card = nil
+            use.to = sgs.SPlayerList()
+        end
+        
+        self.gushe_card = max_card:getEffectiveId()
+    end
+end
+
+sgs.ai_skill_discard.gushe = function(self, discard_num, min_num, optional, include_equip)
+    if self:needKongcheng() then
+        return self:askForDiscard("dummy", discard_num, min_num, optional, include_equip)
+    end
+	local current = self.room:getCurrent()
+    if self:isFriend(current) then
+        return {}
+    end
+    return self:askForDiscard("dummy", discard_num, min_num, optional, include_equip)
+end
+
+sgs.ai_skill_pindian.gushe = function(minusecard, self, requestor, maxcard, mincard)
+    self.room:writeToConsole(self.player:objectName())
+end
+
+sgs.ai_use_value["GusheCard"] = 10
+sgs.ai_use_priority["GusheCard"] = 10
+
+sgs.ai_skill_invoke.jici = true

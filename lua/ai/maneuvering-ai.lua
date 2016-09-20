@@ -771,6 +771,20 @@ sgs.ai_cardshow.fire_attack = function(self, requestor)
 	return result
 end
 
+sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
+	if self:isFriend(target) and not self:needToLoseHp(target) then
+        return "."
+    elseif self:isEnemy(target) and not self:needToLoseHp(target) then
+        local handcards = sgs.QList2Table(self.player:getHandcards())
+        self:sortByUseValue(handcards, true)
+        for _,c in ipairs(handcards) do
+            if c:getSuit() == pattern then  
+                return "$" .. c:getEffectiveId()
+            end
+        end
+    end
+end
+
 sgs.ai_use_value.FireAttack = 4.8
 sgs.ai_keep_value.FireAttack = 3.3
 sgs.ai_use_priority.FireAttack = sgs.ai_use_priority.Dismantlement + 0.1

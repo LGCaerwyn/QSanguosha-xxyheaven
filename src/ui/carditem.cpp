@@ -397,10 +397,11 @@ void CardItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
             painter->drawPixmap(G_COMMON_LAYOUT.m_cardSuitArea, G_ROOM_SKIN.getCardSuitPixmap(card->getSuit()));
             painter->drawPixmap(G_COMMON_LAYOUT.m_cardNumberArea, G_ROOM_SKIN.getCardNumberPixmap(card->getNumber(), card->isBlack()));
         }
-        QRect rect = G_COMMON_LAYOUT.m_cardFootnoteArea;
-        // Deal with stupid QT...
-        if (_m_showFootnote) painter->drawImage(rect, _m_footnoteImage);
     }
+
+    QRect rect = G_COMMON_LAYOUT.m_cardFootnoteArea;
+    // Deal with stupid QT...
+    if (_m_showFootnote) painter->drawImage(rect, _m_footnoteImage);
 
     if (!_m_avatarName.isEmpty())
         painter->drawPixmap(G_COMMON_LAYOUT.m_cardAvatarArea, G_ROOM_SKIN.getCardAvatarPixmap(_m_avatarName));

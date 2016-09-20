@@ -404,7 +404,7 @@ sgs.ai_skill_use_func.YanzhuCard = function(card, use, self)
     end
 
     for _, p in ipairs(self.friends_noself) do
-        if self.needToThrowArmor(p) and p:getArmor() and not p:isJilei(p:getArmor()) then
+        if self:needToThrowArmor(p) and p:getArmor() and not p:isJilei(p:getArmor()) then
             use.card = card
             if (use.to) then use.to:append(p) end
             -- use.from = self.player
@@ -803,7 +803,7 @@ end
 -- huomo buhui !!!
 -- 每当你需要使用一张你于此回合内未使用过的基本牌时，你可以将一张黑色非基本牌置于牌堆顶，然后视为你使用了此基本牌。
 sgs.ai_cardsview_valuable.huomo = function(self, class_name, player) 
-    if sgs.Sanguosha:getCurrentCardUseReason() ~= sgs.CardUseStruct_CARD_USE_REASON_RESPONSE_USE then return "." end
+    if sgs.Sanguosha:getCurrentCardUseReason() ~= sgs.CardUseStruct_CARD_USE_REASON_RESPONSE_USE then return nil end
 	local pattern = nil
     if class_name == "Slash" and player:getMark("Huomo_Slash") == 0 then
         pattern = "slash"
@@ -832,6 +832,38 @@ sgs.ai_cardsview_valuable.huomo = function(self, class_name, player)
             end
         end
     end
+end
+
+function SmartAI:findSlashKindToUse()
+    local to_use_kind, use_value
+    local use_to = sgs.SPlayerList()
+    if sgs.Slash_IsAvailable(self.player) then
+        local slashs = {"slash-Slash", "fire_slash-FireSlash", "thunder_slash-ThunderSlash"}
+        for _,sla in ipairs(slashs) do
+            local slash_name = sla:split("-")[1]
+            local slash_class = sla:split("-")[2]
+            local slash = sgs.Sanguosha:cloneCard(slash_name)
+            if slash ~= nil then
+                slash:deleteLater()
+                local dummy_use = {
+                    isDummy = true,
+                    to = sgs.SPlayerList()
+                }
+                self:useBasicCard(slash, dummy_use)
+                if dummy_use.card then
+                    local value = sgs.ai_use_value[slash_class] or 0
+                    if use_value == nil or value > use_value then
+                        to_use_kind, use_value = slash_name, value
+                        use_to = dummy_use.to
+                    end
+                end
+            end
+        end
+    end
+    if to_use_kind and use_to then
+        return to_use_kind, use_to, use_value
+    end
+    return nil
 end
 
 huomo_skill = {name = "huomo"}
@@ -916,19 +948,26 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
     
     if not to_use and self.player:getMark("Huomo_Slash") == 0 then
         if sgs.Slash_IsAvailable(self.player) then
-            local slash = sgs.Sanguosha:cloneCard("slash")
-            slash:deleteLater()
-            local dummy_use = {
-                isDummy = true,
-            }
-            self:useBasicCard(slash, dummy_use)
-            if dummy_use.card then
-                use_slash = true
-                local value = sgs.ai_use_value["Slash"] or 0
-                for _,c in ipairs(can_use) do
-                    if self:getUseValue(c) <= value then
-                        to_use, pattern = c, "slash"
-                        break
+            local slashs = {"slash-Slash", "fire_slash-FireSlash", "thunder_slash-ThunderSlash"}
+            for _,sla in ipairs(slashs) do
+                local slash_name = sla:split("-")[1]
+                local slash_class = sla:split("-")[2]
+                local slash = sgs.Sanguosha:cloneCard(slash_name)
+                if slash ~= nil then
+                    slash:deleteLater()
+                    local dummy_use = {
+                        isDummy = true,
+                    }
+                    self:useBasicCard(slash, dummy_use)
+                    if dummy_use.card then
+                        use_slash = true
+                        local value = sgs.ai_use_value[slash_class] or 0
+                        for _,c in ipairs(can_use) do
+                            if self:getUseValue(c) <= value then
+                                to_use, pattern = c, slash_name
+                                break
+                            end
+                        end
                     end
                 end
             end
@@ -939,7 +978,7 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
         if use_anal then
             to_use, pattern = can_use[1], "analeptic"
         elseif use_slash then
-            to_use, pattern = can_use[1], "slash"
+            to_use, pattern, use.to = can_use[1], self:findSlashKindToUse()
         end
     end
     

@@ -2510,7 +2510,7 @@ sgs.ai_skill_choice.zhanyi_saveself = function(self, choices)
 end
 
 sgs.ai_skill_choice.zhanyi_slash = function(self, choices)
-    return "slash"
+    return self:findSlashKindToUse()
 end
 
 --刘表

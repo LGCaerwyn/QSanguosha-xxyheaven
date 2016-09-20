@@ -48,6 +48,7 @@ void PindianBox::doPindian(const QString &requestor, const QString &reason, cons
         cardItem->setAutoBack(false);
         upItems << cardItem;
         cardItem->setParentItem(this);
+        cardItem->setFootnote(ClientInstance->getPlayerName(targets.at(i - 1)));
     }
 
     CardItem *card = new CardItem(Sanguosha->getCard(-1));
@@ -55,6 +56,7 @@ void PindianBox::doPindian(const QString &requestor, const QString &reason, cons
     card->setFlag(ItemIsMovable, false);
     card->setAutoBack(false);
     card->setParentItem(this);
+    card->setFootnote(ClientInstance->getPlayerName(requestor) + tr("request"));
     downItems << card;
 
     itemCount = upItems.length();
@@ -138,8 +140,7 @@ void PindianBox::doPindianAnimation(const QString &who)
 void PindianBox::playSuccess(int type, int index)
 {
     _m_mutex_pindian.lock();
-    PixmapAnimation::GetPixmapAnimation(downItems.first(), type == 1 ? "judgegood" : "judgebad");
-    PixmapAnimation::GetPixmapAnimation(upItems.at(index - 1), type == 3 ? "judgegood" : "judgebad");
+    PixmapAnimation::GetPixmapAnimation(downItems.first(), type == 1 ? "success" : "no-success");
     _m_mutex_pindian.unlock();
     if (index == targets.length())
         QTimer::singleShot(2000, this, SLOT(clear()));
@@ -185,21 +186,11 @@ void PindianBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
         x = (first + (card_width + cardInterval + 20) * i);
         y = (45);
 
-        QString description1 = ClientInstance->getPlayerName(targets.at(i));
-        QRect up_rect(x - cardInterval / 2 - 20, 45, 20, card_height);
-        G_COMMON_LAYOUT.playerCardBoxPlaceNameText.paintText(painter, up_rect, Qt::AlignCenter, description1);
-
         QRect top_rect(x, y, card_width, card_height);
         painter->drawPixmap(top_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
         IQSanComponentSkin::QSanSimpleTextFont font = G_COMMON_LAYOUT.m_chooseGeneralBoxDestSeatFont;
         font.paintText(painter, top_rect, Qt::AlignCenter, ClientInstance->getPlayerName(targets.at(i)));
     }
-
-    QString description2 = tr("requestor");
-    QRect down_rect((width - card_width) / 2 - cardInterval / 2 - 20, 45 + (card_height + cardInterval), 20, card_height);
-    QRect down_rect2((width - card_width) / 2 - cardInterval - 40, 45 + (card_height + cardInterval), 20, card_height);
-    G_COMMON_LAYOUT.playerCardBoxPlaceNameText.paintText(painter, down_rect, Qt::AlignCenter, ClientInstance->getPlayerName(zhuge));
-    G_COMMON_LAYOUT.playerCardBoxPlaceNameText.paintText(painter, down_rect2, Qt::AlignCenter, description2);
 
     QRect bottom_rect((width - card_width) / 2, 45 + card_height + cardInterval, card_width, card_height);
     painter->drawPixmap(bottom_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
