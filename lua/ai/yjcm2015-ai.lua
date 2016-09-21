@@ -156,7 +156,7 @@ table.insert(sgs.ai_skills, huaiyi_skill)
 local function remove_repeat(target_table)
 	local new_table = {}
 	for _, p in ipairs(target_table) do
-		if not table.contains(target_table, p) then
+		if not table.contains(new_table, p) then
 			table.insert(new_table, p)
 		end
 	end
@@ -351,12 +351,48 @@ function sgs.ai_slash_prohibit.shifei(self, from, to)
 	return false
 end
 
+
+
 zhanjue_skill = {name = "zhanjue"}
 table.insert(sgs.ai_skills, zhanjue_skill)
 zhanjue_skill.getTurnUseCard = function(self)
     if (self.player:getMark("zhanjuedraw") >= 2) then return nil end
 
     if (self.player:isKongcheng()) then return nil end
+    
+    local cards = self.player:getHandcards()
+	cards = sgs.QList2Table(cards)
+	local caocao = self.room:findPlayerBySkillName("jianxiong")
+
+    local use_value = sgs.ai_use_value.Duel
+    
+    if self:isWeak() then
+        use_value = use_value - 1.5
+    end
+    
+	for _, card in ipairs(cards) do
+        if card:isKindOf("Analeptic") or card:isKindOf("Peach") then
+            use_value = use_value - 0.5
+        end
+	end
+    
+    for _,enemy in ipairs(self.enemies) do
+        if self:isWeak(enemy) then
+            use_value = use_value + 1
+        end
+        if getCardsNum("Peach", enemy) > 0 then
+            use_value = use_value - 0.5
+        end
+    end
+    
+
+	if use_value < sgs.ai_use_value.Duel then return nil end
+
+    for _, card in ipairs(cards) do
+        if card:isKindOf("Analeptic") or (card:isKindOf("Peach") and self.player:isWounded()) then
+            return card
+        end
+	end
 
     local duel = sgs.Sanguosha:cloneCard("duel", sgs.Card_SuitToBeDecided, -1)
     duel:addSubcards(self.player:getHandcards())
@@ -860,10 +896,10 @@ function SmartAI:findSlashKindToUse()
             end
         end
     end
-    if to_use_kind and use_to then
+    if to_use_kind and use_to:length() > 0 then
         return to_use_kind, use_to, use_value
     end
-    return nil
+    return nil, nil, nil
 end
 
 huomo_skill = {name = "huomo"}

@@ -195,7 +195,7 @@ sgs.ai_skill_use_func.GusheCard = function(card, use, self)
     local targets = sgs.SPlayerList()
     self:sort(self.enemies)
     for _,enemy in ipairs(self.enemies) do
-        if not enemy:isKongcheng() or not (self:needKongcheng(enemy, true) and enemy:getHandcardNum() <= 2) or not (enemy:hasSkills(sgs.lose_equip_skill) and enemy:hasEquip()) then
+        if not enemy:isKongcheng() and not (self:needKongcheng(enemy, true) and enemy:getHandcardNum() <= 2) and not (enemy:hasSkills(sgs.lose_equip_skill) and enemy:hasEquip()) then
             targets:append(enemy)
             if targets:length() == 3 then break end
         end
