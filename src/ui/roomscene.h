@@ -17,8 +17,8 @@ class Window;
 class Button;
 class CardContainer;
 class GuanxingBox;
-class PindianBox;
 class CardChooseBox;
+class PindianBox;
 class QSanButton;
 class QGroupBox;
 class BubbleChatBox;
@@ -137,7 +137,7 @@ public:
     ~RoomScene();
     void changeTextEditBackground();
     void adjustItems();
-    void showIndicator(const QString &from, const QString &to);
+    void showIndicator(const QString &from, const QString &to, int secs = 0);
     static void FillPlayerNames(QComboBox *ComboBox, bool add_none);
     void updateTable();
     void updateVolumeConfig();
@@ -230,6 +230,10 @@ public slots:
 
     void doGongxin(const QList<int> &card_ids, bool enable_heart, QList<int> enabled_ids);
 
+    void showPile(const QList<int> &card_ids, const QString &nam, const ClientPlayer *target);
+    QString getCurrentShownPileName();
+    void hidePile();
+
     void setChatBoxVisibleSlot();
     void pause();
     void trust();
@@ -270,7 +274,7 @@ private:
     QMainWindow *main_window;
     QSanButton *ok_button, *cancel_button, *discard_button;
     QMenu *miscellaneous_menu, *change_general_menu;
-    PindianBox *m_pindianBox;
+    CardItem *pindian_from_card, *pindian_to_card;
     QGraphicsItem *control_panel;
     QMap<PlayerCardContainer *, const ClientPlayer *> item2player;
     QDialog *m_choiceDialog; // Dialog for choosing generals, suits, card/equip, or kingdoms
@@ -280,6 +284,7 @@ private:
 
     QList<QGraphicsPixmapItem *> role_items;
     CardContainer *m_cardContainer;
+    CardContainer *pileContainer;
 
     QList<QSanSkillButton *> m_skillButtons;
 
@@ -294,6 +299,8 @@ private:
     GuanxingBox *m_guanxingBox;
 
     CardChooseBox *m_cardchooseBox;
+
+    PindianBox *m_pindianBox;
 
     ChooseGeneralBox *m_chooseGeneralBox;
 
@@ -447,7 +454,7 @@ private slots:
     void removeLightBox();
 
     void showCard(const QString &player_name, QList<int> card_ids);
-    void showPile(const QString &player_name, QList<int> card_ids, const QString &skill_name);
+    void moveCardToPile(const QString &player_name, QList<int> card_ids, const QString &skill_name);
     void showDummy(const CardMoveReason &reason);
     void viewDistance();
 

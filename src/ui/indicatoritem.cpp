@@ -26,7 +26,7 @@ void IndicatorItem::doAnimation()
     QPropertyAnimation *pause = new QPropertyAnimation(this, "opacity");
     pause->setEndValue(0);
     pause->setEasingCurve(QEasingCurve::InQuart);
-    pause->setDuration(600);
+    pause->setDuration(1000);
 
     group->addAnimation(animation);
     group->addAnimation(pause);

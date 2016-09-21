@@ -92,6 +92,16 @@ RecoverStruct::RecoverStruct(ServerPlayer *who, const Card *card, int recover)
 {
 }
 
+PindianStruct::PindianStruct()
+    : from(NULL), to(NULL), from_card(NULL), to_card(NULL), success(false)
+{
+}
+
+bool PindianStruct::isSuccess() const
+{
+    return success;
+}
+
 JudgeStruct::JudgeStruct()
     : who(NULL), card(NULL), pattern("."), good(true), time_consuming(false),
     negative(false), play_animation(true), retrial_by_response(NULL),
@@ -508,9 +518,8 @@ void RoomThread::actionNormal(GameRule *game_rule)
             log.type = "$AppendSeparator";
             room->sendLog(log);
 			if (room->getCurrent()->isLord()){
-				int num = room->getTag("Global_TurnCount").toInt()+1;
-				room->setTag("Global_TurnCount", num);
-				QVariant data = num;
+                room->incTurn();
+                QVariant data = room->getTurn();
 				foreach(ServerPlayer *p, room->getAllPlayers())
                     trigger(RoundStart, room, p, data);
 			}

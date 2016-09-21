@@ -2080,38 +2080,15 @@ bool GusheCard::targetFilter(const QList<const Player *> &targets, const Player 
 
 void GusheCard::use(Room *, ServerPlayer *wangsitu, QList<ServerPlayer *> &targets) const
 {
-    Room *room = wangsitu->getRoom();
-    PindianStruct *pd = wangsitu->pindianSelect(targets, "gushe");
-    int length = pd->tos.length();
-    for (int i = 0; i < length; i++) {
-        bool success = wangsitu->pindian(pd, i + 1);
-        ServerPlayer *target = pd->tos.at(i);
-        int from_num = pd->from_number;
-        int to_num = pd->to_numbers.at(i);
-
-        if (!success) {
-            wangsitu->gainMark("#rap");
-            if (wangsitu->getMark("#rap") >= 7) {
-                room->killPlayer(wangsitu);
-                return;
-            }
-            if (!room->askForDiscard(wangsitu, "gushe", 1, 1, wangsitu->isAlive(), true, "@gushe-discard:" + wangsitu->objectName())) {
-                wangsitu->drawCards(1);
-            }
-        }
-
-        if (success && target->isAlive() || from_num == to_num) {
-            if (!room->askForDiscard(target, "gushe", 1, 1, wangsitu->isAlive(), true, "@gushe-discard:" + wangsitu->objectName())) {
-                wangsitu->drawCards(1);
-            }
-        }
-    }
+    PindianStruct *pd = wangsitu->pindianStart(targets, "gushe");
+    for (int i = 1; i <= targets.length(); i++)
+        wangsitu->pindianResult(pd, i);
 }
 
-class Gushe : public ZeroCardViewAsSkill
+class GusheViewAsSkill : public ZeroCardViewAsSkill
 {
 public:
-    Gushe() : ZeroCardViewAsSkill("gushe")
+    GusheViewAsSkill() : ZeroCardViewAsSkill("gushe")
     {
     }
 
@@ -2123,6 +2100,45 @@ public:
     virtual const Card *viewAs() const
     {
         return new GusheCard;
+    }
+};
+
+class Gushe : public TriggerSkill
+{
+public:
+    Gushe() : TriggerSkill("gushe")
+    {
+        events << Pindian;
+		view_as_skill = new GusheViewAsSkill;
+    }
+
+    virtual bool triggerable(const ServerPlayer *target) const
+    {
+        return target != NULL;
+    }
+
+    virtual bool trigger(TriggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
+    {
+        PindianStruct * pindian = data.value<PindianStruct *>();
+		if (pindian->reason != "gushe") return false;
+		QList<ServerPlayer *> losers;
+		if (pindian->success) {
+			losers << pindian->to;
+		} else {
+			losers << wangsitu;
+			if (pindian->from_number == pindian->to_number)
+                losers << pindian->to;
+			wangsitu->gainMark("#rap");
+			if (wangsitu->getMark("#rap") >= 7)
+				room->killPlayer(wangsitu);
+		}
+		foreach (ServerPlayer *loser, losers) {
+			if (loser->isDead()) continue;
+			if (!room->askForDiscard(loser, "gushe", 1, 1, wangsitu->isAlive(), true, "@gushe-discard:" + wangsitu->objectName())) {
+				wangsitu->drawCards(1);
+			}
+		}
+        return false;
     }
 };
 

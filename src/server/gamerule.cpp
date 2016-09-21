@@ -171,9 +171,6 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     case TurnStart: {
         player = room->getCurrent();
 
-        if (player->isLord() && !room->getTag("ExtraTurn").toBool())
-            room->incTurn();
-
         if (room->getTag("FirstRound").toBool()) {
             room->setTag("FirstRound", false);
             room->setPlayerFlag(player, "Global_FirstRound");

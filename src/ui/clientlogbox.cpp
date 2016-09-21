@@ -87,12 +87,16 @@ void ClientLogBox::appendLog(const QString &type, const QString &from_general, c
     }
 
     if (type.startsWith("#UseCard") && !card_str.isEmpty() && !from_general.isEmpty()) {
-        // do Indicator animation
-        foreach(QString to, tos)
-            RoomSceneInstance->showIndicator(from_general, to);
-
         const Card *card = Card::Parse(card_str);
         if (card == NULL) return;
+        // do Indicator animation
+        if ((card->isKindOf("LijianCard") || card->isKindOf("Collateral")) && tos.length() == 2) {
+            RoomSceneInstance->showIndicator(from_general, tos.last());
+            RoomSceneInstance->showIndicator(tos.last(), tos.first(), 1500);
+        } else if (!card->isVirtualCard() || card->getSkillName(false) == card->getSkillName(true)) {
+            foreach(QString to, tos)
+                RoomSceneInstance->showIndicator(from_general, to);
+        }
 
         QString card_name = card->getLogName();
         card_name = bold(card_name, Qt::yellow);

@@ -46,17 +46,17 @@ void PindianBox::doPindian(const QString &requestor, const QString &reason, cons
         cardItem->setFlag(QGraphicsItem::ItemIsFocusable);
         cardItem->setFlag(ItemIsMovable, false);
         cardItem->setAutoBack(false);
+        cardItem->setFootnote(ClientInstance->getPlayerName(targets.at(i - 1)) + isYou(targets.at(i - 1)));
         upItems << cardItem;
         cardItem->setParentItem(this);
-        cardItem->setFootnote(ClientInstance->getPlayerName(targets.at(i - 1)));
     }
 
     CardItem *card = new CardItem(Sanguosha->getCard(-1));
     card->setFlag(QGraphicsItem::ItemIsFocusable);
     card->setFlag(ItemIsMovable, false);
     card->setAutoBack(false);
+    card->setFootnote(QString("%1%2%3").arg(ClientInstance->getPlayerName(zhuge)).arg(isYou(zhuge)).arg(tr("request")));
     card->setParentItem(this);
-    card->setFootnote(ClientInstance->getPlayerName(requestor) + tr("request"));
     downItems << card;
 
     itemCount = upItems.length();
@@ -64,38 +64,55 @@ void PindianBox::doPindian(const QString &requestor, const QString &reason, cons
     int cardWidth = G_COMMON_LAYOUT.m_cardNormalWidth;
     int cardHeight = G_COMMON_LAYOUT.m_cardNormalHeight;
     int count = (itemCount >= 2) ? itemCount : 2;
-    int width = (cardWidth + cardInterval + 20) * count - cardInterval + 50;
+    int width = (cardWidth + cardInterval) * count - cardInterval + 50;
     this->width = width;
-    int first = (width - targets.length() * cardWidth - (targets.length() - 1) * (cardInterval + 20)) / 2;
 
-    for (int i = 0; i < upItems.length(); i++) {
-        CardItem *cardItem = upItems.at(i);
+    if (upItems.length() == 1) {
+        QPointF pos(25, 45);
+        card->resetTransform();
+        card->setOuterGlowEffectEnabled(false);
+        card->setPos(pos);
+        card->setHomePos(pos);
+        card->goBack(true);
+        card->hide();
 
-        QPointF pos;
-        int X, Y;
-
-        X = first + (cardWidth + cardInterval + 20) * i;
-        Y = 45;
-
-        pos.setX(X);
-        pos.setY(Y);
+        CardItem *cardItem = upItems.first();
         cardItem->resetTransform();
-        cardItem->setOuterGlowEffectEnabled(true);
+        cardItem->setOuterGlowEffectEnabled(false);
+        pos = QPointF(25 + cardWidth + cardInterval, 45);
         cardItem->setPos(pos);
         cardItem->setHomePos(pos);
         cardItem->goBack(true);
         cardItem->hide();
-    }
+    } else {
+        for (int i = 0; i < upItems.length(); i++) {
+            CardItem *cardItem = upItems.at(i);
 
-    QPointF pos;
-    pos.setX((width - cardWidth) / 2);
-    pos.setY(45 + cardHeight + cardInterval);
-    card->resetTransform();
-    card->setOuterGlowEffectEnabled(true);
-    card->setPos(pos);
-    card->setHomePos(pos);
-    card->goBack(true);
-    card->hide();
+            QPointF pos;
+            int X, Y;
+
+            X = 25 + (cardWidth + cardInterval) * i;
+            Y = 45;
+
+            pos.setX(X);
+            pos.setY(Y);
+            cardItem->resetTransform();
+            cardItem->setOuterGlowEffectEnabled(false);
+            cardItem->setPos(pos);
+            cardItem->setHomePos(pos);
+            cardItem->goBack(true);
+            cardItem->hide();
+        }
+        QPointF pos;
+        pos.setX((width - cardWidth) / 2);
+        pos.setY(45 + cardHeight + cardInterval);
+        card->resetTransform();
+        card->setOuterGlowEffectEnabled(false);
+        card->setPos(pos);
+        card->setHomePos(pos);
+        card->goBack(true);
+        card->hide();
+    }
 
     prepareGeometryChange();
     GraphicsBox::moveToCenter(this);
@@ -125,8 +142,7 @@ void PindianBox::doPindianAnimation(const QString &who)
 {
     _m_mutex_pindian.lock();
     downItems.first()->setCard(Sanguosha->getCard(card_id));
-    int i = 0;
-    for (i; i < targets.length(); i++) {
+    for (int i = 0; i < targets.length(); i++) {
         if (who == targets.at(i)) {
             upItems.at(i)->setCard(Sanguosha->getCard(card_ids.at(i)));
             break;
@@ -143,7 +159,7 @@ void PindianBox::playSuccess(int type, int index)
     PixmapAnimation::GetPixmapAnimation(downItems.first(), type == 1 ? "success" : "no-success");
     _m_mutex_pindian.unlock();
     if (index == targets.length())
-        QTimer::singleShot(2000, this, SLOT(clear()));
+        QTimer::singleShot(1500, this, SLOT(clear()));
 }
 
 void PindianBox::clear()
@@ -162,10 +178,15 @@ void PindianBox::clear()
     _m_mutex_pindian.unlock();
 }
 
+QString PindianBox::isYou(QString player_name)
+{
+    return Self == ClientInstance->getPlayer(player_name) ? tr("(you)") : "";
+}
+
 QRectF PindianBox::boundingRect() const
 {
     const int card_height = G_COMMON_LAYOUT.m_cardNormalHeight;
-    int height = cardInterval + card_height * 2;
+    int height = cardInterval + card_height * (targets.length() > 1 ? 2 : 1);
     height += 70;
 
     return QRectF(0, 0, width, height);
@@ -178,22 +199,30 @@ void PindianBox::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWid
 
     const int card_width = G_COMMON_LAYOUT.m_cardNormalWidth;
     const int card_height = G_COMMON_LAYOUT.m_cardNormalHeight;
+    IQSanComponentSkin::QSanSimpleTextFont font = G_COMMON_LAYOUT.m_cardFootnoteFont;
+    Qt::Alignment align = (Qt::AlignmentFlag)((int)Qt::AlignHCenter | Qt::AlignBottom | Qt::TextWrapAnywhere);
 
-    int first = (width - targets.length() * card_width - (targets.length() - 1) * (cardInterval + 20)) / 2;
+    if (targets.length() == 1) {
+        QRect bottom_rect(25, 45, card_width, card_height);
+        painter->drawPixmap(bottom_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
+        QRect fn_rect2(QPoint(bottom_rect.x()+1, bottom_rect.y()-6), bottom_rect.size());
+        font.paintText(painter, fn_rect2, align, QString("%1%2%3").arg(ClientInstance->getPlayerName(zhuge)).arg(isYou(zhuge)).arg(tr("request")));
 
-    for (int i = 0; i < targets.length(); ++i) {
-        int x, y = 0;
-        x = (first + (card_width + cardInterval + 20) * i);
-        y = (45);
-
-        QRect top_rect(x, y, card_width, card_height);
+        QRect top_rect(25 + card_width + cardInterval, 45, card_width, card_height);
         painter->drawPixmap(top_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
-        IQSanComponentSkin::QSanSimpleTextFont font = G_COMMON_LAYOUT.m_chooseGeneralBoxDestSeatFont;
-        font.paintText(painter, top_rect, Qt::AlignCenter, ClientInstance->getPlayerName(targets.at(i)));
-    }
+        QRect fn_rect1(QPoint(top_rect.x()+1, top_rect.y()-6), top_rect.size());
+        font.paintText(painter, fn_rect1, align, ClientInstance->getPlayerName(targets.first()) + isYou(targets.first()));
+    } else {
+        for (int i = 0; i < targets.length(); ++i) {
+            QRect top_rect(25 + (card_width + cardInterval) * i, 45, card_width, card_height);
+            painter->drawPixmap(top_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
+            QRect fn_rect1(QPoint(top_rect.x()+1, top_rect.y()-6), top_rect.size());
+            font.paintText(painter, fn_rect1, align, ClientInstance->getPlayerName(targets.at(i)) + isYou(targets.at(i)));
+        }
 
-    QRect bottom_rect((width - card_width) / 2, 45 + card_height + cardInterval, card_width, card_height);
-    painter->drawPixmap(bottom_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
-    IQSanComponentSkin::QSanSimpleTextFont font = G_COMMON_LAYOUT.m_chooseGeneralBoxDestSeatFont;
-    font.paintText(painter, bottom_rect, Qt::AlignCenter, ClientInstance->getPlayerName(zhuge));
+        QRect bottom_rect((width - card_width) / 2, 45 + card_height + cardInterval, card_width, card_height);
+        painter->drawPixmap(bottom_rect, G_ROOM_SKIN.getPixmap(QSanRoomSkin::S_SKIN_KEY_CHOOSE_GENERAL_BOX_DEST_SEAT));
+        QRect fn_rect2(QPoint(bottom_rect.x()+1, bottom_rect.y()-6), bottom_rect.size());
+        font.paintText(painter, fn_rect2, align, QString("%1%2%3").arg(ClientInstance->getPlayerName(zhuge)).arg(isYou(zhuge)).arg(tr("request")));
+    }
 }

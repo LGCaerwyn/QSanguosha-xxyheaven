@@ -9,7 +9,6 @@
 #include "lua-wrapper.h"
 #include "json.h"
 #include "gamerule.h"
-#include "structs.h"
 
 using namespace QSanProtocol;
 
@@ -564,17 +563,16 @@ bool ServerPlayer::hasNullification() const
     return false;
 }
 
-PindianStruct *ServerPlayer::pindianSelect(ServerPlayer *target, const QString &reason, const Card *card1)
+PindianStruct *ServerPlayer::pindianStart(ServerPlayer *target, const QString &reason, const Card *card1)
 {
     if (target == this) return NULL;
-    PindianStruct *pd = pindianSelect(QList<ServerPlayer *>() << target, reason, card1);
+    PindianStruct *pd = pindianStart(QList<ServerPlayer *>() << target, reason, card1);
     return pd;
 }
 
-PindianStruct *ServerPlayer::pindianSelect(const QList<ServerPlayer *> &targets, const QString &reason, const Card *card1)
+PindianStruct *ServerPlayer::pindianStart(const QList<ServerPlayer *> &targets, const QString &reason, const Card *card1)
 {
-    foreach(ServerPlayer *p, targets)
-    {
+    foreach (ServerPlayer *p, targets) {
         Q_ASSERT(p != this);
         if (p == this) return NULL;
     }
@@ -589,8 +587,7 @@ PindianStruct *ServerPlayer::pindianSelect(const QList<ServerPlayer *> &targets,
     QList<const Card *> cards = room->askForPindianRace(this, targets, reason, card1);
     card1 = cards.first();
     QList<int> ids;
-    foreach(const Card *card, cards)
-    {
+    foreach (const Card *card, cards) {
         if (card == NULL) return NULL;
         if (card != card1) ids << card->getNumber();
     }
@@ -646,7 +643,7 @@ PindianStruct *ServerPlayer::pindianSelect(const QList<ServerPlayer *> &targets,
     return pindian;
 }
 
-bool ServerPlayer::pindian(PindianStruct *pd, int index)
+bool ServerPlayer::pindianResult(PindianStruct *pd, int index)
 {
     Q_ASSERT(pd != NULL);
     Q_ASSERT(index <= pd->tos.length());
@@ -677,16 +674,12 @@ bool ServerPlayer::pindian(PindianStruct *pd, int index)
     pindian_struct.to_number = new_star->to_number;
     pindian_struct.success = (new_star->from_number > new_star->to_number);
 
-    thread->delay();
-
     arg.clear();
     int pindian_type = pindian_struct.success ? 1 : new_star->from_number == new_star->to_number ? 2 : 3;
     arg << S_GUANXING_FINISH;
     arg << pindian_type;
     arg << index;
     room->doBroadcastNotify(S_COMMAND_PINDIAN, arg);
-
-    thread->delay();
 
     LogMessage log;
     log.type = pindian_struct.success ? "#PindianSuccess" : "#PindianFailure";
@@ -741,6 +734,11 @@ bool ServerPlayer::pindian(PindianStruct *pd, int index)
     bool r = pindian_struct.success;
     if (index == pd->tos.length()) delete pd;
     return r;
+}
+
+bool ServerPlayer::pindian(ServerPlayer *target, const QString &reason, const Card *card1)
+{
+    return pindianResult(pindianStart(target, reason, card1));
 }
 
 void ServerPlayer::turnOver()

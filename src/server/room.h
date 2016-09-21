@@ -219,7 +219,6 @@ public:
     bool notifyMoveFocus(ServerPlayer *player);
     bool notifyMoveFocus(ServerPlayer *player, QSanProtocol::CommandType command);
     bool notifyMoveFocus(const QList<ServerPlayer *> &players, QSanProtocol::CommandType command, QSanProtocol::Countdown countdown);
-    bool notifyMoveFocus(const QList<ServerPlayer *> &focuses, const QSanProtocol::Countdown &countdown, ServerPlayer *except = NULL);
 
     // Notify client side to move cards from one place to another place. A movement should always be completed by
     // calling notifyMoveCards in pairs, one with isLostPhase equaling true followed by one with isLostPhase
@@ -391,6 +390,8 @@ public:
     void pauseCommand(ServerPlayer *player, const QVariant &arg);
     void processClientReply(ServerPlayer *player, const QSanProtocol::Packet &packet);
     void addRobotCommand(ServerPlayer *player, const QVariant &arg);
+    void mirrorGuanxingStepCommand(ServerPlayer *player, const QVariant &arg);
+    void mirrorMoveCardsStepCommand(ServerPlayer *player, const QVariant &arg);
     void onPindianReply(ServerPlayer *, const QVariant &arg);
     void changeSkinCommand(ServerPlayer *player, const QVariant &arg);
     void broadcastInvoke(const QSanProtocol::AbstractPacket *packet, ServerPlayer *except = NULL);

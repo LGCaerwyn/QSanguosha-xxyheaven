@@ -55,6 +55,8 @@ private:
     QString zhuge;
     QStringList targets;
     QMutex _m_mutex_pindian;
+
+    QString isYou(QString player_name);
 };
 
 #endif

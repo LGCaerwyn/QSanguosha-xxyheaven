@@ -502,7 +502,7 @@ void ZhibaCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &tar
         return;
     }
 
-    source->pindian(source->pindianSelect(sunce, "zhiba_pindian"));
+    source->pindian(sunce, "zhiba_pindian", NULL);
     QList<ServerPlayer *> sunces;
     QList<ServerPlayer *> players = room->getOtherPlayers(source);
     foreach (ServerPlayer *p, players) {

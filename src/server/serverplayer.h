@@ -55,10 +55,10 @@ public:
     QList<const Card *> getCards(const QString &flags) const;
     DummyCard *wholeHandCards() const;
     bool hasNullification() const;
-    PindianStruct *pindianSelect(ServerPlayer *target, const QString &reason, const Card *card1 = NULL);
-    PindianStruct *pindianSelect(const QList<ServerPlayer *> &target, const QString &reason, const Card *card1 = NULL);
-    bool pindian(PindianStruct *pd, int index = 1); //pd is deleted after this function if the index equals the length of targets
-
+    PindianStruct *pindianStart(ServerPlayer *target, const QString &reason, const Card *card1 = NULL);
+    PindianStruct *pindianStart(const QList<ServerPlayer *> &target, const QString &reason, const Card *card1 = NULL);
+    bool pindianResult(PindianStruct *pd, int index = 1); //pd is deleted after this function
+    bool pindian(ServerPlayer *target, const QString &reason, const Card *card1 = NULL);
     void turnOver();
     void play(QList<Player::Phase> set_phases = QList<Player::Phase>());
     bool changePhase(Player::Phase from, Player::Phase to);

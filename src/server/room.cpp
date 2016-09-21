@@ -81,12 +81,14 @@ void Room::initCallbacks()
     // Client notifications
     m_callbacks[S_COMMAND_TOGGLE_READY] = &Room::toggleReadyCommand;
     m_callbacks[S_COMMAND_ADD_ROBOT] = &Room::addRobotCommand;
-    m_callbacks[S_COMMAND_PINDIAN] = &Room::onPindianReply;
 
     m_callbacks[S_COMMAND_SPEAK] = &Room::speakCommand;
     m_callbacks[S_COMMAND_TRUST] = &Room::trustCommand;
     m_callbacks[S_COMMAND_PAUSE] = &Room::pauseCommand;
 
+    m_callbacks[S_COMMAND_MIRROR_GUANXING_STEP] = &Room::mirrorGuanxingStepCommand;
+    m_callbacks[S_COMMAND_MIRROR_MOVECARDS_STEP] = &Room::mirrorMoveCardsStepCommand;
+    m_callbacks[S_COMMAND_PINDIAN] = &Room::onPindianReply;
     m_callbacks[S_COMMAND_CHANGE_SKIN] = &Room::changeSkinCommand;
 
     //Client request
@@ -743,6 +745,7 @@ ServerPlayer *Room::doBroadcastRaceRequest(QList<ServerPlayer *> &players, QSanP
         notifyMoveFocus(getAllPlayers(), command, countdown);
     else
         notifyMoveFocus(players, command, countdown);
+
     foreach(ServerPlayer *player, players)
         doRequest(player, command, player->m_commandArgs, timeOut, false);
 
@@ -940,24 +943,6 @@ bool Room::notifyMoveFocus(const QList<ServerPlayer *> &players, CommandType com
         arg1 << players.value(i)->objectName();
     arg << QVariant(arg1) << command << countdown.toVariant();
     return doBroadcastNotify(S_COMMAND_MOVE_FOCUS, arg);
-}
-
-
-bool Room::notifyMoveFocus(const QList<ServerPlayer *> &focuses, const Countdown &countdown, ServerPlayer *except)
-{
-    JsonArray arg;
-    JsonArray players;
-    int n = focuses.size();
-    for (int i = 0; i < n; i++) {
-        players << focuses.at(i)->objectName();
-    }
-    arg << QVariant(players);
-
-    if (countdown.type != Countdown::S_COUNTDOWN_USE_DEFAULT) {
-        arg << countdown.toVariant();
-    }
-
-    return doBroadcastNotify(S_COMMAND_MOVE_FOCUS, arg, except);
 }
 
 bool Room::askForSkillInvoke(ServerPlayer *player, const QString &skill_name, const QVariant &data)
@@ -2663,6 +2648,15 @@ void Room::addRobotCommand(ServerPlayer *player, const QVariant &arg)
     }
 }
 
+void Room::mirrorGuanxingStepCommand(ServerPlayer *player, const QVariant &arg)
+{
+    doBroadcastNotify(S_COMMAND_MIRROR_GUANXING_STEP, arg, player);
+}
+
+void Room::mirrorMoveCardsStepCommand(ServerPlayer *player, const QVariant &arg)
+{
+    doBroadcastNotify(S_COMMAND_MIRROR_MOVECARDS_STEP, arg, player);
+}
 
 void Room::onPindianReply(ServerPlayer *, const QVariant &arg)
 {
@@ -4818,7 +4812,8 @@ void Room::doAnimate(QSanProtocol::AnimateType type, const QString &arg1, const 
     doBroadcastNotify(players, S_COMMAND_ANIMATE, arg);
 }
 
-void Room::preparePlayers() {
+void Room::preparePlayers()
+{
     foreach (ServerPlayer *player, m_players) {
         const General *general = player->getGeneral();
         if (NULL != general) {
@@ -6026,8 +6021,7 @@ QList<const Card *> Room::askForPindianRace(ServerPlayer *from, const QList<Serv
         return cards << NULL;
     Q_ASSERT(!from->isKongcheng());
     QStringList names;
-    foreach(ServerPlayer *p, to)
-    {
+    foreach (ServerPlayer *p, to) {
         Q_ASSERT(!p->isKongcheng());
         names << p->objectName();
         if (!p->isAlive())
@@ -6038,7 +6032,7 @@ QList<const Card *> Room::askForPindianRace(ServerPlayer *from, const QList<Serv
     Countdown countdown;
     countdown.max = ServerInfo.getCommandTimeout(S_COMMAND_PINDIAN, S_CLIENT_INSTANCE);
     countdown.type = Countdown::S_COUNTDOWN_USE_SPECIFIED;
-    notifyMoveFocus(QList<ServerPlayer *>() << from << to, countdown);
+    notifyMoveFocus(QList<ServerPlayer *>() << from << to, S_COMMAND_PINDIAN, countdown);
 
     JsonArray stepArgs;
     stepArgs << S_GUANXING_START;
@@ -6098,8 +6092,7 @@ QList<const Card *> Room::askForPindianRace(ServerPlayer *from, const QList<Serv
     }
 
 
-    foreach(ServerPlayer *p, players)
-    {
+    foreach (ServerPlayer *p, players) {
         JsonArray arr;
         arr << from->objectName() << to_names.join("+");
         p->m_commandArgs = arr;
@@ -6107,8 +6100,7 @@ QList<const Card *> Room::askForPindianRace(ServerPlayer *from, const QList<Serv
 
     doBroadcastRequest(players, S_COMMAND_PINDIAN);
 
-    foreach(ServerPlayer *player, players)
-    {
+    foreach (ServerPlayer *player, players) {
         const Card *c = NULL;
         JsonArray clientReply = player->getClientReply().value<JsonArray>();
         if (!player->m_isClientResponseReady || clientReply.isEmpty() || !JsonUtils::isString(clientReply[0])) {

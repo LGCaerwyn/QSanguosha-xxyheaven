@@ -88,13 +88,3 @@ AskForMoveCardsStruct::AskForMoveCardsStruct()
     top.clear();
     bottom.clear();
 }
-
-PindianStruct::PindianStruct()
-    : from(NULL), to(NULL), from_card(NULL), to_card(NULL), success(false)
-{
-}
-
-bool PindianStruct::isSuccess() const
-{
-    return success;
-}

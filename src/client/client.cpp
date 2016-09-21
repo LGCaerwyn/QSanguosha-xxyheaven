@@ -1829,7 +1829,7 @@ void Client::askForMoveCards(const QVariant &arg)
     QList<int> upcard_ids, downcard_ids;
     JsonUtils::tryParse(up, upcard_ids);
     JsonUtils::tryParse(down, downcard_ids);
-    m_isDiscardActionRefusable = (func == "") ? (down.length() >= min_num) : false;
+    m_isDiscardActionRefusable = (func == "") ? (down.length() >= min_num) : (reason == "xinzhan");
     m_canDiscardEquip = (min_num > 0) ? false : can_refuse;
 
     emit cardchoose(upcard_ids, downcard_ids, reason, func, moverestricted, min_num, max_num);

@@ -639,7 +639,7 @@ void JianshuCard::use(Room *room, ServerPlayer *, QList<ServerPlayer *> &targets
     ServerPlayer *to = targets.at(1);
 	if (!from->isKongcheng() && !to->isKongcheng()) {
         to->setFlags("JianshuPindianTarget");
-		bool success = from->pindian(from->pindianSelect(to, "jianshu"));
+		bool success = from->pindian(to, "jianshu", NULL);
         to->setFlags("-JianshuPindianTarget");
 		if (from->hasFlag("JianshuSamePoint")){
 			from->setFlags("-JianshuSamePoint");
@@ -1210,7 +1210,7 @@ void MizhaoCard::onEffect(const CardEffectStruct &effect) const
     if (!targets.isEmpty()) {
         ServerPlayer *target = room->askForPlayerChosen(effect.from, targets, "mizhao", "@mizhao-pindian:" + effect.to->objectName());
         target->setFlags("MizhaoPindianTarget");
-        bool success = effect.to->pindian(effect.to->pindianSelect(target, "mizhao"));
+        bool success = effect.to->pindian(target, "mizhao", NULL);
 		if (effect.to->hasFlag("MizhaoSamePoint")){
 			effect.to->setFlags("-MizhaoSamePoint");
 		}else{

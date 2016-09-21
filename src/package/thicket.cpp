@@ -265,8 +265,7 @@ public:
             zhurong->broadcastSkillInvoke(objectName());
 			room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, zhurong->objectName(), target->objectName());
 
-            PindianStruct *pd = zhurong->pindianSelect(target, objectName());
-            bool success = zhurong->pindian(pd);
+            bool success = zhurong->pindian(target, "lieren", NULL);
             if (!success) return false;
 
             if (!target->isNude()) {

@@ -1177,10 +1177,24 @@ void FurongCard::onEffect(const CardEffectStruct &effect) const
 {
     Room *room = effect.from->getRoom();
 
-    PindianStruct *pd = effect.from->pindianSelect(effect.to, "furong");
-    effect.from->pindian(pd);
-    const Card *card1 = pd->from_card;
-    const Card *card2 = pd->to_card;
+    QList<ServerPlayer *> tos;
+    tos << effect.to;
+    QList<const Card *> cards = room->askForPindianRace(effect.from, tos, "furong");
+
+    JsonArray arg;
+    arg << (int)QSanProtocol::S_GAME_EVENT_REVEAL_PINDIAN;
+    arg << effect.to->objectName();
+    room->doBroadcastNotify(QSanProtocol::S_COMMAND_LOG_EVENT, arg);
+
+    room->getThread()->delay();
+    arg.clear();
+    arg << QSanProtocol::S_GUANXING_FINISH;
+    arg << 2;
+    arg << 1;
+    room->doBroadcastNotify(QSanProtocol::S_COMMAND_PINDIAN, arg);
+
+    const Card *card1 = cards.first();
+    const Card *card2 = cards.last();
 
     room->showCard(effect.from, card1->getEffectiveId());
     room->showCard(effect.to, card2->getEffectiveId());
