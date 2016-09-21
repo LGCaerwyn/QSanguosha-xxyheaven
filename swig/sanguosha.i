@@ -299,9 +299,7 @@ public:
     QList<const Card *> getCards(const char *flags) const;
     DummyCard *wholeHandCards() const;
     bool hasNullification() const;
-    PindianStruct *pindianSelect(ServerPlayer *target, const char *reason, const Card *card1 = NULL);
-    PindianStruct *pindianSelect(const QList<ServerPlayer *> &target, const char *reason, const Card *card1 = NULL);
-    bool pindian(PindianStruct *pd, int index = 1);
+    bool pindian(ServerPlayer *target, const char *reason, const Card *card1 = NULL);
     void turnOver();
     void play(QList<Player::Phase> set_phases = QList<Player::Phase>());
     bool changePhase(Player::Phase from, Player::Phase to);
@@ -606,13 +604,10 @@ struct PindianStruct {
     PindianStruct();
 
     ServerPlayer *from;
-    QList<ServerPlayer *>tos;
     ServerPlayer *to;
     const Card *from_card;
-    QList<const Card *> to_cards;
     const Card *to_card;
     int from_number;
-    QList<int> to_numbers;
     int to_number;
     QString reason;
     bool success;
