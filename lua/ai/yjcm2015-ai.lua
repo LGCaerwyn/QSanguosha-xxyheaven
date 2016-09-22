@@ -3,6 +3,21 @@ sgs.ai_skill_playerchosen.huituo = function(self, targets)
     return self.friends[1]
 end
 
+sgs.ai_judge_value.huituo = function(self, card, target)
+    if card:isRed() then 
+        if not target:isWounded() then return 0 end
+        return 2 
+    end
+    if card:isBlack() then
+        if card:getSuit() == sgs.Card_Spade and target:hasSkill("hongyan") then 
+            if not target:isWounded() then return 0 end
+            return 2 
+        end
+        return 1
+    end
+    return 0
+end
+
 sgs.ai_playerchosen_intention.huituo = -80
 
 local mingjian_skill = {}
@@ -870,7 +885,7 @@ sgs.ai_cardsview_valuable.huomo = function(self, class_name, player)
     end
 end
 
-function SmartAI:findSlashKindToUse()
+function SmartAI:findSlashKindToUse(range_fix)
     local to_use_kind, use_value
     local use_to = sgs.SPlayerList()
     if sgs.Slash_IsAvailable(self.player) then
@@ -887,10 +902,18 @@ function SmartAI:findSlashKindToUse()
                 }
                 self:useBasicCard(slash, dummy_use)
                 if dummy_use.card then
-                    local value = sgs.ai_use_value[slash_class] or 0
-                    if use_value == nil or value > use_value then
-                        to_use_kind, use_value = slash_name, value
-                        use_to = dummy_use.to
+                    local targets = sgs.SPlayerList()
+                    for _,p in sgs.qlist(dummy_use.to) do
+                        if self.player:canSlash(p, slash, true, range_fix) then
+                            targets:append(p)
+                        end
+                    end
+                    if not targets:isEmpty() then
+                        local value = sgs.ai_use_value[slash_class] or 0
+                        if use_value == nil or value > use_value then
+                            to_use_kind, use_value = slash_name, value
+                            use_to = targets
+                        end
                     end
                 end
             end
@@ -975,6 +998,7 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
                 for _,c in ipairs(can_use) do
                     if self:getUseValue(c) <= value then
                         to_use, pattern = c, "analeptic"
+                        use.to:append(self.player)
                         break
                     end
                 end
@@ -993,6 +1017,7 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
                     slash:deleteLater()
                     local dummy_use = {
                         isDummy = true,
+                        to = sgs.SPlayerList()
                     }
                     self:useBasicCard(slash, dummy_use)
                     if dummy_use.card then
@@ -1000,7 +1025,17 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
                         local value = sgs.ai_use_value[slash_class] or 0
                         for _,c in ipairs(can_use) do
                             if self:getUseValue(c) <= value then
-                                to_use, pattern = c, slash_name
+                                if self.player:getWeapon() then
+                                    local weaponrange = self.player:getWeapon():getRealCard():toWeapon():getRange()
+                                    for _,p in sgs.qlist(dummy_use.to) do
+                                        if self.player:canSlash(p, slash, true, weaponrange) then
+                                            use.to:append(p)
+                                            to_use, pattern = c, slash_name
+                                        end
+                                    end
+                                else
+                                    to_use, pattern = c, slash_name
+                                end
                                 break
                             end
                         end
@@ -1014,7 +1049,11 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
         if use_anal then
             to_use, pattern = can_use[1], "analeptic"
         elseif use_slash then
-            to_use, pattern, use.to = can_use[1], self:findSlashKindToUse()
+            local weaponrange = 0
+            if self.player:getWeapon() and can_use[1]:getEffectiveId() == self.player:getWeapon():getEffectiveId() then
+                weaponrange = self.player:getWeapon():getRealCard():toWeapon():getRange()
+            end
+            to_use, pattern, use.to = can_use[1], self:findSlashKindToUse(weaponrange)
         end
     end
     
@@ -1044,6 +1083,8 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
     end
     
     if to_use and pattern then
+        local card = sgs.Sanguosha:cloneCard(pattern)
+        if card:isKindOf("Slash") and use.to:isEmpty() then return nil end
         local card_str = "@HuomoCard="..to_use:getEffectiveId()..":"..pattern
         local acard = sgs.Card_Parse(card_str)
         use.card = acard
@@ -1093,15 +1134,29 @@ sgs.ai_skill_use_func.AnguoCard = function(card, use, self)
         self.anguoid = id
     end
 
-    for _, p in ipairs(self.enemies) do
-        if (p:getWeapon()) then
-            local weaponrange = p:getWeapon():getRealCard():toWeapon():getRange()
-            local n = calculateMinus(p, weaponrange - 1)
-            table.insert(l, {player = p, id = p:getWeapon():getEffectiveId(), minus = n})
+    for _, p in ipairs(self.friends_noself) do
+        if (self:needToThrowArmor(p) and p:getArmor()) then
+            filluse(p, p:getArmor():getEffectiveId())
+            return
         end
-        if (p:getOffensiveHorse()) then
-            local n = calculateMinus(p, 1)
-            table.insert(l, {player = p, id = p:getOffensiveHorse():getEffectiveId(), minus = n})
+        if self:hasSkills(sgs.lose_equip_skill, p) then
+            local equips = sgs.QList2Table(p:getCards("e"))
+            self:sortByKeepValue(equips)
+            filluse(p, equips[1]:getEffectiveId())
+        end
+    end
+
+    for _,p in ipairs(self.enemies) do
+        if not self:hasSkills(sgs.lose_equip_skill, p) then
+            if (p:getWeapon()) then
+                local weaponrange = p:getWeapon():getRealCard():toWeapon():getRange()
+                local n = calculateMinus(p, weaponrange - 1)
+                table.insert(l, {player = p, id = p:getWeapon():getEffectiveId(), minus = n})
+            end
+            if (p:getOffensiveHorse()) then
+                local n = calculateMinus(p, 1)
+                table.insert(l, {player = p, id = p:getOffensiveHorse():getEffectiveId(), minus = n})
+            end
         end
     end
 
@@ -1118,31 +1173,30 @@ sgs.ai_skill_use_func.AnguoCard = function(card, use, self)
     end
 
     for _, p in ipairs(self.enemies) do
-        if (p:getTreasure()) then
-            filluse(p, p:getTreasure():getEffectiveId())
-            return
-        end
-    end
-
-    for _, p in ipairs(self.friends_noself) do
-        if (self:needToThrowArmor(p) and p:getArmor()) then
-            filluse(p, p:getArmor():getEffectiveId())
-            return
+        if not self:hasSkills(sgs.lose_equip_skill, p) then
+            if (p:getTreasure()) then
+                filluse(p, p:getTreasure():getEffectiveId())
+                return
+            end
         end
     end
 
     self:sort(self.enemies, "threat")
     for _, p in ipairs(self.enemies) do
-        if (p:getArmor() and not p:getArmor():isKindOf("GaleShell")) then
-            filluse(p, p:getArmor():getEffectiveId())
-            return
+        if not self:hasSkills(sgs.lose_equip_skill, p) then
+            if (p:getArmor() and not p:getArmor():isKindOf("GaleShell")) then
+                filluse(p, p:getArmor():getEffectiveId())
+                return
+            end
         end
     end
 
     for _, p in ipairs(self.enemies) do
-        if (p:getDefensiveHorse()) then
-            filluse(p, p:getDefensiveHorse():getEffectiveId())
-            return
+        if not self:hasSkills(sgs.lose_equip_skill, p) then
+            if (p:getDefensiveHorse()) then
+                filluse(p, p:getDefensiveHorse():getEffectiveId())
+                return
+            end
         end
     end
 end
@@ -1151,4 +1205,25 @@ sgs.ai_use_priority.AnguoCard = sgs.ai_use_priority.ExNihilo + 0.01
 
 sgs.ai_skill_cardchosen.anguo = function(self)
     return self.anguoid
+end
+
+sgs.ai_skill_discard.qingxi = function(self, discard_num, min_num, optional, include_equip)
+    local to_discard = self:askForDiscard("dummyreason", discard_num, min_num, false, include_equip)
+    if #to_discard < discard_num then return {} end
+    for _, id in ipairs(to_discard) do
+        if isCard("Peach", sgs.Sanguosha:getCard(id), self.player) then return {}
+        elseif 1 == self.player:getHp() and isCard("Analeptic", sgs.Sanguosha:getCard(id), self.player) then return {}
+        end
+    end
+end
+
+sgs.ai_skill_invoke.qingxi = function(self, data)
+    local target = data:toPlayer()
+    if not self:isEnemy(target) then return false end
+    if target:hasArmorEffect("silver_lion") then return false end
+    return true
+end
+
+sgs.ai_cardneed.qingxi = function(to, card)
+    return card:getTypeId() == sgs.Card_TypeEquip or card:isKindOf("Slash")
 end

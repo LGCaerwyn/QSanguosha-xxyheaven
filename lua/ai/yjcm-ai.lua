@@ -1252,11 +1252,56 @@ end
 sgs.ai_skill_invoke.pojun = function(self, data)
 	local target = data:toPlayer()
 
-	return self:isEnemy(target)
+    if self:isEnemy(target) then
+        if self:hasSkills(sgs.lose_equip_skill, target) then
+            return not target:isKongcheng()
+        end
+        return true
+    else
+        if self:hasSkills(sgs.lose_equip_skill, target) then
+            return true
+        end
+        return false
+    end
 end
 
-sgs.ai_skill_choice.pojun_num = function(self, choices)
-	return choices[#choices - 1]
+function getCards(cards, max_num)
+    local toret_cards = {}
+    for _,card in ipairs(cards) do
+        if #toret_cards < max_num then
+            table.insert(toret_cards, card:getEffectiveId())
+        end
+    end
+    return toret_cards
+end
+
+sgs.ai_skill_cardschosen.pojun = function(self, who, flags, min_num, max_num, method)
+    if self:isFriend(who) then
+        if self:hasSkills(sgs.lose_equip_skill, who) or (who:hasArmorEffect("silver_lion") and who:isWounded()) then
+            local equips = sgs.QList2Table(who:getCards("e"))
+            self:sortByKeepValue(equips)
+            if who:hasSkill("xiaoji") then
+                return getCards(equips, max_num)
+            else
+                return getCards(equips, 1)
+            end
+        end
+    else
+        local cards = sgs.QList2Table(who:getCards("h"))
+        if not self:hasSkills(sgs.lose_equip_skill, who) then
+            for _,equi in sgs.qlist(who:getEquips()) do
+                table.insert(cards, equi)
+            end
+        end
+        local to_pojun
+        if who:getArmor() and (not who:hasArmorEffect("silver_lion") or not who:isWounded()) then
+            to_pojun = getCards(cards, max_num - 1)
+            table.insert(to_pojun, who:getArmor():getId())
+        else
+            to_pojun = getCards(cards, max_num)
+        end
+        return to_pojun
+    end
 end
 
 

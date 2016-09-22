@@ -31,7 +31,8 @@ sgs.ai_skill_invoke.fan = function(self, data)
 		else
 			if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return false end
 			if target:isChained() then
-				if not self:isGoodChainTarget(target, nil, nil, nil, use.card) then return false end
+                local fire_slash = sgs.Sanguosha:cloneCard("fire_slash")
+				if not self:isGoodChainTarget(target, nil, nil, nil, fire_slash) then return false end
 				for _, p in sgs.qlist(self.room:getOtherPlayers(target)) do
 					if p:isChained() then
 						return true
