@@ -52,7 +52,7 @@ bool Analeptic::IsAvailable(const Player *player, const Card *analeptic)
     if (player->isCardLimited(THIS_ANALEPTIC, Card::MethodUse) || player->isProhibited(player, THIS_ANALEPTIC))
         return false;
 
-    return player->usedTimes("Analeptic") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
+    return player->getMark("Had_Analeptic") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
 #undef THIS_ANALEPTIC
 }
 
@@ -80,9 +80,35 @@ void Analeptic::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.to->getRoom();
     if (hasFlag("UsedBySecondWay"))
         room->recover(effect.to, RecoverStruct(effect.from, this));
-    else
+    else {
         room->addPlayerMark(effect.to, "drank");
+        room->addPlayerMark(effect.to, "Had_Analeptic");
+    }
 }
+
+class AnalepticMark : public TriggerSkill
+{
+public:
+    AnalepticMark() : TriggerSkill("analepticmark")
+    {
+        events << EventPhaseChanging;
+        frequency = Compulsory;
+        global = true;
+    }
+
+    bool triggerable(const ServerPlayer *target)
+    {
+        return target != NULL && target->getMark("Had_Analeptic") > 0;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        PhaseChangeStruct change = data.value<PhaseChangeStruct>();
+        if (change.to == Player::Start || change.to == Player::NotActive)
+            room->setPlayerMark(player, "Had_Analeptic", 0);
+        return false;
+    }
+};
 
 class FanSkill : public WeaponSkill
 {
@@ -504,7 +530,7 @@ ManeuveringPackage::ManeuveringPackage()
         card->setParent(this);
 
     skills << new GudingBladeSkill << new FanSkill
-        << new VineSkill << new SilverLionSkill;
+        << new VineSkill << new SilverLionSkill << new AnalepticMark;
 }
 
 ADD_PACKAGE(Maneuvering)
