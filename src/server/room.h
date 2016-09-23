@@ -381,6 +381,7 @@ public:
     QString askForGeneral(ServerPlayer *player, const QStringList &generals, bool single_result = true, const QString &reason = QString(), bool convert_enabled = false, QString default_choice = QString());
     QString askForGeneral(ServerPlayer *player, const QString &generals, QString default_choice = QString());
     const Card *askForSinglePeach(ServerPlayer *player, ServerPlayer *dying);
+    QList<const Card *> askForFurong(ServerPlayer *from, ServerPlayer *to, const QString &reason);
     void addPlayerHistory(ServerPlayer *player, const QString &key, int times = 1);
 
     void toggleReadyCommand(ServerPlayer *player, const QVariant &);
