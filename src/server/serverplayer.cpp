@@ -639,7 +639,23 @@ PindianStruct *ServerPlayer::pindianStart(const QList<ServerPlayer *> &targets, 
     }
 
     room->moveCardsAtomic(pd_move, true);
+    RoomThread *thread = room->getThread();
+    QVariant data = QVariant::fromValue(pindian);
+    Q_ASSERT(thread != NULL);
+    thread->trigger(PindianVerifying, room, this, data);
+    pindian->from_number = data.value<PindianStruct *>()->from_number;
 
+    for (int i = 0; i < targets.length(); i++) {
+        pindian->to = pindian->tos.at(i);
+        pindian->to_card = pindian->to_cards.at(i);
+        pindian->to_number = pindian->to_numbers.at(i);
+        data = QVariant::fromValue(pindian);
+        thread->trigger(PindianVerifying, room, pindian->to, data);
+        pindian->to_numbers[i] = data.value<PindianStruct *>()->to_number;
+        pindian->to = NULL;
+        pindian->to_card = NULL;
+        pindian->to_number = 0;
+    }
     return pindian;
 }
 
@@ -667,7 +683,6 @@ bool ServerPlayer::pindianResult(PindianStruct *pd, int index)
 
     QVariant data = QVariant::fromValue(pindian_star);
     Q_ASSERT(thread != NULL);
-    thread->trigger(PindianVerifying, room, this, data);
 
     PindianStruct *new_star = data.value<PindianStruct *>();
     pindian_struct.from_number = new_star->from_number;

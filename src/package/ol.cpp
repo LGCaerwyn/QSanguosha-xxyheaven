@@ -2094,7 +2094,7 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return !player->hasUsed("GusheCard") && !player->isKongcheng();
+        return player->usedTimes("GusheCard") <= player->getMark("jici") && !player->isKongcheng();
     }
 
     virtual const Card *viewAs() const
@@ -2147,32 +2147,37 @@ class Jici : public TriggerSkill
 public:
     Jici() : TriggerSkill("jici")
     {
-        events << PindianVerifying;
+        events << PindianVerifying << EventPhaseChanging;
     }
 
-    virtual bool trigger(TriggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
+    virtual bool trigger(TriggerEvent triggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
     {
-        PindianStruct * pindian = data.value<PindianStruct *>();
-		if (pindian->reason != "gushe") return false;
-		int n = wangsitu->getMark("#rap");
-		if (pindian->from_number == n && wangsitu->askForSkillInvoke(objectName(), "prompt1")) {
-            wangsitu->broadcastSkillInvoke(objectName(), 2);
-			LogMessage log;
-			log.type = "$ResetSkill";
-			log.from = wangsitu;
-			log.arg = "gushe";
-			room->sendLog(log);
-			room->addPlayerHistory(wangsitu, "GusheCard", 0);
-		} else if (pindian->from_number < n && wangsitu->askForSkillInvoke(objectName(), "prompt2:::" + QString::number(n))) {
-            wangsitu->broadcastSkillInvoke(objectName(), 1);
-			LogMessage log;
-			log.type = "$JiciAdd";
-			log.from = wangsitu;
-			pindian->from_number = qMin(pindian->from_number + n, 13);
-			log.arg = QString::number(n);
-			log.arg2 = QString::number(pindian->from_number);
-			room->sendLog(log);
-		}
+        if (triggerEvent == PindianVerifying) {
+            PindianStruct * pindian = data.value<PindianStruct *>();
+            if (pindian->reason != "gushe") return false;
+            int n = wangsitu->getMark("#rap");
+            if (pindian->from_number == n && wangsitu->askForSkillInvoke(objectName(), "prompt1")) {
+                wangsitu->broadcastSkillInvoke(objectName(), 2);
+                LogMessage log;
+                log.type = "$ResetSkill";
+                log.from = wangsitu;
+                log.arg = "gushe";
+                room->sendLog(log);
+                room->addPlayerMark(wangsitu, "jici");
+            } else if (pindian->from_number < n && wangsitu->askForSkillInvoke(objectName(), "prompt2:::" + QString::number(n))) {
+                wangsitu->broadcastSkillInvoke(objectName(), 1);
+                LogMessage log;
+                log.type = "$JiciAdd";
+                log.from = wangsitu;
+                pindian->from_number = qMin(pindian->from_number + n, 13);
+                log.arg = QString::number(n);
+                log.arg2 = QString::number(pindian->from_number);
+                room->sendLog(log);
+            }
+        } else {
+            if (data.value<PhaseChangeStruct>().to == Player::NotActive)
+                room->setPlayerMark(wangsitu, "jici", 0);
+        }
         return false;
     }
 };
