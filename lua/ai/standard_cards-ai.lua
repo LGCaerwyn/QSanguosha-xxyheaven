@@ -1962,7 +1962,7 @@ function SmartAI:useCardDuel(duel, use)
 end
 
 sgs.ai_card_intention.Duel = function(self, card, from, tos)
-	if string.find(card:getSkillName(), "lijian") then return end
+	if string.find(card:getSkillName(), "lijian") or string.find(card:getSkillName(), "liyu") then return end
 	sgs.updateIntentions(from, tos, 80)
 end
 

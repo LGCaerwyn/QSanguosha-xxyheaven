@@ -1276,7 +1276,7 @@ function sgs.isLordHealthy()
     if not lord then return true end
     if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4
     else lord_hp = lord:getHp() end
-    return lord_hp > 3 or (lord_hp > 2 and sgs.getDefense(lord) > 3)
+    return lord_hp > 2 or (lord_hp > 1 and sgs.getDefense(lord) > 3)
 end
 
 function sgs.isLordInDanger()
@@ -1285,7 +1285,7 @@ function sgs.isLordInDanger()
     if not lord then return false end
     if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4
     else lord_hp = lord:getHp() end
-    return lord_hp < 3
+    return lord_hp <= 1
 end
 
 function sgs.gameProcess(room, arg, update)
@@ -1434,7 +1434,7 @@ function SmartAI:objectiveLevel(player)
                 end
             else
                 if player:isLord() then
-                    if sgs.isLordInDanger then return 0
+                    if sgs.isLordInDanger then return 1
                     elseif not sgs.isLordHealthy() then return 3
                     else return 5 end
                 elseif sgs.isLordHealthy() then return 3
@@ -1559,7 +1559,7 @@ function SmartAI:objectiveLevel(player)
                 if target_role == "renegade" then return -1 end
             elseif rebel_num > 1 then
                 if target_role == "renegade" then return (tonumber(player:getHp()) - 1) end
-            elseif target_role == "renegade" then return sgs.isLordInDanger() and -1 or (tonumber(player:getHp()) + 1) end
+            elseif target_role == "renegade" then return sgs.isLordInDanger() and 1 or (tonumber(player:getHp()) + 1) end
         end
         if renegade_num == 0 then
             if sgs.ai_role[player:objectName()] == "loyalist" then return -2 end
