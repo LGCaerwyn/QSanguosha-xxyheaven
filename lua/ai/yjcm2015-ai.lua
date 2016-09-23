@@ -400,6 +400,7 @@ zhanjue_skill.getTurnUseCard = function(self)
         end
     end
     
+    if not self:isWeak() then use_value = use_value + 2 end
 
 	if use_value < sgs.ai_use_value.Duel then return nil end
 
@@ -829,26 +830,32 @@ end
 sgs.ai_use_priority["FurongCard"] = 3.1
 sgs.ai_use_value["FurongCard"] = 4.5
 
-function sgs.ai_skill_pindian.furong(minusecard, self, requestor, maxcard)
-	local handcards = sgs.QList2Table(self.player:getHandcards())
-	self:sortByKeepValue(handcards)
-	local my_jinkes, my_cards = {}, {}
-	for _,c in ipairs(handcards) do
-		if c:isKindOf("Jink") then
-			table.insert(my_jinkes, c)
-		else
-			table.insert(my_cards, c)
-		end
-	end
-	if #my_jinkes == 0 or #my_cards == 0 then
-		return handcards[1]
-	end
-	if self:isWeak() then return my_jinkes[1] end
-	if math.random(0, 4) < 2 then
-		return my_cards[1]
-	else
-		return my_jinkes[1]
-	end
+sgs.ai_cardshow.furong = function(self, requestor)
+    if self.player:objectName() == requestor:objectName() then
+        local card = sgs.furong_card
+        assert(card)
+        return card
+    else
+        local handcards = sgs.QList2Table(self.player:getHandcards())
+        self:sortByKeepValue(handcards)
+        local my_jinkes, my_cards = {}, {}
+        for _,c in ipairs(handcards) do
+            if c:isKindOf("Jink") then
+                table.insert(my_jinkes, c)
+            else
+                table.insert(my_cards, c)
+            end
+        end
+        if #my_jinkes == 0 or #my_cards == 0 then
+            return handcards[1]
+        end
+        if self:isWeak() then return my_jinkes[1] end
+        if math.random(0, 4) < 2 then
+            return my_cards[1]
+        else
+            return my_jinkes[1]
+        end
+    end
 end
 
 -- huomo buhui !!!
