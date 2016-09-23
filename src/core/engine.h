@@ -133,6 +133,7 @@ public:
     QString findConvertFrom(const QString &general_name) const;
     bool isGeneralHidden(const QString &general_name) const;
 	QStringList getGeneralConvertion(const QString &general_name) const;
+    QStringList getAllGeneralConvertion(const QStringList &generals) const;
 
 private:
     void _loadMiniScenarios();

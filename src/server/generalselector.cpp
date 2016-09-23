@@ -34,7 +34,7 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
     QMap<QString, qreal> values;
     QString role = player->getRole();
     ServerPlayer *lord = player->getRoom()->getLord();
-    foreach (QString candidate, candidates) {
+    foreach (QString candidate, Sanguosha->getAllGeneralConvertion(candidates)) {
         qreal value = 5.0;
         const General *general = Sanguosha->getGeneral(candidate);
         if (role == "loyalist" && lord && (general->getKingdom() == lord->getKingdom() || general->getKingdom() == "god"))
@@ -48,6 +48,8 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
         if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("guiming")
             && general->getKingdom() == "wu")
             value *= 0.5;
+        if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("roulin") && general->isFemale())
+            value *= 0.3;
         QString key = QString("_:%1:%2").arg(candidate).arg(role);
         value *= qPow(1.1, first_general_table.value(key, 0.0));
         if (lord) {
@@ -57,7 +59,7 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
         values.insert(candidate, value);
     }
 
-    QStringList _candidates = candidates;
+    QStringList _candidates = Sanguosha->getAllGeneralConvertion(candidates);
     QStringList choice_list;
     while (!_candidates.isEmpty() && choice_list.length() < 6) {
         qreal max = -1;
@@ -74,15 +76,8 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
     }
 
     QString max_general;
-    int rnd = qrand() % 100;
-    int total = choice_list.length();
-    int prob[6] = { 70, 85, 92, 95, 97, 99 };
-    for (int i = 0; i < 6; i++) {
-        if (rnd <= prob[i] || total <= i + 1) {
-            max_general = choice_list.at(i).split(":").at(0);
-            break;
-        }
-    }
+    int rnd = qrand() % choice_list.length();
+    max_general = choice_list.at(rnd);
 
     Q_ASSERT(!max_general.isEmpty());
     return max_general;
