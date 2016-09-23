@@ -137,7 +137,7 @@ class Qice : public OneCardViewAsSkill
 public:
     Qice() : OneCardViewAsSkill("qice")
     {
-
+        guhuo_type = "t";
     }
 
     bool viewFilter(const Card *to_select) const

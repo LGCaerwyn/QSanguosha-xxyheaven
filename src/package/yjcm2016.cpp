@@ -197,6 +197,7 @@ public:
     JiaozhaoFirst() : OneCardViewAsSkill("jiaozhao_first")
     {
         response_pattern = "@@jiaozhao_first!";
+        guhuo_type = "b";
     }
 
     bool viewFilter(const Card *to_select) const
@@ -216,6 +217,7 @@ public:
     JiaozhaoSecond() : OneCardViewAsSkill("jiaozhao_second")
     {
         response_pattern = "@@jiaozhao_second!";
+        guhuo_type = "bt";
     }
 
     bool viewFilter(const Card *to_select) const
@@ -362,6 +364,7 @@ public:
 
 DuliangCard::DuliangCard()
 {
+    mute = true;
 }
 
 bool DuliangCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
@@ -376,9 +379,12 @@ void DuliangCard::onEffect(const CardEffectStruct &effect) const
 	int card_id = room->askForCardChosen(effect.from, effect.to, "h", "duliang");
     CardMoveReason reason(CardMoveReason::S_REASON_EXTRACTION, effect.from->objectName());
     room->obtainCard(effect.from, Sanguosha->getCard(card_id), reason, room->getCardPlace(card_id) != Player::PlaceHand);
-    if (room->askForChoice(effect.from, "duliang", "send+delay", QVariant(), "@duliang-choose::"+effect.to->objectName()) == "delay")
-		room->addPlayerMark(effect.to, "#duliang");
-	else {
+    if (room->askForChoice(effect.from, "duliang", "send+delay", QVariant(), "@duliang-choose::" + effect.to->objectName()) == "delay") {
+        room->addPlayerMark(effect.to, "#duliang");
+        effect.from->broadcastSkillInvoke("duliang", 2);
+    }
+    else {
+        effect.from->broadcastSkillInvoke("duliang", 1);
 		QList<int> ids = room->getNCards(2, false);
 		LogMessage log;
         log.type = "$ViewDrawPile";

@@ -211,7 +211,7 @@ bool Skill::buttonEnabled(const QString &button_name) const
 }
 
 ViewAsSkill::ViewAsSkill(const QString &name)
-    : Skill(name), response_pattern(QString()), response_or_use(false), expand_pile(QString())
+    : Skill(name), response_pattern(QString()), response_or_use(false), expand_pile(QString()), guhuo_type(QString())
 {
 }
 

@@ -83,11 +83,16 @@ public:
     {
         return expand_pile;
     }
+    inline QString getGuhuoType() const
+    {
+        return guhuo_type;
+    }
 
 protected:
     QString response_pattern;
     bool response_or_use;
     QString expand_pile;
+    QString guhuo_type;
 };
 
 class ZeroCardViewAsSkill : public ViewAsSkill

@@ -1121,14 +1121,8 @@ void Dashboard::startPending(const ViewAsSkill *skill)
             connect(_m_equipCards[i], SIGNAL(mark_changed()), this, SLOT(onMarkChanged()));
     }
 
-    QString skill_name = skill->objectName();
-    if (skill_name == "rende_basic" || skill_name == "jiaozhao_first")
-        expandGuhuoCards("b");
-    else if (skill_name == "qice")
-        expandGuhuoCards("t");
-    else if (skill_name == "jiaozhao_second") {
-        expandGuhuoCards("bt");
-    }
+    QString guhuo_type = skill->getGuhuoType();
+    expandGuhuoCards(guhuo_type);
     updatePending();
     m_mutexEnableCards.unlock();
 }

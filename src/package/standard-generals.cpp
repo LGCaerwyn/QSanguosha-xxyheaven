@@ -723,6 +723,7 @@ public:
     RendeBasic() : OneCardViewAsSkill("rende_basic")
     {
         response_pattern = "@@rende_basic";
+        guhuo_type = "b";
     }
 
     bool viewFilter(const Card *to_select) const
