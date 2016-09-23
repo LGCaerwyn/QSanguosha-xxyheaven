@@ -6176,6 +6176,8 @@ function SmartAI:needToLoseHp(to, from, isSlash, passive, recover)
             if to:hasSkill("canshi") and count >= 3 then n = math.min(n, to:getMaxHp() - 1) end
         end
     end
+    
+    if to:hasSkill("qianxin") and not to:hasSkill("jianyan") and not to:isWounded() then return true end
 
     local friends = self:getFriendsNoself(to)
     local need_jieyin

@@ -742,6 +742,13 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		local lx = self.room:findPlayerBySkillName("huangen")
 		use.card = fire_attack
 		for i = 1, #targets, 1 do
+            if self.player:hasSkill("qianxin") and not self.player:hasSkill("jianyan") and not self.player:isWounded() then
+                if not use.to then use.to = sgs.SPlayerList() end
+                if not use.to:contains(self.player) then
+                    use.to:append(self.player)
+                    if use.to:length() == targets_num then return end
+                end
+            end
 			if use.to and not (use.to:length() > 0 and targets[i]:hasSkill("danlao"))
 				and not (use.to:length() > 0 and lx and self:isFriend(lx, targets[i]) and self:isEnemy(lx) and lx:getHp() > targets_num / 2) then
 				use.to:append(targets[i])
