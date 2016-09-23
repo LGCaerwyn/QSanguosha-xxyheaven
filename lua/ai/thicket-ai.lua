@@ -110,7 +110,7 @@ sgs.ai_playerchosen_intention.songwei = -50
 sgs.ai_playerchosen_intention.fangzhu = function(self, from, to)
 	if hasManjuanEffect(to) then sgs.updateIntention(from, to, 80) end
 	local intention = 80 / math.max(from:getLostHp(), 1)
-	if not self:toTurnOver(to, from:getLostHp()) then intention = -intention end
+	if not self:toTurnOver(to, from:getLostHp()) then intention = -(intention + 20) end
 	if from:getLostHp() < 3 then
 		sgs.updateIntention(from, to, intention)
 	else
