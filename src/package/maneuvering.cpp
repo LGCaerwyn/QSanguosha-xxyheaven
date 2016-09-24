@@ -52,7 +52,7 @@ bool Analeptic::IsAvailable(const Player *player, const Card *analeptic)
     if (player->isCardLimited(THIS_ANALEPTIC, Card::MethodUse) || player->isProhibited(player, THIS_ANALEPTIC))
         return false;
 
-    return player->getMark("Had_Analeptic") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
+    return player->getMark("AnalepticUsedTimes") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
 #undef THIS_ANALEPTIC
 }
 
@@ -80,32 +80,42 @@ void Analeptic::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.to->getRoom();
     if (hasFlag("UsedBySecondWay"))
         room->recover(effect.to, RecoverStruct(effect.from, this));
-    else {
+    else
         room->addPlayerMark(effect.to, "drank");
-        room->addPlayerMark(effect.to, "Had_Analeptic");
-    }
 }
 
 class AnalepticMark : public TriggerSkill
 {
 public:
-    AnalepticMark() : TriggerSkill("analepticmark")
+    AnalepticMark() : TriggerSkill("analeptic-mark")
     {
-        events << EventPhaseChanging;
-        frequency = Compulsory;
+        events << PreCardUsed << EventPhaseChanging;
         global = true;
     }
 
     bool triggerable(const ServerPlayer *target)
     {
-        return target != NULL && target->getMark("Had_Analeptic") > 0;
+        return target != NULL;
     }
 
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
-        PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-        if (change.to == Player::Start || change.to == Player::NotActive)
-            room->setPlayerMark(player, "Had_Analeptic", 0);
+        if (triggerEvent == PreCardUsed) {
+            CardUseStruct use = data.value<CardUseStruct>();
+            if (use.card && use.card->isKindOf("Analeptic") && !use.card->hasFlag("UsedBySecondWay")) {
+                room->addPlayerMark(player, "AnalepticUsedTimes");
+            }
+        } else if (triggerEvent == EventPhaseChanging) {
+            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
+            if (change.to == Player::NotActive) {
+                room->setPlayerMark(player, "AnalepticUsedTimes", 0);
+                foreach (ServerPlayer *p, room->getAllPlayers()) {
+                    if (p->getMark("drank") > 0)
+                        room->setPlayerMark(p, "drank", 0);
+                }
+            } else if (change.to == Player::RoundStart)
+                room->setPlayerMark(player, "AnalepticUsedTimes", 0);
+        }
         return false;
     }
 };

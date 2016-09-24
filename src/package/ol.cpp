@@ -2083,6 +2083,7 @@ void GusheCard::use(Room *, ServerPlayer *wangsitu, QList<ServerPlayer *> &targe
     PindianStruct *pd = wangsitu->pindianStart(targets, "gushe");
     for (int i = 1; i <= targets.length(); i++)
         wangsitu->pindianResult(pd, i);
+    wangsitu->pindianFinish(pd);
 }
 
 class GusheViewAsSkill : public ZeroCardViewAsSkill
@@ -2152,31 +2153,31 @@ public:
 
     virtual bool trigger(TriggerEvent triggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
     {
-        if (triggerEvent == PindianVerifying) {
+        if (triggerEvent == PindianVerifying && TriggerSkill::triggerable(wangsitu)) {
             PindianStruct * pindian = data.value<PindianStruct *>();
-            if (pindian->reason != "gushe") return false;
+            if (pindian->reason != "gushe" || pindian->from != wangsitu) return false;
             int n = wangsitu->getMark("#rap");
             if (pindian->from_number == n && wangsitu->askForSkillInvoke(objectName(), "prompt1")) {
-                wangsitu->broadcastSkillInvoke(objectName(), 2);
+                wangsitu->broadcastSkillInvoke(objectName());
                 LogMessage log;
-                log.type = "$ResetSkill";
+                log.type = "$JiciAddTimes";
                 log.from = wangsitu;
                 log.arg = "gushe";
                 room->sendLog(log);
                 room->addPlayerMark(wangsitu, "jici");
             } else if (pindian->from_number < n && wangsitu->askForSkillInvoke(objectName(), "prompt2:::" + QString::number(n))) {
-                wangsitu->broadcastSkillInvoke(objectName(), 1);
+                wangsitu->broadcastSkillInvoke(objectName());
                 LogMessage log;
-                log.type = "$JiciAdd";
+                log.type = "$JiciAddNumber";
                 log.from = wangsitu;
                 pindian->from_number = qMin(pindian->from_number + n, 13);
                 log.arg = QString::number(n);
                 log.arg2 = QString::number(pindian->from_number);
                 room->sendLog(log);
             }
-        } else {
-            if (data.value<PhaseChangeStruct>().to == Player::NotActive)
-                room->setPlayerMark(wangsitu, "jici", 0);
+        } else if (triggerEvent == EventPhaseChanging) {
+            if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
+            room->setPlayerMark(wangsitu, "jici", 0);
         }
         return false;
     }
@@ -2220,10 +2221,10 @@ public:
             int x = player->getPile("tuifeng").length();
             player->clearOnePrivatePile("tuifeng");
             player->drawCards(2*x);
-            room->setPlayerMark(player, "#tuifeng", x);
+            room->setPlayerMark(player, "tuifeng", x);
         } else if (triggerEvent == EventPhaseChanging) {
             if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
-            room->setPlayerMark(player, "#tuifeng", 0);
+            room->setPlayerMark(player, "tuifeng", 0);
         }
         return false;
     }
@@ -2239,7 +2240,7 @@ public:
 
     virtual int getResidueNum(const Player *from, const Card *) const
     {
-        return from->getMark("#tuifeng");
+        return from->getMark("tuifeng");
     }
 };
 
@@ -2410,7 +2411,7 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return player->getMark("#dingpan") > 0;
+        return player->getMark("dingpan") > 0;
     }
 
     virtual const Card *viewAs() const
@@ -2424,27 +2425,19 @@ class Dingpan : public TriggerSkill
 public:
     Dingpan() : TriggerSkill("dingpan")
     {
-        events << PlayCard << EventPhaseChanging;
+        events << PlayCard;
         view_as_skill = new DingpanViewAsSkill;
     }
 
-    virtual bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    virtual bool trigger(TriggerEvent , Room *room, ServerPlayer *player, QVariant &) const
     {
-        if (triggerEvent == PlayCard) {
-            int rebel_num = 0;
-            foreach(ServerPlayer *p, room->getAlivePlayers())
-            {
-                if (p->getRole() == "rebel")
-                    rebel_num++;
-            }
-            if (rebel_num > 0)
-                room->setPlayerMark(player, "#dingpan", rebel_num - player->usedTimes("DingpanCard"));
-        } else {
-            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
-            if (change.from != Player::Play) return false;
-            room->setPlayerMark(player, "#dingpan", 0);
-            return false;
+        int rebel_num = 0;
+        foreach (ServerPlayer *p, room->getAlivePlayers()) {
+            if (p->getRole() == "rebel")
+                rebel_num++;
         }
+        if (rebel_num > 0)
+            room->setPlayerMark(player, "dingpan", rebel_num - player->usedTimes("DingpanCard"));
         return false;
     }
 };

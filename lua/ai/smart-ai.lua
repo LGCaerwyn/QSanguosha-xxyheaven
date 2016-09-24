@@ -1276,7 +1276,7 @@ function sgs.isLordHealthy()
     if not lord then return true end
     if lord:hasSkill("benghuai") and lord:getHp() > 4 then lord_hp = 4
     else lord_hp = lord:getHp() end
-    return lord_hp > 2 or (lord_hp > 1 and sgs.getDefense(lord) > 3)
+    return lord_hp > 3 or (lord_hp > 2 and sgs.getDefense(lord) > 3)
 end
 
 function sgs.isLordInDanger()
@@ -1559,7 +1559,7 @@ function SmartAI:objectiveLevel(player)
                 if target_role == "renegade" then return -1 end
             elseif rebel_num > 1 then
                 if target_role == "renegade" then return (tonumber(player:getHp()) - 1) end
-            elseif target_role == "renegade" then return sgs.isLordInDanger() and 1 or (tonumber(player:getHp()) + 1) end
+            elseif target_role == "renegade" then return sgs.isLordInDanger() and -1 or (tonumber(player:getHp()) + 1) end
         end
         if renegade_num == 0 then
             if sgs.ai_role[player:objectName()] == "loyalist" then return -2 end
@@ -2064,7 +2064,7 @@ function SmartAI:filterEvent(event, player, data)
 
     if self ~= sgs.recorder then return end
 
-    if event == sgs.TargetConfirmed then
+    if event == sgs.TargetChosen then
         local struct = data:toCardUse()
         local from  = struct.from
         local card = struct.card
@@ -6176,8 +6176,6 @@ function SmartAI:needToLoseHp(to, from, isSlash, passive, recover)
             if to:hasSkill("canshi") and count >= 3 then n = math.min(n, to:getMaxHp() - 1) end
         end
     end
-    
-    if to:hasSkill("qianxin") and not to:hasSkill("jianyan") and not to:isWounded() then return true end
 
     local friends = self:getFriendsNoself(to)
     local need_jieyin

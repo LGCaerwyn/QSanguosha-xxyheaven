@@ -29,6 +29,7 @@ class PindianBox : public CardContainer
 public:
     PindianBox();
     virtual QRectF boundingRect() const;
+    QString isYou(QString player_name);
     virtual void doPindianAnimation(const QString &who);
     void playSuccess(int type, int index);
     inline QString getRequestor()
@@ -55,8 +56,6 @@ private:
     QString zhuge;
     QStringList targets;
     QMutex _m_mutex_pindian;
-
-    QString isYou(QString player_name);
 };
 
 #endif

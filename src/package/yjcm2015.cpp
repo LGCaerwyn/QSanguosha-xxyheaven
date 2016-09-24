@@ -1177,10 +1177,7 @@ void FurongCard::onEffect(const CardEffectStruct &effect) const
 {
     Room *room = effect.from->getRoom();
 
-    QList<ServerPlayer *> tos;
-    tos << effect.to;
     QList<const Card *> cards = room->askForFurong(effect.from, effect.to, "furong");
-
     const Card *card1 = cards.first();
     const Card *card2 = cards.last();
 

@@ -57,7 +57,8 @@ public:
     bool hasNullification() const;
     PindianStruct *pindianStart(ServerPlayer *target, const QString &reason, const Card *card1 = NULL);
     PindianStruct *pindianStart(const QList<ServerPlayer *> &target, const QString &reason, const Card *card1 = NULL);
-    bool pindianResult(PindianStruct *pd, int index = 1); //pd is deleted after this function
+    bool pindianResult(PindianStruct *pd, int index = 1);
+    void pindianFinish(PindianStruct *pd);//pd is deleted at this function
     bool pindian(ServerPlayer *target, const QString &reason, const Card *card1 = NULL);
     void turnOver();
     void play(QList<Player::Phase> set_phases = QList<Player::Phase>());

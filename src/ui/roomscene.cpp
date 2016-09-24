@@ -434,9 +434,6 @@ RoomScene::RoomScene(QMainWindow *main_window)
     pausing_item->hide();
     pausing_text->hide();
 
-    pindian_from_card = NULL;
-    pindian_to_card = NULL;
-
     _m_bgEnabled = false;
 
     _m_isInDragAndUseMode = false;
@@ -1455,13 +1452,6 @@ void RoomScene::keyReleaseEvent(QKeyEvent *event)
         break;
     }
     case Qt::Key_F12: {
-        if (Self->hasSkill("huashen")) {
-            const Skill *huashen_skill = Sanguosha->getSkill("huashen");
-            if (huashen_skill) {
-                HuashenDialog *dialog = qobject_cast<HuashenDialog *>(huashen_skill->getDialog());
-                if (dialog) dialog->popup();
-            }
-        }
         break;
     }
 
@@ -1840,7 +1830,7 @@ GenericCardContainer *RoomScene::_getGenericCardContainer(Player::Place place, P
         return m_tablePile;
     // @todo: AG must be a pile with name rather than simply using the name special...
     else if (player == NULL && place == Player::PlaceSpecial)
-        return pileContainer;
+        return m_cardContainer;
     else if (player == Self)
         return dashboard;
     else if (player != NULL)
@@ -4469,7 +4459,10 @@ void RoomScene::bringToFront(QGraphicsItem *front_item)
     _m_last_front_item = front_item;
     _m_last_front_ZValue = front_item->zValue();
     if (m_pindianBox && front_item != m_pindianBox) {
-        front_item->setZValue(8);
+        m_zValueMutex.unlock();
+        bringToFront(m_pindianBox);
+        m_zValueMutex.lock();
+        front_item->setZValue(9999);
     } else {
         front_item->setZValue(10000);
     }

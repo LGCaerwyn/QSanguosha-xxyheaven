@@ -1761,79 +1761,6 @@ const Card *Room::askForSinglePeach(ServerPlayer *player, ServerPlayer *dying)
     return result;
 }
 
-QList<const Card *> Room::askForFurong(ServerPlayer *from, ServerPlayer *to, const QString &reason)
-{
-    if (!from->isAlive() || !to->isAlive())
-        return QList<const Card *>() << NULL << NULL;
-    Q_ASSERT(!from->isKongcheng() && !to->isKongcheng());
-    tryPause();
-    Countdown countdown;
-    countdown.max = ServerInfo.getCommandTimeout(S_COMMAND_SHOW_CARD, S_CLIENT_INSTANCE);
-    countdown.type = Countdown::S_COUNTDOWN_USE_SPECIFIED;
-    notifyMoveFocus(QList<ServerPlayer *>() << from << to, S_COMMAND_SHOW_CARD, countdown);
-
-    const Card *from_card = NULL, *to_card = NULL;
-
-    if (from->getHandcardNum() == 1)
-        from_card = from->getHandcards().first();
-    if (to->getHandcardNum() == 1)
-        to_card = to->getHandcards().first();
-
-    AI *ai;
-    if (!from_card) {
-        ai = from->getAI();
-        if (ai)
-            from_card = ai->askForCardShow(from, reason);
-    }
-    if (!to_card) {
-        ai = to->getAI();
-        if (ai)
-            to_card = ai->askForCardShow(from, reason);
-    }
-    if (from_card && to_card) {
-        thread->delay();
-        return QList<const Card *>() << from_card << to_card;
-    }
-
-    QList<ServerPlayer *> players;
-    if (!from_card) {
-        from->m_commandArgs = from->getGeneralName();
-        players << from;
-    }
-    if (!to_card) {
-        to->m_commandArgs = from->getGeneralName();
-        players << to;
-    }
-
-    doBroadcastRequest(players, S_COMMAND_SHOW_CARD);
-
-    foreach(ServerPlayer *player, players)
-    {
-        const Card *c = NULL;
-        JsonArray clientReply = player->getClientReply().value<JsonArray>();
-        if (!player->m_isClientResponseReady || clientReply.isEmpty() || !JsonUtils::isString(clientReply[0])) {
-            int card_id = player->getRandomHandCardId();
-            c = Sanguosha->getCard(card_id);
-        } else {
-            const Card *card = Card::Parse(clientReply[0].toString());
-            if (card == NULL) {
-                int card_id = player->getRandomHandCardId();
-                c = Sanguosha->getCard(card_id);
-            } else if (card->isVirtualCard()) {
-                const Card *real_card = Sanguosha->getCard(card->getEffectiveId());
-                delete card;
-                c = real_card;
-            } else
-                c = card;
-        }
-        if (player == from)
-            from_card = c;
-        else
-            to_card = c;
-    }
-    return QList<const Card *>() << from_card << to_card;
-}
-
 void Room::addPlayerHistory(ServerPlayer *player, const QString &key, int times)
 {
     if (player) {
@@ -6085,7 +6012,79 @@ int Room::doGongxin(ServerPlayer *shenlvmeng, ServerPlayer *target, QList<int> e
     return card_id; // Do remember to remove the tag later!
 }
 
-QList<const Card *> Room::askForPindianRace(ServerPlayer *from, const QList<ServerPlayer *> &to, const QString &reason, const Card *card)
+QList<const Card *> Room::askForFurong(ServerPlayer *from, ServerPlayer *to, const QString &reason)
+{
+	if (!from->isAlive() || !to->isAlive())
+        return QList<const Card *>() << NULL << NULL;
+    Q_ASSERT(!from->isKongcheng() && !to->isKongcheng());
+    tryPause();
+    Countdown countdown;
+    countdown.max = ServerInfo.getCommandTimeout(S_COMMAND_SHOW_CARD, S_CLIENT_INSTANCE);
+    countdown.type = Countdown::S_COUNTDOWN_USE_SPECIFIED;
+    notifyMoveFocus(QList<ServerPlayer *>() << from << to, S_COMMAND_SHOW_CARD, countdown);
+
+    const Card *from_card = NULL, *to_card = NULL;
+
+    if (from->getHandcardNum() == 1)
+        from_card = from->getHandcards().first();
+    if (to->getHandcardNum() == 1)
+        to_card = to->getHandcards().first();
+
+    AI *ai;
+    if (!from_card) {
+        ai = from->getAI();
+        if (ai)
+            from_card = ai->askForCardShow(from, reason);
+    }
+    if (!to_card) {
+        ai = to->getAI();
+        if (ai)
+            to_card = ai->askForCardShow(from, reason);
+    }
+    if (from_card && to_card) {
+        thread->delay();
+        return QList<const Card *>() << from_card << to_card;
+    }
+
+    QList<ServerPlayer *> players;
+    if (!from_card) {
+        from->m_commandArgs = from->getGeneralName();
+        players << from;
+    }
+    if (!to_card) {
+        to->m_commandArgs = from->getGeneralName();
+        players << to;
+    }
+
+    doBroadcastRequest(players, S_COMMAND_SHOW_CARD);
+
+    foreach (ServerPlayer *player, players) {
+        const Card *c = NULL;
+        JsonArray clientReply = player->getClientReply().value<JsonArray>();
+        if (!player->m_isClientResponseReady || clientReply.isEmpty() || !JsonUtils::isString(clientReply[0])) {
+            int card_id = player->getRandomHandCardId();
+            c = Sanguosha->getCard(card_id);
+        } else {
+            const Card *card = Card::Parse(clientReply[0].toString());
+            if (card == NULL) {
+                int card_id = player->getRandomHandCardId();
+                c = Sanguosha->getCard(card_id);
+            } else if (card->isVirtualCard()) {
+                const Card *real_card = Sanguosha->getCard(card->getEffectiveId());
+                delete card;
+                c = real_card;
+            } else
+                c = card;
+        }
+        if (player == from)
+            from_card = c;
+        else
+            to_card = c;
+    }
+    return QList<const Card *>() << from_card << to_card;
+}
+
+QList<const Card *> Room::askForPindianRace(ServerPlayer *from,const QList<ServerPlayer *> &to, const QString &reason, const Card *card)
 {
     QList<const Card *> cards;
     for (int i = 0; i < to.length(); i++)
@@ -6287,8 +6286,14 @@ QString Room::askForGeneral(ServerPlayer *player, const QStringList &generals, b
     if (generals.length() == 1)
         return generals.first();
 
-    if (default_choice.isEmpty())
-        default_choice = generals.at(qrand() % generals.length());
+    if (default_choice.isEmpty()) {
+        QStringList candidates = generals;
+        if (convert_enabled) {
+            foreach (QString candidate, candidates)
+                candidates.append(Sanguosha->getGeneralConvertion(candidate));
+        }
+        default_choice = candidates.at(qrand() % candidates.length());
+    }
 
     if (player->isOnline()) {
 		JsonArray options;

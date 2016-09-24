@@ -944,13 +944,10 @@ void Client::askForCardOrUseCard(const QVariant &cardUsage)
     QString textsString = usage[1].toString();
     QStringList texts = textsString.split(":");
 
-    if (texts.isEmpty()) {
-        _m_roomState.setCurrentCardResponsePrompt(QString());
+    if (texts.isEmpty())
         return;
-    } else {
+    else
         setPromptList(texts);
-        _m_roomState.setCurrentCardResponsePrompt(textsString);
-    }
 
     if (card_pattern.endsWith("!"))
         m_isDiscardActionRefusable = false;
@@ -2175,13 +2172,8 @@ void Client::moveFocus(const QVariant &focus)
         countdown.type = Countdown::S_COUNTDOWN_USE_SPECIFIED;
         countdown.current = 0;
         countdown.max = ServerInfo.getCommandTimeout(S_COMMAND_UNKNOWN, S_CLIENT_INSTANCE);
-    } else {// focus[1] is the moveFocus reason, which is unused for now.
-        unsigned countdown_index = args.size() >= 3 ? 2 : 1;
-        if (!countdown.tryParse(args[countdown_index])) {
-            return;
-        }
-    }
-
+    } else // focus[1] is the moveFocus reason, which is unused for now.
+        countdown.tryParse(args[2]);
     emit focus_moved(players, countdown);
 }
 

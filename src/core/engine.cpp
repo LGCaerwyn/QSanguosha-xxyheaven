@@ -747,16 +747,6 @@ QStringList Engine::getGeneralConvertion(const QString &general_name) const
 	return name_list;
 }
 
-QStringList Engine::getAllGeneralConvertion(const QStringList &generals) const
-{
-    QStringList all;
-    all.append(generals);
-    foreach(QString general_name, generals)
-        all.append(getGeneralConvertion(general_name));
-    qShuffle(all);
-    return all;
-}
-
 WrappedCard *Engine::getWrappedCard(int cardId)
 {
     Card *card = getCard(cardId);

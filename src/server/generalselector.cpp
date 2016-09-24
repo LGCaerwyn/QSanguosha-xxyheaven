@@ -29,27 +29,26 @@ GeneralSelector::GeneralSelector()
     load1v1Table();
 }
 
-QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &candidates)
+QString GeneralSelector::selectFirst(ServerPlayer *player, QStringList candidates)
 {
+    foreach (QString candidate, candidates)
+        candidates.append(Sanguosha->getGeneralConvertion(candidate));
+
+    qShuffle(candidates);
     QMap<QString, qreal> values;
     QString role = player->getRole();
     ServerPlayer *lord = player->getRoom()->getLord();
-    foreach (QString candidate, Sanguosha->getAllGeneralConvertion(candidates)) {
+    foreach (QString candidate, candidates) {
         qreal value = 5.0;
         const General *general = Sanguosha->getGeneral(candidate);
         if (role == "loyalist" && lord && (general->getKingdom() == lord->getKingdom() || general->getKingdom() == "god"))
             value *= 1.04;
-        if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("xueyi")
-            && general->getKingdom() == "qun")
-            value *= 0.8;
-        if (role != "loyalist" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("shichou")
-            && general->getKingdom() == "shu")
-            value *= 0.1;
+        if (role != "loyalist" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("roulin")
+            && general->isFemale() && !general->hasSkill("zhenlie"))
+            value *= 0.5;
         if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("guiming")
             && general->getKingdom() == "wu")
-            value *= 0.5;
-        if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("roulin") && general->isFemale())
-            value *= 0.3;
+            value *= 0.8;
         QString key = QString("_:%1:%2").arg(candidate).arg(role);
         value *= qPow(1.1, first_general_table.value(key, 0.0));
         if (lord) {
@@ -59,7 +58,7 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
         values.insert(candidate, value);
     }
 
-    QStringList _candidates = Sanguosha->getAllGeneralConvertion(candidates);
+    QStringList _candidates = candidates;
     QStringList choice_list;
     while (!_candidates.isEmpty() && choice_list.length() < 6) {
         qreal max = -1;
@@ -76,8 +75,15 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
     }
 
     QString max_general;
-    int rnd = qrand() % choice_list.length();
-    max_general = choice_list.at(rnd);
+    int rnd = qrand() % 100;
+    int total = choice_list.length();
+    int prob[6] = { 70, 85, 92, 95, 97, 99 };
+    for (int i = 0; i < 6; i++) {
+        if (rnd <= prob[i] || total <= i + 1) {
+            max_general = choice_list.at(i).split(":").at(0);
+            break;
+        }
+    }
 
     Q_ASSERT(!max_general.isEmpty());
     return max_general;

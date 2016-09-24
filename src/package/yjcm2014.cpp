@@ -592,7 +592,7 @@ public:
                 if (targets.isEmpty()) return false;
                 ServerPlayer *target = room->askForPlayerChosen(player, targets, objectName(), "qiangzhi-invoke", true, true);
                 if (target) {
-                    player->broadcastSkillInvoke(objectName());
+                    player->broadcastSkillInvoke(objectName(), 1);
                     int id = room->askForCardChosen(player, target, "h", objectName());
                     room->showCard(target, id);
                     player->setMark(objectName(), int(Sanguosha->getCard(id)->getTypeId()));
@@ -616,7 +616,7 @@ public:
                     log.arg = objectName();
                     room->sendLog(log);
                 }
-                player->broadcastSkillInvoke(objectName());
+                player->broadcastSkillInvoke(objectName(), 2);
                 player->drawCards(1, objectName());
             }
         }

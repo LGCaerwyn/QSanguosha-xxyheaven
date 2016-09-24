@@ -189,7 +189,7 @@ QAbstractAnimation *CardItem::getGoBackAnimation(bool doFade, AnimationType anim
 
     goback->setEndValue(home_pos);
 
-    goback->setEasingCurve(QEasingCurve::OutQuad);
+    goback->setEasingCurve(QEasingCurve::OutCubic);
     goback->setDuration(duration);
 
     if (doFade) {

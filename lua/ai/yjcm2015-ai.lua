@@ -377,32 +377,6 @@ zhanjue_skill.getTurnUseCard = function(self)
     
     local cards = self.player:getHandcards()
 	cards = sgs.QList2Table(cards)
-	local caocao = self.room:findPlayerBySkillName("jianxiong")
-
-    local use_value = sgs.ai_use_value.Duel
-    
-    if self:isWeak() then
-        use_value = use_value - 1.5
-    end
-    
-	for _, card in ipairs(cards) do
-        if card:isKindOf("Analeptic") or card:isKindOf("Peach") then
-            use_value = use_value - 0.5
-        end
-	end
-    
-    for _,enemy in ipairs(self.enemies) do
-        if self:isWeak(enemy) then
-            use_value = use_value + 1
-        end
-        if getCardsNum("Peach", enemy) > 0 then
-            use_value = use_value - 0.5
-        end
-    end
-    
-    if not self:isWeak() then use_value = use_value + 2 end
-
-	if use_value < sgs.ai_use_value.Duel then return nil end
 
     for _, card in ipairs(cards) do
         if card:isKindOf("Analeptic") or (card:isKindOf("Peach") and self.player:isWounded()) then

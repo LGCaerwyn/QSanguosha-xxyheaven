@@ -34,6 +34,17 @@ public:
     {
         m_currentCardUsePattern = newPattern;
     }
+
+    inline QString getCurrentCardResponsePrompt() const
+    {
+        return m_currentCardResponsePrompt;
+    }
+
+    inline void setCurrentCardResponsePrompt(const QString &prompt)
+    {
+        m_currentCardResponsePrompt = prompt;
+    }
+
     inline Player *getCurrentPlayer() const
     {
         return m_currentPlayer;
@@ -45,16 +56,6 @@ public:
     inline void setCurrentCardUseReason(CardUseStruct::CardUseReason reason)
     {
         m_currentCardUseReason = reason;
-    }
-
-    inline QString getCurrentCardResponsePrompt() const
-    {
-        return m_currentCardResponsePrompt;
-    }
-
-    inline void setCurrentCardResponsePrompt(const QString &prompt)
-    {
-        m_currentCardResponsePrompt = prompt;
     }
 
     // Update a card in the room.
