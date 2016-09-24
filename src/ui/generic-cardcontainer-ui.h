@@ -123,8 +123,8 @@ public slots:
     void updateReformState();
     void showDistance();
     virtual void showSeat();
-	void showPile();
-	void showHuashen();
+    virtual void showPile();
+    virtual void hidePile();
 	void updateScreenName(const QString &screenName);
     virtual void refresh(bool killed = false);
 

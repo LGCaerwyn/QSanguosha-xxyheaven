@@ -6,54 +6,6 @@ function SmartAI:sortByNumber(cards, inverse)
     table.sort(cards, compare_func)
 end
 
-function canEqual213(cards,selected)
-	local x = 13
-	local stop = false
-	while not stop do
-		for k,c in ipairs(cards) do
-			if c:getNumber() <= x then
-				if c:hasFlag("selected") or c:hasFlag("banned") then continue end
-				x = x -c:getNumber()
-				if x == 0 then
-					table.insert(selected,c)
-					c:setFlags("selected")
-					return true
-				else
-					if cards[#cards]:getNumber() > x then
-						x = x + c:getNumber()
-					elseif k ~= #cards then
-						table.insert(selected,c)
-						c:setFlags("selected")
-					end
-				end
-				if k == #cards then
-					x = x + c:getNumber()
-					if #selected > 0 then
-						for _,ca in ipairs(cards) do
-							if ca:getId() == selected[#selected]:getId() then
-								ca:setFlags("-selected")
-								ca:setFlags("banned")
-								x = x + ca:getNumber()
-								table.remove(selected)
-								break
-							end
-						end
-					end
-				end
-			end
-		end
-		if #cards <= 1 then return false end
-		if cards[#cards - 1]:hasFlag("banned") then 
-			table.remove(cards,1)
-			selected = {}
-			for _,c in ipairs(cards) do
-				c:setFlags("-selected")
-				c:setFlags("-banned")
-			end
-			x = 13
-		end
-	end
-end
 
 sgs.ai_skill_cardask["@tuifeng-put"] = function(self, data)
 	local to_discard = {}
@@ -66,6 +18,32 @@ sgs.ai_skill_cardask["@tuifeng-put"] = function(self, data)
 		end
 	end
 	return "."
+end
+
+function getTotalNumber(cards, number, excepts)
+    local returns = {}
+    if excepts == nil then excepts = {} end
+    for _,card in ipairs(cards) do
+        if not table.contains(excepts, card) then
+            if card:getNumber() == number then
+                table.insert(returns, card)
+                return returns
+            elseif card:getNumber() < number then
+                table.insert(excepts, card)
+                local gets = getTotalNumber(cards, number - card:getNumber(), excepts)
+                if #gets > 0 then
+                    table.insert(returns, card)
+                    for _,get in ipairs(gets) do
+                        table.insert(returns, get)
+                    end
+                else
+                    table.removeOne(excepts, card)
+                end
+                return returns
+            end
+        end
+    end
+    return returns
 end
 
 local ziyuan_skill = {}
@@ -83,15 +61,17 @@ ziyuan_skill.getTurnUseCard = function(self)
 			return sgs.Card_Parse("@ZiyuanCard=.")
 		end
 	end
-	self:sortByNumber(cards,false)
+	self:sortByNumber(cards, false)
 	cards[#cards]:setFlags("least")
-	local selected = {}
-	if canEqual213(cards, selected) then
+    
+    local selected = getTotalNumber(cards, 13)
+	-- local selected = {}
+	-- if canEqual213(cards, selected) then
 		for _,p in ipairs(selected) do
 			self.room:setCardFlag(p,"chosen")
 		end
 		return sgs.Card_Parse("@ZiyuanCard=.") 
-	end
+	-- end
 end
 
 
@@ -182,3 +162,67 @@ sgs.ai_skill_choice.dingpan = function(self, choices, data)
 	end
 	return "disequip"
 end
+
+local gushe_skill = {}
+gushe_skill.name = "gushe"
+table.insert(sgs.ai_skills, gushe_skill)
+gushe_skill.getTurnUseCard = function(self)
+    if self.player:isKongcheng() or self.player:hasUsed("GusheCard") then return end
+    return sgs.Card_Parse("@GusheCard=.")
+end
+
+sgs.ai_skill_use_func.GusheCard = function(card, use, self)
+    local targets = sgs.SPlayerList()
+    self:sort(self.enemies)
+    for _,enemy in ipairs(self.enemies) do
+        if not enemy:isKongcheng() and not (self:needKongcheng(enemy, true) and enemy:getHandcardNum() <= 2) and not (enemy:hasSkills(sgs.lose_equip_skill) and enemy:hasEquip()) then
+            targets:append(enemy)
+            if targets:length() == 3 then break end
+        end
+    end
+    if targets:length() > 0 then
+        use.to = targets
+        use.card = card
+        
+        local max_card
+        local max_number = 0
+        local cards = sgs.QList2Table(self.player:getCards("h"))
+        self:sortByKeepValue(cards)
+        
+        local rap_num = self.player:getMark("#rap")
+        for _,c in ipairs(cards) do
+            local number = c:getNumber()
+            if number < rap_num then number = number + rap_num end
+            if number > max_number then
+                max_card = c
+                max_number = number
+            end
+        end
+        if rap_num == 6 and max_number < 10 then 
+            use.card = nil
+            use.to = sgs.SPlayerList()
+        end
+        
+        self.gushe_card = max_card:getEffectiveId()
+    end
+end
+
+sgs.ai_skill_discard.gushe = function(self, discard_num, min_num, optional, include_equip)
+    if self:needKongcheng() then
+        return self:askForDiscard("dummy", discard_num, min_num, optional, include_equip)
+    end
+	local current = self.room:getCurrent()
+    if self:isFriend(current) then
+        return {}
+    end
+    return self:askForDiscard("dummy", discard_num, min_num, optional, include_equip)
+end
+
+sgs.ai_skill_pindian.gushe = function(minusecard, self, requestor, maxcard, mincard)
+    self.room:writeToConsole(self.player:objectName())
+end
+
+sgs.ai_use_value["GusheCard"] = 10
+sgs.ai_use_priority["GusheCard"] = 10
+
+sgs.ai_skill_invoke.jici = true

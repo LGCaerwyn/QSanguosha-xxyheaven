@@ -52,7 +52,7 @@ bool Analeptic::IsAvailable(const Player *player, const Card *analeptic)
     if (player->isCardLimited(THIS_ANALEPTIC, Card::MethodUse) || player->isProhibited(player, THIS_ANALEPTIC))
         return false;
 
-    return player->usedTimes("Analeptic") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
+    return player->getMark("AnalepticUsedTimes") <= Sanguosha->correctCardTarget(TargetModSkill::Residue, player, THIS_ANALEPTIC);
 #undef THIS_ANALEPTIC
 }
 
@@ -83,6 +83,42 @@ void Analeptic::onEffect(const CardEffectStruct &effect) const
     else
         room->addPlayerMark(effect.to, "drank");
 }
+
+class AnalepticMark : public TriggerSkill
+{
+public:
+    AnalepticMark() : TriggerSkill("analeptic-mark")
+    {
+        events << PreCardUsed << EventPhaseChanging;
+        global = true;
+    }
+
+    bool triggerable(const ServerPlayer *target)
+    {
+        return target != NULL;
+    }
+
+    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
+    {
+        if (triggerEvent == PreCardUsed) {
+            CardUseStruct use = data.value<CardUseStruct>();
+            if (use.card && use.card->isKindOf("Analeptic") && !use.card->hasFlag("UsedBySecondWay")) {
+                room->addPlayerMark(player, "AnalepticUsedTimes");
+            }
+        } else if (triggerEvent == EventPhaseChanging) {
+            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
+            if (change.to == Player::NotActive) {
+                room->setPlayerMark(player, "AnalepticUsedTimes", 0);
+                foreach (ServerPlayer *p, room->getAllPlayers()) {
+                    if (p->getMark("drank") > 0)
+                        room->setPlayerMark(p, "drank", 0);
+                }
+            } else if (change.to == Player::RoundStart)
+                room->setPlayerMark(player, "AnalepticUsedTimes", 0);
+        }
+        return false;
+    }
+};
 
 class FanSkill : public WeaponSkill
 {
@@ -504,7 +540,7 @@ ManeuveringPackage::ManeuveringPackage()
         card->setParent(this);
 
     skills << new GudingBladeSkill << new FanSkill
-        << new VineSkill << new SilverLionSkill;
+        << new VineSkill << new SilverLionSkill << new AnalepticMark;
 }
 
 ADD_PACKAGE(Maneuvering)

@@ -1231,8 +1231,7 @@ public:
                     bool is_preview = false, bool visible = false, bool optional = true, int max_num = -1,
                     QList<ServerPlayer *> players = QList<ServerPlayer *>(), CardMoveReason reason = CardMoveReason(),
                     const char *prompt = NULL, bool notify_skill = false);
-    const Card *askForPindian(ServerPlayer *player, ServerPlayer *from, ServerPlayer *to, const char *reason);
-    QList<const Card *> askForPindianRace(ServerPlayer *from, ServerPlayer *to, const char *reason);
+    QList<const Card *> askForPindianRace(ServerPlayer *from, const QList<ServerPlayer *> &to, const QString &reason, const Card *card = NULL);
     ServerPlayer *askForPlayerChosen(ServerPlayer *player, const QList<ServerPlayer *> &targets, const char *reason,
                                      const char *prompt = NULL, bool optional = false, bool notify_skill = false);
     QString askForGeneral(ServerPlayer *player, const char *generals, char *default_choice = NULL);

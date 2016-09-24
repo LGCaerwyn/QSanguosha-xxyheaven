@@ -85,6 +85,7 @@ SOURCES += \
     src/ui/indicatoritem.cpp \
     src/ui/magatamas-item.cpp \
     src/ui/photo.cpp \
+	src/ui/pindianbox.cpp \
     src/ui/pixmapanimation.cpp \
 	src/ui/playercardbox.cpp \
     src/ui/qsanbutton.cpp \
@@ -122,8 +123,6 @@ SOURCES += \
     src/package/sp.cpp \
     src/package/special1v1.cpp \
     src/package/special3v3.cpp \
-    src/package/wisdom.cpp \
-    src/package/yitian.cpp \
     src/package/yjcm.cpp \
     src/package/yjcm2012.cpp \
     src/package/yjcm2013.cpp \
@@ -207,6 +206,7 @@ HEADERS += \
     src/ui/indicatoritem.h \
     src/ui/magatamas-item.h \
     src/ui/photo.h \
+	src/ui/pindianbox.h \
     src/ui/pixmapanimation.h \
 	src/ui/playercardbox.h \
     src/ui/qsanbutton.h \
@@ -233,8 +233,6 @@ HEADERS += \
     src/package/sp.h \
     src/package/special1v1.h \
     src/package/special3v3.h \
-    src/package/wisdom.h \
-    src/package/yitian.h \
     src/package/yjcm.h \
     src/package/yjcm2012.h \
     src/package/yjcm2013.h \

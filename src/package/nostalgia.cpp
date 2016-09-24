@@ -1563,7 +1563,6 @@ void NosYiji::onDamaged(ServerPlayer *guojia, const DamageStruct &damage) const
 
 NosRendeCard::NosRendeCard()
 {
-    mute = true;
     will_throw = false;
     handling_method = Card::MethodNone;
 }
@@ -1572,7 +1571,6 @@ void NosRendeCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &
 {
     ServerPlayer *target = targets.first();
 
-    source->broadcastSkillInvoke("rende");
     CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), target->objectName(), "nosrende", QString());
     room->obtainCard(target, this, reason, false);
 

@@ -358,11 +358,11 @@ function SmartAI:slashIsEffective(slash, to, from, ignore_armor)
 	if not eff then return false end
 
 	if not ignore_armor and from:objectName() == self.player:objectName() then
-		if to:getArmor() and from:hasSkill("moukui") then
+		if to:getArmor() and self:hasSkills(sgs.ignore_armor_skill, from) then
 			if not self:isFriend(to) or self:needToThrowArmor(to) then
 				if not (self:isEnemy(to) and self:doNotDiscard(to)) then
-					local id = self:askForCardChosen(to, "he", "moukui")
-					if id == to:getArmor():getEffectiveId() then ignore_armor = true end
+                    local id = self:askForCardChosen(to, "he", "moukui")
+                    if id == to:getArmor():getEffectiveId() then ignore_armor = true end
 				end
 			end
 		end
@@ -672,7 +672,20 @@ sgs.ai_skill_use.slash = function(self, prompt)
 		local no_distance = sgs.Sanguosha:correctCardTarget(sgs.TargetModSkill_DistanceLimit, self.player, slash) > 50 or self.player:hasFlag("slashNoDistanceLimit")
 		local targets = {}
 		local use = { to = sgs.SPlayerList() }
-		if self.player:canSlash(target, slash, not no_distance) then use.to:append(target) else return "." end
+        
+        local rangefix = 0
+		if slash:isVirtualCard() then
+			if self.player:getWeapon() and slash:getSubcards():contains(self.player:getWeapon():getEffectiveId()) then
+				if self.player:getWeapon():getClassName() ~= "Weapon" then
+					rangefix = sgs.weapon_range[self.player:getWeapon():getClassName()] - self.player:getAttackRange(false)
+				end
+			end
+			if self.player:getOffensiveHorse() and slash:getSubcards():contains(self.player:getOffensiveHorse():getEffectiveId()) then
+				rangefix = rangefix + 1
+			end
+		end
+
+		if self.player:canSlash(target, slash, not no_distance, rangefix) then use.to:append(target) else return "." end
 
 		if parsedPrompt[1] ~= "@niluan-slash" and target:hasSkill("xiansi") and target:getPile("counter"):length() > 1
 			and not (self:needKongcheng() and self.player:isLastHandCard(slash, true)) then
@@ -1949,7 +1962,7 @@ function SmartAI:useCardDuel(duel, use)
 end
 
 sgs.ai_card_intention.Duel = function(self, card, from, tos)
-	if string.find(card:getSkillName(), "lijian") then return end
+	if string.find(card:getSkillName(), "lijian") or string.find(card:getSkillName(), "liyu") then return end
 	sgs.updateIntentions(from, tos, 80)
 end
 

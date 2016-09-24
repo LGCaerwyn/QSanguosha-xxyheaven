@@ -2080,7 +2080,10 @@ bool GusheCard::targetFilter(const QList<const Player *> &targets, const Player 
 
 void GusheCard::use(Room *, ServerPlayer *wangsitu, QList<ServerPlayer *> &targets) const
 {
-    wangsitu->multiPindian(targets, "gushe");
+    PindianStruct *pd = wangsitu->pindianStart(targets, "gushe");
+    for (int i = 1; i <= targets.length(); i++)
+        wangsitu->pindianResult(pd, i);
+    wangsitu->pindianFinish(pd);
 }
 
 class GusheViewAsSkill : public ZeroCardViewAsSkill
@@ -2092,7 +2095,7 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return !player->hasUsed("GusheCard") && !player->isKongcheng();
+        return player->usedTimes("GusheCard") <= player->getMark("jici") && !player->isKongcheng();
     }
 
     virtual const Card *viewAs() const
@@ -2145,32 +2148,37 @@ class Jici : public TriggerSkill
 public:
     Jici() : TriggerSkill("jici")
     {
-        events << PindianVerifying;
+        events << PindianVerifying << EventPhaseChanging;
     }
 
-    virtual bool trigger(TriggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
+    virtual bool trigger(TriggerEvent triggerEvent, Room* room, ServerPlayer *wangsitu, QVariant &data) const
     {
-        PindianStruct * pindian = data.value<PindianStruct *>();
-		if (pindian->reason != "gushe") return false;
-		int n = wangsitu->getMark("#rap");
-		if (pindian->from_number == n && wangsitu->askForSkillInvoke(objectName(), "prompt1")) {
-            wangsitu->broadcastSkillInvoke(objectName());
-			LogMessage log;
-			log.type = "$ResetSkill";
-			log.from = wangsitu;
-			log.arg = "gushe";
-			room->sendLog(log);
-			room->addPlayerHistory(wangsitu, "GusheCard", 0);
-		} else if (pindian->from_number < n && wangsitu->askForSkillInvoke(objectName(), "prompt2:::" + QString::number(n))) {
-            wangsitu->broadcastSkillInvoke(objectName());
-			LogMessage log;
-			log.type = "$JiciAdd";
-			log.from = wangsitu;
-			pindian->from_number = qMin(pindian->from_number + n, 13);
-			log.arg = QString::number(n);
-			log.arg2 = QString::number(pindian->from_number);
-			room->sendLog(log);
-		}
+        if (triggerEvent == PindianVerifying && TriggerSkill::triggerable(wangsitu)) {
+            PindianStruct * pindian = data.value<PindianStruct *>();
+            if (pindian->reason != "gushe" || pindian->from != wangsitu) return false;
+            int n = wangsitu->getMark("#rap");
+            if (pindian->from_number == n && wangsitu->askForSkillInvoke(objectName(), "prompt1")) {
+                wangsitu->broadcastSkillInvoke(objectName());
+                LogMessage log;
+                log.type = "$JiciAddTimes";
+                log.from = wangsitu;
+                log.arg = "gushe";
+                room->sendLog(log);
+                room->addPlayerMark(wangsitu, "jici");
+            } else if (pindian->from_number < n && wangsitu->askForSkillInvoke(objectName(), "prompt2:::" + QString::number(n))) {
+                wangsitu->broadcastSkillInvoke(objectName());
+                LogMessage log;
+                log.type = "$JiciAddNumber";
+                log.from = wangsitu;
+                pindian->from_number = qMin(pindian->from_number + n, 13);
+                log.arg = QString::number(n);
+                log.arg2 = QString::number(pindian->from_number);
+                room->sendLog(log);
+            }
+        } else if (triggerEvent == EventPhaseChanging) {
+            if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
+            room->setPlayerMark(wangsitu, "jici", 0);
+        }
         return false;
     }
 };
@@ -2213,10 +2221,10 @@ public:
             int x = player->getPile("tuifeng").length();
             player->clearOnePrivatePile("tuifeng");
             player->drawCards(2*x);
-            room->setPlayerMark(player, "#tuifeng", x);
+            room->setPlayerMark(player, "tuifeng", x);
         } else if (triggerEvent == EventPhaseChanging) {
             if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
-            room->setPlayerMark(player, "#tuifeng", 0);
+            room->setPlayerMark(player, "tuifeng", 0);
         }
         return false;
     }
@@ -2232,7 +2240,7 @@ public:
 
     virtual int getResidueNum(const Player *from, const Card *) const
     {
-        return from->getMark("#tuifeng");
+        return from->getMark("tuifeng");
     }
 };
 
@@ -2403,7 +2411,7 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return player->getMark("#dingpan") > 0;
+        return player->getMark("dingpan") > 0;
     }
 
     virtual const Card *viewAs() const
@@ -2429,7 +2437,7 @@ public:
                 rebel_num++;
         }
         if (rebel_num > 0)
-            room->setPlayerMark(player, "#dingpan", rebel_num - player->usedTimes("DingpanCard"));
+            room->setPlayerMark(player, "dingpan", rebel_num - player->usedTimes("DingpanCard"));
         return false;
     }
 };

@@ -12,7 +12,6 @@ class IndicatorItem : public QGraphicsObject
 
 public:
     IndicatorItem(const QPointF &start, const QPointF &real_finish, Player *from);
-    void doAnimation();
 
     QPointF getFinish() const;
     void setFinish(const QPointF &finish);
@@ -20,6 +19,9 @@ public:
     virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     virtual QRectF boundingRect() const;
+
+public slots:
+    void doAnimation();
 
 private:
     QPointF start, finish, real_finish;

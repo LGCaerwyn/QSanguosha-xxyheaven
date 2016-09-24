@@ -171,14 +171,6 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
     case TurnStart: {
         player = room->getCurrent();
 
-        if (player->isLord()) {
-            QStringList extraTurnList;
-            if (!room->getTag("ExtraTurnList").isNull())
-                extraTurnList = room->getTag("ExtraTurnList").toStringList();
-            if (extraTurnList.isEmpty() || !extraTurnList.contains(player->objectName()))
-                room->incTurn();
-        }
-
         if (room->getTag("FirstRound").toBool()) {
             room->setTag("FirstRound", false);
             room->setPlayerFlag(player, "Global_FirstRound");
@@ -222,17 +214,6 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
         room->addPlayerHistory(NULL, "pushPile");
 		PhaseChangeStruct change = data.value<PhaseChangeStruct>();
         if (change.to == Player::NotActive) {
-            foreach (ServerPlayer *p, room->getAllPlayers()) {
-                if (p->getMark("drank") > 0) {
-                    LogMessage log;
-                    log.type = "#UnsetDrankEndOfTurn";
-                    log.from = player;
-                    log.to << p;
-                    room->sendLog(log);
-
-                    room->setPlayerMark(p, "drank", 0);
-                }
-            }
             room->setPlayerFlag(player, ".");
             room->clearPlayerCardLimitation(player, true);
         } else if (change.to == Player::Play) {

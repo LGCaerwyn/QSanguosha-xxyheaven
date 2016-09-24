@@ -291,6 +291,12 @@ QPixmap PlayerCardContainer::paintByMask(QPixmap &source)
     return tmp;
 }
 
+const ClientPlayer *PlayerCardContainer::getPlayer() const
+{
+    if (m_player) return m_player;
+    return NULL;
+}
+
 void PlayerCardContainer::updateSmallAvatar()
 {
     if (_m_smallAvatarIcon == NULL) {
@@ -380,6 +386,11 @@ void PlayerCardContainer::updatePile(const QString &pile_name)
         _m_equipLabel[4]->setPixmap(pixmap);
         return;
     }
+
+    QString shownpilename = RoomSceneInstance->getCurrentShownPileName();
+    if (!shownpilename.isEmpty() && shownpilename == pile_name)
+        hidePile();
+
 	int new_length;
     if (num == 0) {
         if (_m_privatePiles.contains(pile_name)) {
@@ -409,8 +420,11 @@ void PlayerCardContainer::updatePile(const QString &pile_name)
 		QFontMetrics fontMetrics(button->font());
 		new_length = fontMetrics.width(text) + 2;
 
-		disconnect(button, &QPushButton::clicked, this, &PlayerCardContainer::showPile);
-        connect(button, &QPushButton::clicked, this, &PlayerCardContainer::showPile);
+        disconnect(button, &QPushButton::pressed, this, &PlayerCardContainer::showPile);
+        connect(button, &QPushButton::pressed, this, &PlayerCardContainer::showPile);
+
+        disconnect(button, &QPushButton::released, this, &PlayerCardContainer::hidePile);
+        connect(button, &QPushButton::released, this, &PlayerCardContainer::hidePile);
     }
 
     QPoint start = _m_layout->m_privatePileStartPos;
@@ -474,10 +488,13 @@ void PlayerCardContainer::updateCount(const QString &pile_name, int value)
 		button->setText(text);
 		button->setMenu(NULL);
 
-//		if (pile_name == "huashen") {
-//			disconnect(button, &QPushButton::clicked, this, &PlayerCardContainer::showHuashen);
-//			connect(button, &QPushButton::clicked, this, &PlayerCardContainer::showHuashen);
-//		}
+        if (pile_name == "huashen" && Self == player) {
+            disconnect(button, &QPushButton::pressed, this, &PlayerCardContainer::showPile);
+            connect(button, &QPushButton::pressed, this, &PlayerCardContainer::showPile);
+
+            disconnect(button, &QPushButton::released, this, &PlayerCardContainer::hidePile);
+            connect(button, &QPushButton::released, this, &PlayerCardContainer::hidePile);
+        }
     }
 
     QPoint start = _m_layout->m_privatePileStartPos;
@@ -551,25 +568,18 @@ void PlayerCardContainer::showPile()
 {
     QPushButton *button = qobject_cast<QPushButton *>(sender());
     if (button) {
-        if (!m_player) return;
-        QList<int> card_ids = m_player->getPile(button->objectName());
+        const ClientPlayer *player = getPlayer();
+        if (!player) return;
+        QList<int> card_ids = player->getPile(button->objectName());
+        if (button->objectName() == "huashen") RoomSceneInstance->showPile(card_ids, button->objectName(), player);
         if (card_ids.isEmpty() || card_ids.contains(-1)) return;
-        RoomSceneInstance->doGongxin(card_ids, false, QList<int>());
+        RoomSceneInstance->showPile(card_ids, button->objectName(), player);
     }
 }
 
-void PlayerCardContainer::showHuashen()
+void PlayerCardContainer::hidePile()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    if (button) {
-        if (!m_player) return;
-        QStringList huashen_list;
-        QVariantList huashens = m_player->tag["Huashens"].toList();
-        foreach(QVariant huashen, huashens)
-            huashen_list << huashen.toString();
-        if (!huashen_list.isEmpty())
-            RoomSceneInstance->viewGenerals("huashen", huashen_list);
-    }
+    RoomSceneInstance->hidePile();
 }
 
 void PlayerCardContainer::updateDrankState()

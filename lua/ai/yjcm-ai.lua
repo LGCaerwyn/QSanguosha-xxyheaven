@@ -662,14 +662,16 @@ mingce_skill.getTurnUseCard = function(self)
 	end
 	if not card then
 		local ecards = self.player:getCards("e")
-		ecards = sgs.QList2Table(ecards)
+        if not ecards:isEmpty() then
+            ecards = sgs.QList2Table(ecards)
 
-		for _, ecard in ipairs(ecards) do
-			if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
-				card = ecard
-				break
-			end
-		end
+            for _, ecard in ipairs(ecards) do
+                if ecard:isKindOf("Weapon") or ecard:isKindOf("OffensiveHorse") then
+                    card = ecard
+                    break
+                end
+            end
+        end
 	end
 	if card then
 		card = sgs.Card_Parse("@MingceCard=" .. card:getEffectiveId())
@@ -685,6 +687,7 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 	local slash = sgs.Sanguosha:cloneCard("slash", sgs.Card_NoSuit, 0)
 	self.MingceTarget = nil
 
+    
 	local canMingceTo = function(player)
 		local canGive = not self:needKongcheng(player, true)
 		return canGive or (not canGive and self:getEnemyNumBySeat(self.player, player) == 0)
@@ -718,7 +721,25 @@ sgs.ai_skill_use_func.MingceCard = function(card, use, self)
 					end
 				end
 				if #targets > 0 then
-				    victim = sgs.ai_skill_playerchosen.zero_card_as_slash(self, targets)
+                    for _,slash_target in ipairs(targets) do
+                        local def = sgs.getDefense(slash_target)
+                        local slash = sgs.Sanguosha:cloneCard("slash")
+                        local eff = self:slashIsEffective(slash, slash_target) and sgs.isGoodTarget(slash_target, targets, self)
+
+                        if not self.player:canSlash(slash_target, slash, false) then
+                        elseif self:slashProhibit(nil, slash_target) then
+                        elseif eff and def < 8 then victim = slash_target
+                        end
+                    end
+                    if victim == nil then
+                        self:sort(targets)
+                        for _,t in ipairs(targets) do
+                            if self:isEnemy(t) and not self:needToLoseHp(t) then
+                                victim = t
+                                break
+                            end
+                        end
+                    end
 				end
 				break
 			end
@@ -1231,11 +1252,56 @@ end
 sgs.ai_skill_invoke.pojun = function(self, data)
 	local target = data:toPlayer()
 
-	return self:isEnemy(target)
+    if self:isEnemy(target) then
+        if self:hasSkills(sgs.lose_equip_skill, target) then
+            return not target:isKongcheng()
+        end
+        return true
+    else
+        if self:hasSkills(sgs.lose_equip_skill, target) then
+            return true
+        end
+        return false
+    end
 end
 
-sgs.ai_skill_choice.pojun_num = function(self, choices)
-	return choices[#choices - 1]
+function getCards(cards, max_num)
+    local toret_cards = {}
+    for _,card in ipairs(cards) do
+        if #toret_cards < max_num then
+            table.insert(toret_cards, card:getEffectiveId())
+        end
+    end
+    return toret_cards
+end
+
+sgs.ai_skill_cardschosen.pojun = function(self, who, flags, min_num, max_num, method)
+    if self:isFriend(who) then
+        if self:hasSkills(sgs.lose_equip_skill, who) or (who:hasArmorEffect("silver_lion") and who:isWounded()) then
+            local equips = sgs.QList2Table(who:getCards("e"))
+            self:sortByKeepValue(equips)
+            if who:hasSkill("xiaoji") then
+                return getCards(equips, max_num)
+            else
+                return getCards(equips, 1)
+            end
+        end
+    else
+        local cards = sgs.QList2Table(who:getCards("h"))
+        if not self:hasSkills(sgs.lose_equip_skill, who) then
+            for _,equi in sgs.qlist(who:getEquips()) do
+                table.insert(cards, equi)
+            end
+        end
+        local to_pojun
+        if who:getArmor() and (not who:hasArmorEffect("silver_lion") or not who:isWounded()) then
+            to_pojun = getCards(cards, max_num - 1)
+            table.insert(to_pojun, who:getArmor():getId())
+        else
+            to_pojun = getCards(cards, max_num)
+        end
+        return to_pojun
+    end
 end
 
 

@@ -244,8 +244,8 @@ sgs.ai_skill_cardask["@guidao-card"]=function(self, data)
 	end
 
 	if #cards == 0 then return "." end
-	if keptblack == 1 then return "." end
-	if keptspade == 1 and not self.player:hasSkill("leiji") then return "." end
+	if keptblack >= 1 then return "." end
+	if keptspade >= 1 and not self.player:hasSkill("leiji") then return "." end
 
 	local card_id = self:getRetrialCardId(cards, judge)
 	if card_id == -1 then
@@ -357,6 +357,17 @@ sgs.ai_skill_playerchosen.leiji = function(self, targets)
 
 	self:updatePlayers()
 	return self:findLeijiTarget(self.player, 100, nil, 1)
+end
+
+sgs.ai_judge_value.leiji = function(self, card, target)
+    if card:getSuit() == sgs.Card_Spade then
+        if target:hasSkill("hongyan") then return 0 end
+        return -2
+    elseif card:getSuit() == sgs.Card_Club then
+        if self:getHp() == 1 then return -2 end
+        return -1
+    end
+    return 0
 end
 
 function SmartAI:needLeiji(to, from)

@@ -34,6 +34,17 @@ public:
     {
         m_currentCardUsePattern = newPattern;
     }
+
+    inline QString getCurrentCardResponsePrompt() const
+    {
+        return m_currentCardResponsePrompt;
+    }
+
+    inline void setCurrentCardResponsePrompt(const QString &prompt)
+    {
+        m_currentCardResponsePrompt = prompt;
+    }
+
     inline Player *getCurrentPlayer() const
     {
         return m_currentPlayer;
@@ -63,6 +74,7 @@ protected:
     Player *m_currentPlayer;
     QString m_currentCardUsePattern;
     CardUseStruct::CardUseReason m_currentCardUseReason;
+    QString m_currentCardResponsePrompt;
 };
 
 #endif

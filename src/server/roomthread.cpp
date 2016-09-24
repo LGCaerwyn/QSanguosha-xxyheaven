@@ -518,9 +518,8 @@ void RoomThread::actionNormal(GameRule *game_rule)
             log.type = "$AppendSeparator";
             room->sendLog(log);
 			if (room->getCurrent()->isLord()){
-				int num = room->getTag("Global_TurnCount").toInt()+1;
-				room->setTag("Global_TurnCount", num);
-				QVariant data = num;
+                room->incTurn();
+                QVariant data = room->getTurn();
 				foreach(ServerPlayer *p, room->getAllPlayers())
                     trigger(RoundStart, room, p, data);
 			}

@@ -637,8 +637,8 @@ return {
 	[":jici"] = "当你发动“鼓舌”拼点的牌亮出后，若此牌的点数：小于X，你可令点数+X；等于X，你可以令你本回合发动“鼓舌”的次数上限+1（X为“饶舌”标记的数量）。",
 	["jici:prompt1"] = "你可以发动“激词”，令本回合发动“鼓舌”的次数上限+1",
 	["jici:prompt2"] = "你可以发动“激词”，令拼点牌点数+%arg",
-	["$ResetSkill"] = "%from 重置了技能“%arg”",
-	["$JiciAdd"] = "%from 的拼点牌点数+%arg，为 %arg2",
+	["$JiciAddTimes"] = "%from 令本回合发动“%arg”的次数上限+1",
+	["$JiciAddNumber"] = "%from 的拼点牌点数+%arg，为 %arg2",
 
 	["#taoqian"] = "亮德敬贤",
 	["taoqian"] = "陶谦",
@@ -694,14 +694,14 @@ return {
 	[":yanzheng"] = "若你的手牌数大于你的体力值，你可以将一张装备区的牌当【无懈可击】使用。",
 	["#KuiweiDiscard"] = "%from 的“%arg2”效果被触发，须弃置 %arg 张牌";
 	
-	["#litong"] = "未知",
+	["#litong"] = "万亿吾独往",
 	["litong"] = "李通",
 	["illustrator:litong"] = "瞎子Ghe",
 	["tuifeng"] = "推锋",
 	[":tuifeng"] = "当你受到1点伤害后，你可以将一张牌置于武将牌上，称为“锋”。准备阶段开始时，若你的武将牌上有“锋”，你将所有“锋”置入弃牌堆，摸2X张牌，然后你于此回合的出牌阶段内使用【杀】的次数上限+X（X为你此次置入弃牌堆的“锋”数）。",
 	["@tuifeng-put"] = "你可以发动“推锋”，将一张牌置于武将牌上",
 
-	["#mizhu"] = "未知",
+	["#mizhu"] = "挥金追义",
 	["mizhu"] = "糜竺",
 	["illustrator:mizhu"] = "瞎子Ghe",
 	["ziyuan"] = "资援",
@@ -709,7 +709,7 @@ return {
 	["jugu"] = "巨贾",
 	[":jugu"] = "锁定技，你的手牌上限+X。你的起始手牌数+X（X为你的体力上限）。",
 
-	["#buzhi"] = "未知",
+	["#buzhi"] = "积硅靖边",
     ["buzhi"] = "步骘",
 	["illustrator:buzhi"] = "sinno",
 	["hongde"] = "弘德",

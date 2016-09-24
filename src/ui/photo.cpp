@@ -122,6 +122,7 @@ void Photo::_adjustComponentZValues(bool killed)
     _layBetween(_m_mainFrame, _m_faceTurnedIcon, _m_equipRegions[3]);
     _layBetween(emotion_item, _m_chainIcon, _m_roleComboBox);
     _layBetween(_m_skillNameRegion, _m_chainIcon, _m_roleComboBox);
+    _m_skillNameRegion->setZValue(10000);
     _m_progressBarItem->setZValue(_m_groupMain->zValue() + 1);
 }
 
@@ -188,7 +189,6 @@ void Photo::showSkillName(const QString &skill_name)
     _m_skillNameRegion->setWidget(_m_skillNameLabel);
 
     _mutexSkillNameAnim.lock();
-    _m_skillNameRegion->setZValue(10000);
     _m_skillNameRegion->setPos(rect.topLeft() - QPoint(50, 0));
     _m_skillNameRegion->setOpacity(0);
     _m_skillNameRegion->show();

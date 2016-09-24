@@ -31,7 +31,8 @@ sgs.ai_skill_invoke.fan = function(self, data)
 		else
 			if not self:damageIsEffective(target, sgs.DamageStruct_Fire) then return false end
 			if target:isChained() then
-				if not self:isGoodChainTarget(target, nil, nil, nil, use.card) then return false end
+                local fire_slash = sgs.Sanguosha:cloneCard("fire_slash")
+				if not self:isGoodChainTarget(target, nil, nil, nil, fire_slash) then return false end
 				for _, p in sgs.qlist(self.room:getOtherPlayers(target)) do
 					if p:isChained() then
 						return true
@@ -741,6 +742,13 @@ function SmartAI:useCardFireAttack(fire_attack, use)
 		local lx = self.room:findPlayerBySkillName("huangen")
 		use.card = fire_attack
 		for i = 1, #targets, 1 do
+            if self.player:hasSkill("qianxin") and not self.player:hasSkill("jianyan") and not self.player:isWounded() then
+                if not use.to then use.to = sgs.SPlayerList() end
+                if not use.to:contains(self.player) then
+                    use.to:append(self.player)
+                    if use.to:length() == targets_num then return end
+                end
+            end
 			if use.to and not (use.to:length() > 0 and targets[i]:hasSkill("danlao"))
 				and not (use.to:length() > 0 and lx and self:isFriend(lx, targets[i]) and self:isEnemy(lx) and lx:getHp() > targets_num / 2) then
 				use.to:append(targets[i])
@@ -769,6 +777,20 @@ sgs.ai_cardshow.fire_attack = function(self, requestor)
 	end
 
 	return result
+end
+
+sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
+	if self:isFriend(target) and not self:needToLoseHp(target) then
+        return "."
+    elseif self:isEnemy(target) and not self:needToLoseHp(target) then
+        local handcards = sgs.QList2Table(self.player:getHandcards())
+        self:sortByUseValue(handcards, true)
+        for _,c in ipairs(handcards) do
+            if c:getSuit() == pattern then  
+                return "$" .. c:getEffectiveId()
+            end
+        end
+    end
 end
 
 sgs.ai_use_value.FireAttack = 4.8

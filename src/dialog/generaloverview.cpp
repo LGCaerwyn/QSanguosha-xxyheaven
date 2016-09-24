@@ -482,8 +482,15 @@ void GeneralOverview::addLines(const Skill *skill, const QString &general_name)
                     original_name.prepend(QString::number(skinId));
                 original_name.prepend("$");
                 skill_line = Sanguosha->translate(original_name);
-				if (skill_line == original_name)
-				    skill_line = tr("Translation missing.");
+                if (skill_line == original_name && skinId > 0) {
+                    original_name = skill_name;
+                    if (sources.length() != 1)
+                        original_name.append(QString::number(i + 1));
+                    original_name.prepend("$");
+                    skill_line = Sanguosha->translate(original_name);
+                    if (skill_line == original_name)
+                        skill_line = tr("Translation missing.");
+                }
 			}
 
             button->setDescription(skill_line);

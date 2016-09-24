@@ -717,8 +717,6 @@ public:
         if (!room->askForCard(liubei, "..", "@qinwang-discard", data, "qinwang", target))
             return false;
 
-        liubei->broadcastSkillInvoke("qinwang");
-
 		foreach (ServerPlayer *liege, lieges) {
             const Card *slash = room->askForCard(liege, "slash", "@qinwang-slash:" + liubei->objectName(),
                 QVariant(), Card::MethodResponse, liubei, false, QString(), true);
@@ -1179,7 +1177,7 @@ void FurongCard::onEffect(const CardEffectStruct &effect) const
 {
     Room *room = effect.from->getRoom();
 
-	QList<const Card *> cards = room->askForPindianRace(effect.from, effect.to, "furong");
+    QList<const Card *> cards = room->askForFurong(effect.from, effect.to, "furong");
     const Card *card1 = cards.first();
     const Card *card2 = cards.last();
 

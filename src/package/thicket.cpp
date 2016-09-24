@@ -347,7 +347,7 @@ public:
     virtual bool trigger(TriggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
         CardUseStruct use = data.value<CardUseStruct>();
-        if (!use.card || !use.card->isKindOf("SavageAssault") || use.card->subcardsLength() == 0)
+        if (!use.card || !use.card->isKindOf("SavageAssault") || (use.card->isVirtualCard() && use.card->subcardsLength() == 0))
             return false;
         foreach (ServerPlayer *zhurong, room->getOtherPlayers(player)) {
             if (!TriggerSkill::triggerable(zhurong)) continue;

@@ -138,11 +138,11 @@ public:
 			QStringList liegong_list;
             foreach (ServerPlayer *p, use.to) {
 				int i = 0;
-				if (player->getHandcardNum() <= p->getHandcardNum())
+                if (player->getHandcardNum() <= p->getHandcardNum())
 					i++;
-				if (player->getHp() >= p->getHp())
+                if (player->getHp() <= p->getHp())
 					i++;
-				if (player->getAttackRange() >= p->getAttackRange())
+                if (player->getAttackRange() >= p->getAttackRange())
 					i++;
 				
 				if (i > 0 && player->askForSkillInvoke(this, QVariant::fromValue(p))) {

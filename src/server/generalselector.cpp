@@ -29,8 +29,12 @@ GeneralSelector::GeneralSelector()
     load1v1Table();
 }
 
-QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &candidates)
+QString GeneralSelector::selectFirst(ServerPlayer *player, QStringList candidates)
 {
+    foreach (QString candidate, candidates)
+        candidates.append(Sanguosha->getGeneralConvertion(candidate));
+
+    qShuffle(candidates);
     QMap<QString, qreal> values;
     QString role = player->getRole();
     ServerPlayer *lord = player->getRoom()->getLord();
@@ -39,15 +43,12 @@ QString GeneralSelector::selectFirst(ServerPlayer *player, const QStringList &ca
         const General *general = Sanguosha->getGeneral(candidate);
         if (role == "loyalist" && lord && (general->getKingdom() == lord->getKingdom() || general->getKingdom() == "god"))
             value *= 1.04;
-        if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("xueyi")
-            && general->getKingdom() == "qun")
-            value *= 0.8;
-        if (role != "loyalist" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("shichou")
-            && general->getKingdom() == "shu")
-            value *= 0.1;
+        if (role != "loyalist" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("roulin")
+            && general->isFemale() && !general->hasSkill("zhenlie"))
+            value *= 0.5;
         if (role == "rebel" && lord && lord->getGeneral() && lord->getGeneral()->hasSkill("guiming")
             && general->getKingdom() == "wu")
-            value *= 0.5;
+            value *= 0.8;
         QString key = QString("_:%1:%2").arg(candidate).arg(role);
         value *= qPow(1.1, first_general_table.value(key, 0.0));
         if (lord) {

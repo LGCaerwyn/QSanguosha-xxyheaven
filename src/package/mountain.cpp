@@ -4,13 +4,10 @@
 #include "skill.h"
 #include "engine.h"
 #include "standard.h"
-#include "generaloverview.h"
 #include "clientplayer.h"
 #include "client.h"
 #include "ai.h"
 #include "json.h"
-
-#include <QCommandLinkButton>
 
 class dummyVS : public ZeroCardViewAsSkill
 {
@@ -1195,33 +1192,7 @@ public:
         AcquireGenerals(zuoci, 2);
         SelectSkill(zuoci);
     }
-
-    virtual QDialog *getDialog() const
-    {
-        static HuashenDialog *dialog;
-
-        if (dialog == NULL)
-            dialog = new HuashenDialog;
-
-        return dialog;
-    }
 };
-
-HuashenDialog::HuashenDialog()
-{
-    setWindowTitle(Sanguosha->translate("huashen"));
-}
-
-void HuashenDialog::popup()
-{
-    QVariantList huashen_list = Self->tag["Huashens"].toList();
-    QList<const General *> huashens;
-    foreach(QVariant huashen, huashen_list)
-        huashens << Sanguosha->getGeneral(huashen.toString());
-
-    fillGenerals(huashens);
-    show();
-}
 
 class HuashenSelect : public PhaseChangeSkill
 {

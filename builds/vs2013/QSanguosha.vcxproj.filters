@@ -1084,6 +1084,15 @@
     <ClCompile Include="Release\moc_socket.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\ui\pindianbox.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_pindianbox.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_pindianbox.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\src\dialog\cardoverview.ui">
@@ -1427,6 +1436,9 @@
     </CustomBuild>
     <CustomBuild Include="..\..\src\util\socket.h">
       <Filter>util</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\ui\pindianbox.h">
+      <Filter>ui</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
