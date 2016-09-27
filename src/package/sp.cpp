@@ -1084,7 +1084,6 @@ public:
                 return false;
             if (!effect.from->isAlive() || !effect.to->isAlive() || !effect.to->canDiscard(effect.from, "he"))
                 return false;
-            effect.to->broadcastSkillInvoke(objectName(), 2);
 			room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, effect.to->objectName(), effect.from->objectName());
             int disc = room->askForCardChosen(effect.to, effect.from, "he", objectName(), false, Card::MethodDiscard);
             room->throwCard(disc, effect.from, effect.to);

@@ -5778,6 +5778,40 @@ AskForMoveCardsStruct Room::askForMoveCards(ServerPlayer *zhuge, const QList<int
                 QList<int> downs = downcards;
                 int upcount = qMax(upcards.length(), downcards.length());
 
+                //移动上面该有的卡到上面来
+                if (!downs.isEmpty()) {
+                    for (int i = 0; i < top_cards.length(); i++) {
+                        int id = top_cards.at(i);
+                        if (downs.contains(id)) {
+                            fromPos = -(downs.indexOf(id) + 1);
+                            toPos = ups.length() + 1;
+                            downs.removeOne(id);
+                            ups.append(id);
+
+                            JsonArray movearg = movearg_base;
+                            movearg << fromPos << toPos;
+                            doBroadcastNotify(S_COMMAND_MIRROR_MOVECARDS_STEP, movearg, isTrustAI ? NULL : zhuge);
+                            thread->delay();
+                        }
+                    }
+                }
+                //移动下面该有的到下面去
+                if (!ups.isEmpty()) {
+                    foreach (int id, bottom_cards) {
+                        if (ups.contains(id)) {
+                            fromPos = ups.indexOf(id) + 1;
+                            toPos = -(downs.length() + 1);
+                            ups.removeOne(id);
+                            downs.append(id);
+
+                            JsonArray movearg = movearg_base;
+                            movearg << fromPos << toPos;
+                            doBroadcastNotify(S_COMMAND_MIRROR_MOVECARDS_STEP, movearg, isTrustAI ? NULL : zhuge);
+                            thread->delay();
+                        }
+                    }
+                }
+
                 for (int i = 0; i < top_cards.length(); ++i) {
                     fromPos = 0;
                     if (top_cards.at(i) != ups.at(i)) {

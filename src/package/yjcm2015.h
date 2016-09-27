@@ -66,6 +66,8 @@ public:
     bool targetsFeasible(const QList<const Player *> &targets, const Player *Self) const;
     const Card *validate(CardUseStruct &cardUse) const;
     const Card *validateInResponse(ServerPlayer *user, QList<ServerPlayer *> &targets) const;
+private:
+    void swapHands(Room *room, ServerPlayer *from, ServerPlayer *to, QString skill_name) const;
 };
 
 class YanzhuCard : public SkillCard

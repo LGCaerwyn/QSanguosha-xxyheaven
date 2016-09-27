@@ -863,11 +863,11 @@ public:
                 }
                 i++;
             }
-            if (zongxuan_card.isEmpty() || !player->askForSkillInvoke(this))
+            if (zongxuan_card.isEmpty() || !player->askForSkillInvoke(this, IntList2VariantList(zongxuan_card)))
                 return false;
 
             player->broadcastSkillInvoke(objectName());
-            AskForMoveCardsStruct result = room->askForMoveCards(player, zongxuan_card, QList<int>(), true, objectName(), "", 0, zongxuan_card.length());
+            AskForMoveCardsStruct result = room->askForMoveCards(player, zongxuan_card, QList<int>(), true, objectName(), "", 1, zongxuan_card.length(), false);
             CardMoveReason reason(CardMoveReason::S_REASON_PUT, player->objectName(), objectName(), QString());
             for (int i = result.bottom.length() - 1; i >= 0; i--) {
                 int card_id = result.bottom.at(i);
