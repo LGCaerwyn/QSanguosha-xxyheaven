@@ -772,9 +772,9 @@ ZhenshanCard::ZhenshanCard()
 bool ZhenshanCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
 {
     const Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
-	bool can_exchange = Self->getHandcardNum() > to_select->getHandcardNum();
+    bool can_exchange = Self->getHandcardNum() > to_select->getHandcardNum();
 
-    if (!card || card->targetFixed())
+    if (!card || card->targetFixed() || Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_RESPONSE)
 		return targets.isEmpty() && can_exchange;
 
 	bool can_select = (card->targetFilter(targets, to_select, Self) && !Self->isProhibited(to_select, card, targets));
@@ -796,12 +796,12 @@ bool ZhenshanCard::targetsFeasible(const QList<const Player *> &targets, const P
 	if (targets.isEmpty()) return false;
 
     const Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
-	if (!card || card->targetFixed()) return targets.length() == 1;
+    if (!card || card->targetFixed() || Sanguosha->currentRoomState()->getCurrentCardUseReason() == CardUseStruct::CARD_USE_REASON_RESPONSE) return targets.length() == 1;
 
 	QList<const Player *> card_targets = targets;
 	const Player *to_exchange = card_targets.takeLast();
 
-	return card->targetsFeasible(card_targets, Self) && Self->getHandcardNum() > to_exchange->getHandcardNum();
+    return card->targetsFeasible(card_targets, Self) && Self->getHandcardNum() > to_exchange->getHandcardNum();
 }
 
 const Card *ZhenshanCard::validate(CardUseStruct &card_use) const
@@ -821,7 +821,7 @@ const Card *ZhenshanCard::validate(CardUseStruct &card_use) const
     room->sendLog(log);
     quancong->broadcastSkillInvoke("zhenshan");
 
-    room->swapCards(quancong, to_exchange, "h");
+    swapHands(room, quancong, to_exchange, "zhenshan");
 	room->setPlayerFlag(quancong, "ZhenshanUsed");
 
     Card *c = Sanguosha->cloneCard(user_str, Card::NoSuit, 0);
@@ -846,13 +846,61 @@ const Card *ZhenshanCard::validateInResponse(ServerPlayer *quancong, QList<Serve
     room->sendLog(log);
     quancong->broadcastSkillInvoke("zhenshan");
 
-    room->swapCards(quancong, to_exchange, "h");
-	room->setPlayerFlag(quancong, "ZhenshanUsed");
+    swapHands(room, quancong, to_exchange, "zhenshan");
+    room->setPlayerFlag(quancong, "ZhenshanUsed");
 
     Card *c = Sanguosha->cloneCard(user_str, Card::NoSuit, 0);
     c->setSkillName("_zhenshan");
     c->deleteLater();
     return c;
+}
+
+void ZhenshanCard::swapHands(Room *room, ServerPlayer *from, ServerPlayer *to, QString skill_name) const
+{
+    ServerPlayer *a = from;
+    ServerPlayer *b = to;
+    a->setFlags("DimengTarget");
+    b->setFlags("DimengTarget");
+
+    int n1 = a->getHandcardNum();
+    int n2 = b->getHandcardNum();
+
+    try {
+        foreach(ServerPlayer *p, room->getAlivePlayers())
+        {
+            if (p != a && p != b) {
+                JsonArray arr;
+                arr << a->objectName() << b->objectName();
+                room->doNotify(p, QSanProtocol::S_COMMAND_EXCHANGE_KNOWN_CARDS, arr);
+            }
+        }
+        QList<CardsMoveStruct> exchangeMove;
+        CardsMoveStruct move1(a->handCards(), b, Player::PlaceHand,
+            CardMoveReason(CardMoveReason::S_REASON_SWAP, a->objectName(), b->objectName(), skill_name, QString()));
+        CardsMoveStruct move2(b->handCards(), a, Player::PlaceHand,
+            CardMoveReason(CardMoveReason::S_REASON_SWAP, b->objectName(), a->objectName(), skill_name, QString()));
+        exchangeMove.push_back(move1);
+        exchangeMove.push_back(move2);
+        room->moveCardsAtomic(exchangeMove, false);
+
+        LogMessage log;
+        log.type = "#Dimeng";
+        log.from = a;
+        log.to << b;
+        log.arg = QString::number(n1);
+        log.arg2 = QString::number(n2);
+        room->sendLog(log);
+        room->getThread()->delay();
+
+        a->setFlags("-DimengTarget");
+        b->setFlags("-DimengTarget");
+    } catch (TriggerEvent triggerEvent) {
+        if (triggerEvent == TurnBroken || triggerEvent == StageChange) {
+            a->setFlags("-DimengTarget");
+            b->setFlags("-DimengTarget");
+        }
+        throw triggerEvent;
+    }
 }
 
 class ZhenshanVS : public ZeroCardViewAsSkill

@@ -910,7 +910,7 @@ huomo_skill = {name = "huomo"}
 table.insert(sgs.ai_skills, huomo_skill)
 huomo_skill.getTurnUseCard = function(self)
     if self.player:isNude() then
-        return nil
+        return 
     elseif self.player:getMark("Huomo_Peach") == 0 and self.player:getLostHp() > 0 then
         return sgs.Card_Parse("@HuomoCard=.:peach")
     elseif self.player:getMark("Huomo_Analpetic") == 0 and sgs.Analeptic_IsAvailable(self.player) then
@@ -1065,14 +1065,17 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
     
     if to_use and pattern then
         local card = sgs.Sanguosha:cloneCard(pattern)
-        if card:isKindOf("Slash") and use.to:isEmpty() then return nil end
+        if card:isKindOf("Slash") and use.to:isEmpty() then 
+            use.card = nil
+            return nil 
+        end
         local card_str = "@HuomoCard="..to_use:getEffectiveId()..":"..pattern
         local acard = sgs.Card_Parse(card_str)
         use.card = acard
     end
 end
-sgs.ai_use_value["HuomoCard"] = 2.7
-sgs.ai_use_priority["HuomoCard"] = 3.5
+sgs.ai_use_value["HuomoCard"] = 3.7
+sgs.ai_use_priority["HuomoCard"] = 2.5
 
 sgs.ai_skill_playerchosen.zuoding = function(self, targets)
     local l = {}

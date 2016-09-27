@@ -780,15 +780,15 @@ sgs.ai_cardshow.fire_attack = function(self, requestor)
 end
 
 sgs.ai_skill_cardask["@fire-attack"] = function(self, data, pattern, target)
-	if self:isFriend(target) and not self:needToLoseHp(target) then
+    local fire_attack = sgs.Sanguosha:cloneCard("fire_attack")
+	if self:isFriend(target) and not (self:needToLoseHp(target) or (target:isChained() and self:isGoodChainTarget(target, self.player, sgs.DamageStruct_Fire, nil, fire_attack))) then
         return "."
-    elseif self:isEnemy(target) and not self:needToLoseHp(target) then
-        local handcards = sgs.QList2Table(self.player:getHandcards())
-        self:sortByUseValue(handcards, true)
-        for _,c in ipairs(handcards) do
-            if c:getSuit() == pattern then  
-                return "$" .. c:getEffectiveId()
-            end
+    end
+    local handcards = sgs.QList2Table(self.player:getHandcards())
+    self:sortByKeepValue(handcards, true)
+    for _,c in ipairs(handcards) do
+        if c:getSuit() == pattern then  
+            return "$" .. c:getEffectiveId()
         end
     end
 end

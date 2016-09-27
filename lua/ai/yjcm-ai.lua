@@ -1109,7 +1109,7 @@ sgs.ai_skill_invoke.zhiman = function(self, data)
 		end
 		return true
 	else
-		if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
+		if self:hasHeavySlashDamage(self.player, damage.card, target) or self.player:getMark("drank") > 0 then return false end
 		if self:isWeak(target) then return false end
 		if self:doNotDiscard(target, "e", true) then
 			return false

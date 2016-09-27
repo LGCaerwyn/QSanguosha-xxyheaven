@@ -1244,8 +1244,29 @@ sgs.ai_skill_invoke.noschengxiang = function(self, data)
 	return not hasManjuanEffect(self.player)
 end
 
-sgs.ai_skill_askforag.noschengxiang = function(self, card_ids)
-	return self:askForAG(card_ids, false, "dummyreason")
+sgs.ai_skill_movecards.noschengxiang = function(self, upcards, downcards, min_num, max_num)
+    local upcards_copy, enableds, down = table.copyFrom(upcards), table.copyFrom(upcards), {}
+    for _,card_id in ipairs(upcards) do
+        if sgs.Sanguosha:getCard(card_id):getNumber() == 13 then
+            table.removeOne(enableds, card_id)
+        end
+    end
+    while #enableds ~= 0 do
+        local card = self:askForAG(enableds, false, "noschengxiang")
+        table.insert(down, card)
+        table.removeOne(enableds, card)
+        for _, card_id in ipairs(upcards_copy) do
+            local num = sgs.Sanguosha:getCard(card_id):getNumber()
+            for _, selected_id in ipairs(down) do
+                num = num + sgs.Sanguosha:getCard(selected_id):getNumber()
+            end
+            if num >= 13 then
+                table.removeOne(enableds, card_id)
+            end
+        end
+        table.removeOne(upcards_copy, card)
+    end
+    return upcards_copy, down
 end
 
 function sgs.ai_cardsview_valuable.nosrenxin(self, class_name, player)

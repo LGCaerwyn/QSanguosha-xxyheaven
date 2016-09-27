@@ -2356,6 +2356,7 @@ public:
         } else return false;
         ServerPlayer *target = room->askForPlayerChosen(player, room->getOtherPlayers(player), objectName(), "@hongde-invoke", true, true);
         if (target) {
+            player->broadcastSkillInvoke(objectName());
             room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, player->objectName(), target->objectName());
             target->drawCards(1, objectName());
         }

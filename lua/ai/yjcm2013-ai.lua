@@ -876,160 +876,191 @@ sgs.ai_choicemade_filter.cardChosen.danshou = sgs.ai_choicemade_filter.cardChose
 
 
 sgs.ai_skill_invoke.zongxuan = function(self, data)
+    local card_ids = sgs.QList2Table(data:toIntList())
+    local up, down = {}, {}
+    up, down = zongxuanchoose(self, card_ids, down, true)
+    if down == nil or #down == 0 then return false end
     if self.player:getPhase() ~= sgs.Player_NotActive then
-        if self.top_draw_pile_id then return false end
+        if self.top_draw_pile_id ~= nil then return false end
         return true
     end
     return true
+end
+
+function moveToGet(card_id, from, to)
+    table.removeOne(from, card_id)
+    table.insert(to, 1, card_id)
+end
+
+function zongxuanchoose(self, upcards, downcards, preJudge)
+    --change judge
+    local nextPlayer = self.room:getCurrent():getNextAlive()
+    local reason = getNextJudgeReason(self, nextPlayer)
+    if reason ~= nil then
+        local upcards_card = {}
+        for _, id in ipairs(upcards) do
+            local card_id = tonumber(id)
+            local card = sgs.Sanguosha:getCard(card_id)
+            if not card:isKindOf("EquipCard") then
+                table.insert(upcards_card, 1, card)
+            else
+                table.insert(upcards_card, card)
+            end
+        end
+        if self:isFriend(nextPlayer) then
+            if reason == "luoshen" then
+                for _, card in ipairs(upcards_card) do
+                    if card:isBlack() and not (card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan")) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                    end
+                end
+                return upcards, downcards
+            elseif reason == "indulgence" then
+                for _, card in ipairs(upcards_card) do
+                    if card:getSuit() == sgs.Card_Heart or (friend:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade)
+                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        break
+                    end
+                end
+            elseif reason == "supply_shortage" then
+                for _, card in ipairs(upcards_card) do
+                    if card:getSuit() == sgs.Card_Club and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        break
+                    end
+                end
+            elseif reason == "lightning" and not friend:hasSkills("hongyan|wuyan") then
+                for _, card in ipairs(upcards_card) do
+                    if (card:getSuit() ~= sgs.Card_Spade or card:getNumber() == 1 or card:getNumber() > 9)
+                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        break
+                    end
+                end
+            elseif reason == "nosmiji" then
+                for _, card in ipairs(upcards_card) do
+                    if card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not friend:hasSkill("hongyan")) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        if #downcards > 1 then break end
+                        break
+                    end
+                end
+            elseif reason == "nosqianxi" or reason == "tuntian" then
+                for _, card in ipairs(upcards_card) do
+                    if (card:getSuit() ~= sgs.Card_Heart and not (card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan")))
+                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        break
+                    end
+                end
+            elseif reason == "tieji" or reason == "caizhaoji_hujia" then
+                for _, card in ipairs(upcards_card) do
+                    if (card:isRed() or card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan"))
+                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        moveToGet(card:getEffectiveId(), upcards, downcards)
+                        break
+                    end
+                end
+            end
+        elseif self:isEnemy(nextPlayer) then
+            if not nextPlayer:hasSkill("tiandu") then
+                if reason == "indulgence" then
+                    for _, card in ipairs(upcards_card) do
+                        if not (card:getSuit() == sgs.Card_Heart or (nextPlayer:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
+                            and not self:isValuableCard(card) then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            break
+                        end
+                    end
+                elseif reason == "supply_shortage" then
+                    for _, card in ipairs(upcards_card) do
+                        if card:getSuit() ~= sgs.Card_Club and not self:isValuableCard(card) then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            break
+                        end
+                    end
+                elseif reason == "lightning" and not nextPlayer:hasSkills("hongyan|wuyan") then
+                    for _, card in ipairs(upcards_card) do
+                        if card:getSuit() == sgs.Card_Spade and card:getNumber() >= 2 and card:getNumber() <= 9 then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            break
+                        end
+                    end
+                elseif reason == "nosmiji" then
+                    for _, card in ipairs(upcards_card) do
+                        if card:isRed() or card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan") then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            if #downcards > 1 then break end
+                        end
+                    end
+                elseif reason == "nosqianxi" or reason == "tuntian" then
+                    for _, card in ipairs(upcards_card) do
+                        if (card:getSuit() == sgs.Card_Heart or card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan"))
+                            and not self:isValuableCard(card) then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            break
+                        end
+                    end
+                elseif reason == "tieji" or reason == "caizhaoji_hujia" then
+                    for _, card in ipairs(upcards_card) do
+                        if (card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not nextPlayer:hasSkill("hongyan")))
+                            and not self:isValuableCard(card) then
+                            moveToGet(card:getEffectiveId(), upcards, downcards)
+                            break
+                        end
+                    end
+                end
+            end
+        end
+        if #downcards > 0 and not preJudge then sgs.shouldzhiyan = false end
+    end
+    
+    -------------zhiyan
+    for _, id in ipairs(upcards) do
+        local card_id = tonumber(id)
+        local card = sgs.Sanguosha:getCard(card_id)
+        if card:isKindOf("EquipCard") then
+            for _, friend in ipairs(self.friends) do
+                if not (card:isKindOf("Armor") and not friend:getArmor() and friend:hasSkills("bazhen|yizhong"))
+                    and (not self:getSameEquip(card, friend) or card:isKindOf("DefensiveHorse") or card:isKindOf("OffensiveHorse")
+                        or (card:isKindOf("Weapon") and self:evaluateWeapon(card) > self:evaluateWeapon(friend:getWeapon()) - 1)) then
+                    if not preJudge then self.top_draw_pile_id = card_id end
+                    moveToGet(card_id, upcards, downcards)
+                    if not preJudge then sgs.shouldzhiyan = true end
+                    break
+                end
+            end
+        end
+        if sgs.shouldzhiyan == true then break end
+    end
+    
+    if downcards == nil or #downcards == 0 or sgs.shouldzhiyan == false then
+        for _, id in ipairs(upcards) do
+            local card_id = tonumber(id)
+            local card = sgs.Sanguosha:getCard(card_id)
+            if self:isValuableCard(card) then
+                if not preJudge then self.top_draw_pile_id = card_id end
+                moveToGet(card_id, upcards, downcards)
+                if not preJudge then sgs.shouldzhiyan = true end
+                break
+            end
+        end
+    end
+    return upcards, downcards
 end
 
 table.insert(sgs.ai_global_flags, "shouldzhiyan")
 sgs.ai_skill_movecards.zongxuan = function(self, upcards, downcards, min_num, max_num)
     local upcards_copy, down = table.copyFrom(upcards), {}
     
-    function moveToGet(card_id, from, to)
-        table.removeOne(from, card_id)
-        table.insert(to, card_id)
-    end
-    
     if self.player:getPhase() < sgs.Player_Finish and self.player:hasSkill("zhiyan") then
-        for _, id in ipairs(upcards_copy) do
-            local card_id = tonumber(id)
-            local card = sgs.Sanguosha:getCard(card_id)
-            if card:isKindOf("EquipCard") then
-                for _, friend in ipairs(self.friends) do
-                    if not (card:isKindOf("Armor") and not friend:getArmor() and friend:hasSkills("bazhen|yizhong"))
-                        and (not self:getSameEquip(card, friend) or card:isKindOf("DefensiveHorse") or card:isKindOf("OffensiveHorse")
-                            or (card:isKindOf("Weapon") and self:evaluateWeapon(card) > self:evaluateWeapon(friend:getWeapon()) - 1)) then
-                        self.top_draw_pile_id = card_id
-                        moveToGet(card_id, upcards_copy, down)
-                        sgs.shouldzhiyan = true
-                        break
-                    end
-                end
-            end
-            if #down > 0 then break end
-        end
-        
-        if #down == 0 then
-            for _, id in ipairs(upcards_copy) do
-                local card_id = tonumber(id)
-                local card = sgs.Sanguosha:getCard(card_id)
-                if self:isValuableCard(card) then
-                    self.top_draw_pile_id = card_id
-                    moveToGet(card_id, upcards_copy, down)
-                    sgs.shouldzhiyan = true
-                    break
-                end
-            end
-        end
+        upcards_copy, down = zongxuanchoose(self, upcards_copy, down)
     end
     
-    --change judge
-    local nextPlayer = self.room:getCurrent():getNextAlive()
-    local reason = getNextJudgeReason(self, nextPlayer)
-    if not reason then return upcards_copy, down end
-    local upcards_card = {}
-    for _, id in ipairs(upcards_copy) do
-        local card_id = tonumber(id)
-        local card = sgs.Sanguosha:getCard(card_id)
-        table.insert(upcards_card, card)
+    for _,card_id in ipairs(down) do
+        self.room:writeToConsole(sgs.Sanguosha:getCard(card_id):objectName())
     end
-    local down_num = #down
-    if self:isFriend(nextPlayer) then
-        if reason == "luoshen" then
-            for _, card in ipairs(upcards_card) do
-                if card:isBlack() and not (card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan")) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-            return upcards_copy, down
-        elseif reason == "indulgence" then
-            for _, card in ipairs(upcards_card) do
-                if card:getSuit() == sgs.Card_Heart or (friend:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade)
-                    and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        elseif reason == "supply_shortage" then
-            for _, card in ipairs(upcards_card) do
-                if card:getSuit() == sgs.Card_Club and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        elseif reason == "lightning" and not friend:hasSkills("hongyan|wuyan") then
-            for _, card in ipairs(upcards_card) do
-                if (card:getSuit() ~= sgs.Card_Spade or card:getNumber() == 1 or card:getNumber() > 9)
-                    and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        elseif reason == "nosmiji" then
-            for _, card in ipairs(upcards_card) do
-                if card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not friend:hasSkill("hongyan")) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        elseif reason == "nosqianxi" or reason == "tuntian" then
-            for _, card in ipairs(upcards_card) do
-                if (card:getSuit() ~= sgs.Card_Heart and not (card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan")))
-                    and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        elseif reason == "tieji" or reason == "caizhaoji_hujia" then
-            for _, card in ipairs(upcards_card) do
-                if (card:isRed() or card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan"))
-                    and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
-                    moveToGet(card:getEffectiveId(), upcards_copy, down)
-                end
-            end
-        end
-    elseif self:isEnemy(nextPlayer) then
-        if not nextPlayer:hasSkill("tiandu") then
-            if reason == "indulgence" then
-                for _, card in ipairs(upcards_card) do
-                    if not (card:getSuit() == sgs.Card_Heart or (nextPlayer:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade))
-                        and not self:isValuableCard(card) then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            elseif reason == "supply_shortage" then
-                for _, card in ipairs(upcards_card) do
-                    if card:getSuit() ~= sgs.Card_Club and not self:isValuableCard(card) then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            elseif reason == "lightning" and not nextPlayer:hasSkills("hongyan|wuyan") then
-                for _, card in ipairs(upcards_card) do
-                    if card:getSuit() == sgs.Card_Spade and card:getNumber() >= 2 and card:getNumber() <= 9 then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            elseif reason == "nosmiji" then
-                for _, card in ipairs(upcards_card) do
-                    if card:isRed() or card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan") then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            elseif reason == "nosqianxi" or reason == "tuntian" then
-                for _, card in ipairs(upcards_card) do
-                    if (card:getSuit() == sgs.Card_Heart or card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan"))
-                        and not self:isValuableCard(card) then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            elseif reason == "tieji" or reason == "caizhaoji_hujia" then
-                for _, card in ipairs(upcards_card) do
-                    if (card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not nextPlayer:hasSkill("hongyan")))
-                        and not self:isValuableCard(card) then
-                        moveToGet(card:getEffectiveId(), upcards_copy, down)
-                    end
-                end
-            end
-        end
-    end
-    if down_num == 0 and #down == 1 then sgs.shouldzhiyan = false end
     
     return upcards_copy, down
 end
