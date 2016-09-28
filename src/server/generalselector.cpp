@@ -32,7 +32,7 @@ GeneralSelector::GeneralSelector()
 QString GeneralSelector::selectFirst(ServerPlayer *player, QStringList candidates)
 {
     foreach (QString candidate, candidates)
-        candidates.append(Sanguosha->getGeneralConvertion(candidate));
+        candidates.append(Sanguosha->getConvertGenerals(candidate));
 
     qShuffle(candidates);
     QMap<QString, qreal> values;

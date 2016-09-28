@@ -94,7 +94,7 @@ public:
         target_fixed = true;
     }
     virtual QString getSubtype() const;
-    virtual void onUse(Room *room, const CardUseStruct &card_use) const;
+    virtual QList<ServerPlayer *> defaultTargets(Room *room, ServerPlayer *source) const;
     virtual bool isAvailable(const Player *player) const;
 };
 
@@ -133,7 +133,7 @@ public:
     }
     virtual QString getSubtype() const;
     virtual bool isAvailable(const Player *player) const;
-    virtual void onUse(Room *room, const CardUseStruct &card_use) const;
+    virtual QList<ServerPlayer *> defaultTargets(Room *room, ServerPlayer *source) const;
 };
 
 class SavageAssault :public AOE
@@ -189,7 +189,7 @@ class ExNihilo : public SingleTargetTrick
 
 public:
     Q_INVOKABLE ExNihilo(Card::Suit suit, int number);
-    virtual void onUse(Room *room, const CardUseStruct &card_use) const;
+    virtual QList<ServerPlayer *> defaultTargets(Room *room, ServerPlayer *source) const;
     virtual void onEffect(const CardEffectStruct &effect) const;
     virtual bool isAvailable(const Player *player) const;
 };
@@ -410,6 +410,7 @@ public:
     Q_INVOKABLE Peach(Card::Suit suit, int number);
     virtual QString getSubtype() const;
     virtual void onUse(Room *room, const CardUseStruct &card_use) const;
+    virtual QList<ServerPlayer *> defaultTargets(Room *room, ServerPlayer *source) const;
     virtual void onEffect(const CardEffectStruct &effect) const;
     virtual bool isAvailable(const Player *player) const;
 };

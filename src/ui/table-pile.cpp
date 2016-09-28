@@ -120,12 +120,15 @@ bool TablePile::_addCardItems(QList<CardItem *> &card_items, const CardsMoveStru
 {
     if (card_items.isEmpty())
         return false;
-    else if ((moveInfo.from_place == Player::PlaceDelayedTrick
-        && moveInfo.reason.m_reason == CardMoveReason::S_REASON_NATURAL_ENTER)
-        || moveInfo.reason.m_skillName == "luck_card" || moveInfo.reason.m_reason == CardMoveReason::S_REASON_SWAP) {
+    else if (moveInfo.from_place == Player::PlaceDelayedTrick
+        && moveInfo.reason.m_reason == CardMoveReason::S_REASON_NATURAL_ENTER) {
         foreach(CardItem *item, card_items)
             item->deleteLater();
         card_items.clear();
+        return false;
+    } else if (moveInfo.reason.m_reason == CardMoveReason::S_REASON_SECRETLY_PUT || moveInfo.reason.m_skillName == "luck_card") {
+        foreach(CardItem *item, card_items)
+            item->hide();
         return false;
     }
 
@@ -167,8 +170,8 @@ bool TablePile::_addCardItems(QList<CardItem *> &card_items, const CardsMoveStru
         }
         card_item->m_uiHelper.tablePileClearTimeStamp = INT_MAX;
     }
-    if (((moveInfo.reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) || moveInfo.reason.m_reason == CardMoveReason::S_REASON_RESPONSE) &&
-        !moveInfo.reason.m_skillName.isEmpty()) {
+    if ((((moveInfo.reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) == CardMoveReason::S_REASON_USE) ||
+            moveInfo.reason.m_reason == CardMoveReason::S_REASON_RESPONSE) && !moveInfo.reason.m_skillName.isEmpty()) {
         const Card *view_as_card = moveInfo.reason.m_extraData.value<const Card *>();
         if (view_as_card) {
             CardItem *card_item = card_items.last();

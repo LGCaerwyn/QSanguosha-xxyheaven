@@ -652,9 +652,16 @@ void Card::doPreAction(Room *, const CardUseStruct &) const
 {
 }
 
+QList<ServerPlayer *> Card::defaultTargets(Room *, ServerPlayer *) const
+{
+    return QList<ServerPlayer *>();
+}
+
 void Card::onUse(Room *room, const CardUseStruct &use) const
 {
     CardUseStruct card_use = use;
+    if (card_use.to.isEmpty())
+        card_use.to = defaultTargets(room, card_use.from);
 	if (card_use.card->willSort()) {
 		room->sortByActionOrder(card_use.to);
 		QList<ServerPlayer *> targets = card_use.to;

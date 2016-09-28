@@ -969,7 +969,8 @@ public:
     QString getCurrentCardUsePattern();
     CardUseStruct::CardUseReason getCurrentCardUseReason();
 
-    QString findConvertFrom(const char *general_name) const;
+	QStringList getConvertGenerals(const QString &general_name) const;
+    QString getMainGeneral(const char *general_name) const;
     bool isGeneralHidden(const char *general_name) const;
 };
 
@@ -1087,6 +1088,8 @@ public:
     void setPlayerMark(ServerPlayer *player, const char *mark, int value);
     void addPlayerMark(ServerPlayer *player, const char *mark, int add_num = 1);
     void removePlayerMark(ServerPlayer *player, const char *mark, int remove_num = 1);
+	void addPlayerTip(ServerPlayer *player, const char *mark);
+    void removePlayerTip(ServerPlayer *player, const char *mark);
     void setPlayerCardLimitation(ServerPlayer *player, const char *limit_list, const char *pattern, bool single_turn);
     void removePlayerCardLimitation(ServerPlayer *player, const char *limit_list, const char *pattern);
     void clearPlayerCardLimitation(ServerPlayer *player, bool single_turn);

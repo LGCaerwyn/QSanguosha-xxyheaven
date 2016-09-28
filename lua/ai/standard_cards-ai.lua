@@ -635,7 +635,7 @@ function SmartAI:useCardSlash(card, use)
 		if (not use.current_targets or not table.contains(use.current_targets, friend:objectName()))
 			and not self:hasHeavySlashDamage(self.player, card, friend) and card:getSkillName() ~= "lihuo"
 			and (not use.to or not use.to:contains(friend))
-			and ((self.player:hasSkill("pojun") and friend:getHp() > 4 and getCardsNum("Jink", friend, self.player) == 0 and friend:getHandcardNum() < 3)
+			and ((self.player:hasSkill("nospojun") and friend:getHp() > 4 and getCardsNum("Jink", friend, self.player) == 0 and friend:getHandcardNum() < 3)
 				or (self:getDamagedEffects(friend, self.player) and not (friend:isLord() and #self.enemies < 1))
 				or (self:needToLoseHp(friend, self.player, true, true) and not (friend:isLord() and #self.enemies < 1))) then
 
@@ -831,7 +831,7 @@ sgs.ai_card_intention.Slash = function(self, card, from, tos)
 		if to:hasSkills("nosleiji|leiji") and (getCardsNum("Jink", to, from) > 0 or to:hasArmorEffect("eight_diagram")) and not self:hasHeavySlashDamage(from, card, to)
 			and (hasExplicitRebel(self.room) or sgs.explicit_renegade) and not self:canLiegong(to, from) then value = 0 end
 		if not self:hasHeavySlashDamage(from, card, to) and (self:getDamagedEffects(to, from, true) or self:needToLoseHp(to, from, true, true)) then value = 0 end
-		if from:hasSkill("pojun") and to:getHp() > (2 + self:hasHeavySlashDamage(from, card, to, true)) then value = 0 end
+		if from:hasSkill("nospojun") and to:getHp() > (2 + self:hasHeavySlashDamage(from, card, to, true)) then value = 0 end
 		if self:needLeiji(to, from) then value = from:getState() == "online" and 0 or -10 end
 		sgs.updateIntention(from, to, value)
 	end
@@ -867,7 +867,7 @@ sgs.ai_skill_cardask["slash-jink"] = function(self, data, pattern, target)
 		if target:hasSkill("jieyin") and not self.player:isWounded() and self.player:isMale() and not self.player:hasSkills("leiji|nosleiji") then return "." end
 		if not target:hasSkill("jueqing") then
 			if (target:hasSkill("nosrende") or (target:hasSkill("rende") and not target:hasUsed("RendeCard"))) and self.player:hasSkill("jieming") then return "." end
-			if target:hasSkill("pojun") and not self.player:faceUp() then return "." end
+			if target:hasSkill("nospojun") and not self.player:faceUp() then return "." end
 		end
 	else
 		if self:hasHeavySlashDamage(target, slash) then return getJink() end
@@ -1384,7 +1384,7 @@ function sgs.ai_slash_weaponfilter.axe(self, to, player)
 end
 
 function sgs.ai_weapon_value.axe(self, enemy, player)
-	if player:hasSkills("jiushi|jiuchi|luoyi|pojun") then return 6 end
+	if player:hasSkills("jiushi|jiuchi|luoyi|nospojun") then return 6 end
 	if enemy and self:getOverflow() > 0 then return 3.1 end
 	if enemy and enemy:getHp() < 3 then return 3 - enemy:getHp() end
 end
@@ -2036,7 +2036,7 @@ function SmartAI:getDangerousCard(who)
 		end
 	end
 	if (weapon and weapon:isKindOf("spear") and who:hasSkill("paoxiao") and who:getHandcardNum() >=1 ) then return weapon:getEffectiveId() end
-	if weapon and weapon:isKindOf("Axe") and (who:hasSkills("luoyi|pojun|jiushi|jiuchi|jie|wenjiu|shenli|jieyuan") or self:getOverflow(who) > 0 or who:getCardCount() >= 4) then
+	if weapon and weapon:isKindOf("Axe") and (who:hasSkills("luoyi|nospojun|jiushi|jiuchi|jie|wenjiu|shenli|jieyuan") or self:getOverflow(who) > 0 or who:getCardCount() >= 4) then
 		return weapon:getEffectiveId()
 	end
 	if armor and armor:isKindOf("EightDiagram") and who:hasSkill("leiji") then return armor:getEffectiveId() end

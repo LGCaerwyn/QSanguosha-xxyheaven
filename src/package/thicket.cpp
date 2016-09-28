@@ -569,53 +569,7 @@ void DimengCard::use(Room *room, ServerPlayer *, QList<ServerPlayer *> &targets)
     log.to = targets;
     room->sendLog(log);
 	
-	room->swapCards(targets.at(0), targets.at(1), "h", "dimeng");
-	/*
-    ServerPlayer *a = targets.at(0);
-    ServerPlayer *b = targets.at(1);
-    a->setFlags("DimengTarget");
-    b->setFlags("DimengTarget");
-
-	int n1 = a->getHandcardNum();
-    int n2 = b->getHandcardNum();
-
-    try {
-        foreach (ServerPlayer *p, room->getAlivePlayers()) {
-            if (p != a && p != b) {
-                JsonArray arr;
-                arr << a->objectName() << b->objectName();
-                room->doNotify(p, QSanProtocol::S_COMMAND_EXCHANGE_KNOWN_CARDS, arr);
-            }
-        }
-        QList<CardsMoveStruct> exchangeMove;
-        CardsMoveStruct move1(a->handCards(), b, Player::PlaceHand,
-            CardMoveReason(CardMoveReason::S_REASON_SWAP, a->objectName(), b->objectName(), "dimeng", QString()));
-        CardsMoveStruct move2(b->handCards(), a, Player::PlaceHand,
-            CardMoveReason(CardMoveReason::S_REASON_SWAP, b->objectName(), a->objectName(), "dimeng", QString()));
-        exchangeMove.push_back(move1);
-        exchangeMove.push_back(move2);
-        room->moveCardsAtomic(exchangeMove, false);
-
-        LogMessage log;
-        log.type = "#Dimeng";
-        log.from = a;
-        log.to << b;
-        log.arg = QString::number(n1);
-        log.arg2 = QString::number(n2);
-        room->sendLog(log);
-        room->getThread()->delay();
-
-        a->setFlags("-DimengTarget");
-        b->setFlags("-DimengTarget");
-    }
-    catch (TriggerEvent triggerEvent) {
-        if (triggerEvent == TurnBroken || triggerEvent == StageChange) {
-            a->setFlags("-DimengTarget");
-            b->setFlags("-DimengTarget");
-        }
-        throw triggerEvent;
-    }
-	*/
+    room->swapCards(targets.at(0), targets.at(1), "h", "dimeng");
 }
 
 class Dimeng : public ViewAsSkill

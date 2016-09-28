@@ -310,6 +310,7 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
 			DummyCard dummy(table_cardids);
 			CardMoveReason reason(CardMoveReason::S_REASON_USE, use.from->objectName(), QString(), use.card->getSkillName(), QString());
 			if (use.to.size() == 1) reason.m_targetId = use.to.first()->objectName();
+            reason.m_extraData = QVariant::fromValue(use.card);
 			room->moveCardTo(&dummy, use.from, NULL, Player::DiscardPile, reason, true);
 		}
         break;

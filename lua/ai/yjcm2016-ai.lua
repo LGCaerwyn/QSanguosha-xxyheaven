@@ -804,7 +804,18 @@ sgs.ai_skill_choice.guizao = function(self, choices)
 	return "recover"
 end
 
-
+jiyu_skill = {
+    name = "jiyu",
+    getTurnUseCard = function(self)
+        local cards = sgs.QList2Table(self.player:getHandcards())
+        for _,card in ipairs(cards) do
+            if card:isAvailable(self.player) then
+                return sgs.Card_Parse("@JiyuCard=.")
+            end
+        end
+        return nil
+    end,
+}
 
 
 

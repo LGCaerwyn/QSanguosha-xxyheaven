@@ -14,8 +14,7 @@ return {
 	["$nosfankui1"] = "下次注意点。",
 	["$nosfankui2"] = "出来混，早晚要还的。",
 	["~nos_simayi"] = "难道真是天命难违？",
-    
-    
+        
 	-- 夏侯惇
 	["$nosganglie1"] = "鼠辈，竟敢伤我！",
 	["$nosganglie2"] = "以彼之道，还施彼身！",
@@ -32,25 +31,32 @@ return {
 	["~nos_xuchu"] = "冷，好冷啊……",
     
 	-- 郭嘉
-	["$tiandu3"] = "就这样吧。",
-	["$tiandu4"] = "哦？",
+	["$nos_guojia-tiandu1"] = "就这样吧。",
+	["$nos_guojia-tiandu2"] = "哦？",
 	["$nosyiji1"] = "也好。",
 	["$nosyiji2"] = "罢了。",
 	["~nos_guojia"] = "咳，咳……",
 
+	-- 刘备
+	["$nos_liubei-rende1"] = "以德服人。",
+	["$nos_liubei-rende2"] = "惟贤惟德，仁服于人。",
+	["$nos_liubei-jijiang1"] = "蜀将何在？",
+	["$nos_liubei-jijiang2"] = "尔等敢应战否？",
+	["~nos_liubei"] = "这就是桃园吗？",
+	
 	-- 旧 关羽
-	["$wusheng3"] = "关羽在此，尔等受死！",
-	["$wusheng4"] = "看尔乃插标卖首！",
+	["$nos_guanyu-wusheng1"] = "关羽在此，尔等受死！",
+	["$nos_guanyu-wusheng2"] = "看尔乃插标卖首！",
 	["~nos_guanyu"] = "什么？此地名叫麦城？",
 
 	-- 旧 张飞
-	["$paoxiao3"] = "啊~~~",
-	["$paoxiao4"] = "燕人张飞在此！",
+	["$nos_zhangfei-paoxiao1"] = "啊……",
+	["$nos_zhangfei-paoxiao2"] = "燕人张飞在此！",
 	["~nos_zhangfei"] = "实在是杀不动了……",
 
 	-- 旧 赵云
-	["$longdan3"] = "能进能退，乃真正法器！",
-	["$longdan4"] = "吾乃常山赵子龙也！",
+	["$nos_zhaoyun-longdan1"] = "能进能退，乃真正法器！",
+	["$nos_zhaoyun-longdan2"] = "吾乃常山赵子龙也！",
 	["~nos_zhaoyun"] = "这，就是失败的滋味吗？",
 
 	-- 旧 马超
@@ -59,13 +65,13 @@ return {
 	["~nos_machao"] = "（马蹄声……）",
 
 	-- 旧 甘宁
-	["$qixi3"] = "接招吧！",
-	["$qixi4"] = "你的牌太多了！",
+	["$nos_ganning-qixi1"] = "接招吧！",
+	["$nos_ganning-qixi2"] = "你的牌太多了！",
 	["~nos_ganning"] = "二十年后，又是一条好汉！",
 
 	-- 旧 吕蒙
-	["$keji3"] = "不是不报，时候未到！",
-	["$keji4"] = "留得青山在，不怕没柴烧！",
+	["$nos_lvmeng-keji1"] = "不是不报，时候未到！",
+	["$nos_lvmeng-keji2"] = "留得青山在，不怕没柴烧！",
 	["~nos_lvmeng"] = "被看穿了吗？",
 
 	-- 旧 黄盖
@@ -83,8 +89,8 @@ return {
 	-- 旧 大乔
 	["$nosguose1"] = "请休息吧。",
 	["$nosguose2"] = "你累了。",
-	["$liuli3"] = "交给你了。",
-	["$liuli4"] = "你来嘛~",
+	["$nos_daqiao-liuli2"] = "交给你了。",
+	["$nos_daqiao-liuli1"] = "你来嘛~",
 	["~nos_daqiao"] = "伯符，我去了……",
     
 	-- 陆逊
@@ -95,16 +101,21 @@ return {
 	["~nos_luxun"] = "我还是太年轻了……",
 
 	-- 旧 华佗
-	["$jijiu3"] = "别紧张，有老夫呢。",
-	["$jijiu4"] = "救人一命，胜造七级浮屠。",
-	["$qingnang1"] = "早睡早起，方能养生。",
-	["$qingnang2"] = "越老越要补啊。",
-	["~nos_huatuo"] = "医者…不能自医啊……",
+	["$nos_huatuo-jijiu2"] = "别紧张，有老夫呢。",
+	["$nos_huatuo-jijiu1"] = "救人一命，胜造七级浮屠。",
+	["$qingnang2"] = "早睡早起，方能养生。",
+	["$qingnang1"] = "越老越要补啊。",
+	["~nos_huatuo"] = "医者，不能自医啊……",
 
 	-- 旧 吕布
-	["$wushuang3"] = "谁能挡我！",
-	["$wushuang4"] = "神挡杀神，佛挡杀佛！",
+	["$nos_lvbu-wushuang1"] = "谁能挡我！",
+	["$nos_lvbu-wushuang2"] = "神挡杀神，佛挡杀佛！",
 	["~nos_lvbu"] = "不可能！",
+	
+	-- 旧 貂蝉
+	["$noslijian1"] = "嗯呵呵~~呵呵~~",
+	["$noslijian2"] = "夫君，你要替妾身做主啊……",
+	["~nos_diaochan"] = "父亲大人，对不起……",
 
 	-- 旧 曹仁
 	["$nosjushou1"] = "我先休息一会儿！",
@@ -121,8 +132,8 @@ return {
 	["$nosleiji2"] = "以我之真气，合天地之造化。",
 	["$guidao3"] = "哼哼哼哼……",
 	["$guidao4"] = "天下大势，为我所控！",
-	["$huangtian3"] = "苍天已死，黄天当立！",
-	["$huangtian4"] = "岁在甲子，天下大吉！",
+	["$nos_zhangjiao-huangtian1"] = "苍天已死，黄天当立！",
+	["$nos_zhangjiao-huangtian2"] = "岁在甲子，天下大吉！",
 	["~nos_zhangjiao"] = "黄天…也死了……",
 
 	-- 旧 于吉
@@ -147,7 +158,12 @@ return {
 	["$xinzhan"] = "吾通晓兵法，世人皆知。",
 	["$huilei2"] = "丞相视某如子，某以丞相为父。",
 	["$huilei1"] = "谡……愿以死安大局……",
-
+	
+	-- 徐盛
+	["$nospojun1"] = "大军在此！汝等休想前进一步！",
+	["$nospojun2"] = "敬请养精蓄锐！",
+	["$nos_xusheng"] = "盛不能奋身出命，不亦辱乎……",	
+	
 	-- 旧 徐庶
 	["$noswuyan1"] = "唉，一切尽在不言中。",
 	["$noswuyan2"] = "嘘，言多必失啊。",
@@ -155,24 +171,49 @@ return {
 	["$nosjujian2"] = "将军岂愿抓牌乎？",
 	["~nos_xushu"] = "娘，孩儿不孝，向您…请罪……",
 
+	-- 于禁
 	["$yizhong2"] = "不先为备，何以待敌！",
 	["$yizhong1"] = "稳重行军，百战不殆！",
 	["~nos_yujin"] = "我…无颜面对丞相了……",
 
+	-- 張春華
+	["$nosshangshi1"] = "无情者伤人，有情者自伤。",
+	["$nosshangshi2"] = "自损八百，可伤敌一千！",
+	["~nos_zhangchunhua"] = "怎能如此对我……",
+	
+	-- 步练师
+	["$nosanxu1"] = "莫慌莫慌，请听臣妾一曲。",
+	["$nosanxu2"] = "不急不急，与我共饮一杯。",
+	["$nos_bulianshi-zhuiyi1"] = "我走后你要善待自己。",
+	["$nos_bulianshi-zhuiyi2"] = "忘记臣妾吧，好好生活下去…",
+	["$nos_bulianshi"] = ".",
+	
 	-- 旧 关兴张苞
-	["$nosfuhun1"] = "呐喊破敌，锐不可当！",
-	["$nosfuhun2"] = "匹夫之勇，插标卖首！",
+	["$nosfuhun1"] = "吾父武名，声震海内！",
+	["$nosfuhun2"] = "父魂佑我！",
+	["$nosfuhun3"] = "父辈功勋，望尘莫及……",
 	["~nos_guanxingzhangbao"] = "父亲……我来了……",
-
-	-- 旧 马岱\
-	["$nosqianxi1"] = "伤敌十指，不如断敌一指！",
-	["$nosqianxi2"] = "斩草除根，除恶务尽！",
+	
+	-- 旧 韩当
+	["$nosgongqi"] = "弓马齐备，远射近突！",
+	["$nosjiefan1"] = "解烦军至，此危自解！",
+	["$nosjiefan2"] = "吾主莫慌，韩义公在此！",
+	["~nos_handan"] = "我主堪忧，我主堪忧啊……",	
+	
+	
+	-- 旧 马岱
+	["$nosqianxi1"] = "（拔剑声）",
+	["$nosqianxi2"] = "我敢杀你！",
+	["$nosqianxi3"] = "竟然有防备？只能力战搏杀之！",
 	["~nos_madai"] = "反骨贼已除，丞相放心……",
 
 	-- 旧 王异
-	["$noszhenlie1"] = "我，绝不屈服！", -- 回合外
-	["$noszhenlie2"] = "休要小看妇人志气！", -- 回合内
-	["$nosmiji1"] = "奇谋，只在绝境中诞生！",
-	["$nosmiji2"] = "我将尽我所能！", -- 自己
-	["~nos_wangyi"] = "忠义已尽，死又何妨……",
+	["cv:nos_wangyi"] = "蒲小猫",
+	["$noszhenlie1"] = "雪君父之大耻，虽丧身亦不惜。", -- 回合外
+	["$noszhenlie2"] = "顾子而不行，不如先死矣。", -- 回合内
+	["$nosmiji1"] = "有此九奇，可逐羌敌。",
+	["$nosmiji2"] = "屯兵逐超，得保冀城。", -- 自己
+	["$nosmiji3"] = "救兵已到，乃解城围。", -- 他人
+	["$nosmiji4"] = "暂与汝和，仇必后报！", -- 马超
+	["~nos_wangyi"] = "吾之家仇，何日得报？",
 }

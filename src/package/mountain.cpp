@@ -485,29 +485,28 @@ bool ZhibaCard::targetFilter(const QList<const Player *> &targets, const Player 
 void ZhibaCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
     ServerPlayer *sunce = targets.first();
+    LogMessage log;
+    log.type = "#InvokeOthersSkill";
+    log.from = source;
+    log.to << sunce;
+    log.arg = "zhiba";
+    room->sendLog(log);
+    room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, source->objectName(), sunce->objectName());
     room->setPlayerFlag(sunce, "ZhibaInvoked");
     room->notifySkillInvoked(sunce, "zhiba");
     sunce->broadcastSkillInvoke("zhiba");
-    if (sunce->getMark("hunzi") > 0 && room->askForChoice(sunce, "zhiba_pindian", "accept+reject") == "reject") {
+    if (sunce->getMark("hunzi") > 0 && room->askForChoice(sunce, "zhiba_pindian", "yes+no", QVariant(), "@zhiba-pindianstart" + source->objectName()) == "no") {
         LogMessage log;
         log.type = "#ZhibaReject";
         log.from = sunce;
         log.to << source;
-        log.arg = "zhiba_pindian";
+        log.arg = "zhiba";
         room->sendLog(log);
 
         return;
     }
 
-    source->pindian(sunce, "zhiba_pindian", NULL);
-    QList<ServerPlayer *> sunces;
-    QList<ServerPlayer *> players = room->getOtherPlayers(source);
-    foreach (ServerPlayer *p, players) {
-        if (p->hasLordSkill("zhiba") && !p->hasFlag("ZhibaInvoked"))
-            sunces << p;
-    }
-    if (sunces.isEmpty())
-        room->setPlayerFlag(source, "ForbidZhiba");
+    source->pindian(sunce, "zhiba");
 }
 
 class ZhibaPindian : public ZeroCardViewAsSkill
@@ -520,7 +519,11 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return shouldBeVisible(player) && !player->isKongcheng() && !player->hasFlag("ForbidZhiba");
+        if (!shouldBeVisible(player) || player->isKongcheng()) return false;
+        foreach(const Player *sib, player->getAliveSiblings())
+            if (sib->hasLordSkill("zhiba") && !sib->hasFlag("ZhibaInvoked") && !sib->isKongcheng())
+                return true;
+        return false;
     }
 
     virtual bool shouldBeVisible(const Player *Self) const
@@ -587,18 +590,15 @@ public:
             }
         } else if (triggerEvent == Pindian) {
             PindianStruct *pindian = data.value<PindianStruct *>();
-            if (pindian->reason != "zhiba_pindian" || !pindian->to->hasLordSkill(this))
+            if (pindian->reason != "zhiba" || !pindian->to->hasLordSkill(this))
                 return false;
             if (!pindian->isSuccess()) {
-                
-                if (room->askForChoice(pindian->to, "zhiba_pindian_obtain", "obtainPindianCards+reject") == "reject")
-                    return false;
 				DummyCard *dummy = new DummyCard;
                 if (room->getCardPlace(pindian->from_card->getEffectiveId()) == Player::PlaceTable)
                     dummy->addSubcard(pindian->from_card);
                 if (room->getCardPlace(pindian->to_card->getEffectiveId()) == Player::PlaceTable)
                     dummy->addSubcard(pindian->to_card);
-				if (dummy->subcardsLength() > 0)
+                if (dummy->subcardsLength() > 0 && room->askForChoice(pindian->to, "zhiba", "yes+no", data, "@zhiba-pindianfinish") == "yes")
                     pindian->to->obtainCard(dummy);
                 delete dummy;
             } 
@@ -607,8 +607,6 @@ public:
             PhaseChangeStruct phase_change = data.value<PhaseChangeStruct>();
             if (phase_change.from != Player::Play)
                 return false;
-            if (player->hasFlag("ForbidZhiba"))
-                room->setPlayerFlag(player, "-ForbidZhiba");
             QList<ServerPlayer *> players = room->getOtherPlayers(player);
             foreach (ServerPlayer *p, players) {
                 if (p->hasFlag("ZhibaInvoked"))
@@ -1083,7 +1081,7 @@ public:
         foreach (ServerPlayer *player, room->getAlivePlayers()) {
             QString name = player->getGeneralName();
             if (Sanguosha->isGeneralHidden(name)) {
-                QString fname = Sanguosha->findConvertFrom(name);
+                QString fname = Sanguosha->getMainGeneral(name);
                 if (!fname.isEmpty()) name = fname;
             }
             room_set << name;
@@ -1092,7 +1090,7 @@ public:
 
             name = player->getGeneral2Name();
             if (Sanguosha->isGeneralHidden(name)) {
-                QString fname = Sanguosha->findConvertFrom(name);
+                QString fname = Sanguosha->getMainGeneral(name);
                 if (!fname.isEmpty()) name = fname;
             }
             room_set << name;

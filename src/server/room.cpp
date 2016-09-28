@@ -1527,27 +1527,31 @@ const Card *Room::askForCard(ServerPlayer *player, const QString &pattern, const
             if (method == Card::MethodUse) {
                 CardMoveReason reason(CardMoveReason::S_REASON_LETUSE, player->objectName(), QString(), card->getSkillName(), QString());
                 reason.m_extraData = QVariant::fromValue(card);
-                moveCardTo(card, player, NULL, Player::PlaceTable, reason, true);
+                moveCardTo(card, NULL, Player::PlaceTable, reason, true);
             } else {
                 CardMoveReason reason(CardMoveReason::S_REASON_RESPONSE, player->objectName());
                 reason.m_skillName = card->getSkillName();
                 reason.m_extraData = QVariant::fromValue(card);
-                moveCardTo(card, player, NULL, isProvision ? Player::PlaceTable : Player::DiscardPile, reason);
+                moveCardTo(card, NULL, Player::PlaceTable, reason, true);
             }
 
+            thread->trigger(CardExtraCost, this, player, _data);
             thread->trigger(CardResponded, this, player, _data);
             if (method == Card::MethodUse) {
-                if (getCardPlace(card->getEffectiveId()) == Player::PlaceTable) {
-                    CardMoveReason reason(CardMoveReason::S_REASON_LETUSE, player->objectName(),
-                        QString(), card->getSkillName(), QString());
-                    reason.m_extraData = QVariant::fromValue(card);
-                    moveCardTo(card, player, NULL, Player::DiscardPile, reason, true);
-                }
                 CardUseStruct card_use;
                 card_use.card = card;
                 card_use.from = player;
                 QVariant data2 = QVariant::fromValue(card_use);
                 thread->trigger(CardFinished, this, player, data2);
+            } else if (!isProvision) {
+                QList<int> table_cardids = getCardIdsOnTable(card);
+                if (!table_cardids.isEmpty()) {
+                    DummyCard dummy(table_cardids);
+                    CardMoveReason reason(CardMoveReason::S_REASON_RESPONSE, player->objectName());
+                    reason.m_skillName = card->getSkillName();
+                    reason.m_extraData = QVariant::fromValue(card);
+                    moveCardTo(&dummy, player, NULL, Player::DiscardPile, reason, true);
+                }
             }
         }
         result = card;
@@ -2741,9 +2745,9 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
     QSet<QString> existed;
     foreach (ServerPlayer *player, m_players) {
         if (player->getGeneral())
-            existed << Sanguosha->findConvertFrom(player->getGeneralName());
+            existed << Sanguosha->getMainGeneral(player->getGeneralName());
         if (player->getGeneral2())
-            existed << Sanguosha->findConvertFrom(player->getGeneral2Name());
+            existed << Sanguosha->getMainGeneral(player->getGeneral2Name());
     }
     if (Config.Enable2ndGeneral) {
         foreach(QString name, BanPair::getAllBanSet())
@@ -2772,8 +2776,7 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
 
                 //keep legal generals
                 foreach (QString name, old_list) {
-                    if (Sanguosha->getGeneral(name)->getKingdom() != sp->getGeneral()->getKingdom()
-                        || sp->findReasonable(old_list, true) == name) {
+                    if (Sanguosha->getGeneral(name)->getKingdom() != sp->getGeneral()->getKingdom()) {
                         sp->addToSelected(name);
                         old_list.removeOne(name);
                     }
@@ -4152,9 +4155,7 @@ void Room::moveCardTo(const Card *card, ServerPlayer *srcPlayer, ServerPlayer *d
         if (move.card_ids.size() == 0) {
             if ((((reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) == CardMoveReason::S_REASON_USE) ||
                     reason.m_reason == CardMoveReason::S_REASON_RESPONSE) && card->getCostcards().isEmpty()) {
-                JsonArray arg;
-                arg << reason.toVariant();
-				doBroadcastNotify(S_COMMAND_SHOW_DUMMY_VIEW_AS, arg);
+                showVirtualMove(reason);
             }
 			return;
 		}
@@ -4168,6 +4169,13 @@ void Room::moveCardTo(const Card *card, ServerPlayer *srcPlayer, ServerPlayer *d
     QList<CardsMoveStruct> moves;
     moves.append(move);
     moveCardsAtomic(moves, forceMoveVisible);
+}
+
+void Room::showVirtualMove(const CardMoveReason &reason)
+{
+    JsonArray arg;
+    arg << reason.toVariant();
+    doBroadcastNotify(S_COMMAND_SHOW_DUMMY_VIEW_AS, arg);
 }
 
 void Room::swapCards(ServerPlayer *first, ServerPlayer *second, const QString &flags, const QString &skill_name)
@@ -4186,14 +4194,14 @@ void Room::swapCards(ServerPlayer *first, ServerPlayer *second, const QString &f
 		QList<int> cards1, cards2;
 		foreach(const Card *c, first->getCards(flags))
 			cards1.append(c->getId());
-		foreach(const Card *c, second->getCards(flags))
+        foreach(const Card *c, second->getCards(flags))
 			cards2.append(c->getId());
 
 		static QChar handcard_flag('h');
 		static QChar equip_flag('e');
 
-		CardMoveReason reason1(CardMoveReason::S_REASON_SWAP, first->objectName(), second->objectName(), skill_name, QString());
-		CardMoveReason reason2(CardMoveReason::S_REASON_SWAP, second->objectName(), first->objectName(), skill_name, QString());
+        CardMoveReason reason1(CardMoveReason::S_REASON_SECRETLY_PUT, first->objectName(), second->objectName(), skill_name, QString());
+        CardMoveReason reason2(CardMoveReason::S_REASON_SECRETLY_PUT, second->objectName(), first->objectName(), skill_name, QString());
 
 		QList<CardsMoveStruct> move_to_table;
 		CardsMoveStruct move1(cards1, NULL, Player::PlaceTable, reason1);
@@ -4209,6 +4217,9 @@ void Room::swapCards(ServerPlayer *first, ServerPlayer *second, const QString &f
 		if (!move_to_table.isEmpty()) {
 			moveCardsAtomic(move_to_table, false);
 
+            CardMoveReason reason3(CardMoveReason::S_REASON_SWAP, first->objectName(), second->objectName(), skill_name, QString());
+            CardMoveReason reason4(CardMoveReason::S_REASON_SWAP, second->objectName(), first->objectName(), skill_name, QString());
+
 			QList<CardsMoveStruct> back_move;
 			if (flags.contains(handcard_flag)) {
 				foreach (ServerPlayer *p, getAlivePlayers()) {
@@ -4218,16 +4229,16 @@ void Room::swapCards(ServerPlayer *first, ServerPlayer *second, const QString &f
 						doNotify(p, QSanProtocol::S_COMMAND_EXCHANGE_KNOWN_CARDS, arr);
 					}
 				}
-                CardsMoveStruct move1(getCardIdsOnTable(hands1), second, Player::PlaceHand, reason1);
-                CardsMoveStruct move2(getCardIdsOnTable(hands2), first, Player::PlaceHand, reason2);
+                CardsMoveStruct move1(getCardIdsOnTable(hands1), second, Player::PlaceHand, reason3);
+                CardsMoveStruct move2(getCardIdsOnTable(hands2), first, Player::PlaceHand, reason4);
 				back_move.push_back(move2);
 				back_move.push_back(move1);
 			}
 			if (flags.contains(equip_flag)) {
                 QList<ServerPlayer *> p_list;
                 p_list << first << second;
-                CardsMoveStruct move1(getCardIdsOnTable(equips1), second, Player::PlaceEquip, reason1);
-                CardsMoveStruct move2(getCardIdsOnTable(equips2), first, Player::PlaceEquip, reason2);
+                CardsMoveStruct move1(getCardIdsOnTable(equips1), second, Player::PlaceEquip, reason3);
+                CardsMoveStruct move2(getCardIdsOnTable(equips2), first, Player::PlaceEquip, reason4);
 				back_move.push_back(move2);
 				back_move.push_back(move1);
                 second->setCardsToPile("wooden_ox", pile1, false, p_list);
@@ -4417,7 +4428,7 @@ void Room::moveCardsAtomic(QList<CardsMoveStruct> cards_moves, bool forceMoveVis
 {
     //for wooden_ox
     foreach (CardsMoveStruct cards_move, cards_moves) {
-        if (cards_move.reason.m_reason == CardMoveReason::S_REASON_SWAP) continue;
+        if (cards_move.reason.m_reason == CardMoveReason::S_REASON_SECRETLY_PUT) continue;
         foreach (int id, cards_move.card_ids) {
             const Card *card = Sanguosha->getEngineCard(id);
             if (card->objectName() == "wooden_ox") {
@@ -4654,7 +4665,8 @@ bool Room::notifyMoveCards(bool isLostPhase, QList<CardsMoveStruct> &cards_moves
                 // any card from/to discard pile should be visible
                 || ((cards_moves[i].from_place == Player::PlaceTable
                 || cards_moves[i].to_place == Player::PlaceTable)
-                && (cards_moves[i].reason.m_reason != CardMoveReason::S_REASON_SWAP
+                && ((cards_moves[i].reason.m_reason != CardMoveReason::S_REASON_SECRETLY_PUT
+                && cards_moves[i].reason.m_reason != CardMoveReason::S_REASON_SWAP)
                 || cards_moves[i].reason.m_playerId == player->objectName()
                 || cards_moves[i].reason.m_targetId == player->objectName()))
                 // any card from/to place table should be visible except swap
@@ -5049,7 +5061,7 @@ void Room::setEmotion(ServerPlayer *target, const QString &emotion)
 
 void Room::setCardEmotion(ServerPlayer *target, const Card *card)
 {
-	if (card->getTypeId() == Card::TypeSkill)
+    if (card->getTypeId() == Card::TypeSkill || (card->getSkillName(true) != card->getSkillName(false)))
 		return;
 
     QString emotion_name = card->objectName();
@@ -6324,7 +6336,7 @@ QString Room::askForGeneral(ServerPlayer *player, const QStringList &generals, b
         QStringList candidates = generals;
         if (convert_enabled) {
             foreach (QString candidate, candidates)
-                candidates.append(Sanguosha->getGeneralConvertion(candidate));
+                candidates.append(Sanguosha->getConvertGenerals(candidate));
         }
         default_choice = candidates.at(qrand() % candidates.length());
     }
@@ -6506,7 +6518,7 @@ void Room::takeAG(ServerPlayer *player, int card_id, bool move_cards, QList<Serv
 					other_players.append(p);
 			}
 			QList<CardsMoveStruct> cards_moves;
-			CardMoveReason reason(CardMoveReason::S_REASON_SWAP, player->objectName());
+            CardMoveReason reason(CardMoveReason::S_REASON_SWAP, player->objectName());
             CardsMoveStruct move(card_id, NULL, player, Player::PlaceTable, Player::PlaceHand, reason);
 			cards_moves.append(move);
 			cards_moves = _breakDownCardMoves(cards_moves);

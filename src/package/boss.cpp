@@ -873,8 +873,7 @@ public:
         if (player->isWounded() && move.from && move.from == player
                 && ((move.reason.m_reason & CardMoveReason::S_MASK_BASIC_REASON) == CardMoveReason::S_REASON_DISCARD
                 || (move.to && move.to != player && move.to_place == Player::PlaceHand
-                && move.reason.m_reason != CardMoveReason::S_REASON_GIVE
-                && move.reason.m_reason != CardMoveReason::S_REASON_SWAP))) {
+                && move.reason.m_reason != CardMoveReason::S_REASON_GIVE))) {
             room->sendCompulsoryTriggerLog(player, objectName());
             player->broadcastSkillInvoke(objectName());
             room->recover(player, RecoverStruct(player));

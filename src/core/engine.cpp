@@ -715,15 +715,6 @@ CardUseStruct::CardUseReason Engine::getCurrentCardUseReason()
     return currentRoomState()->getCurrentCardUseReason();
 }
 
-QString Engine::findConvertFrom(const QString &general_name) const
-{
-    foreach (QString general, sp_convert_pairs.keys()) {
-        if (sp_convert_pairs.values(general).contains(general_name))
-            return general;
-    }
-    return general_name;
-}
-
 bool Engine::isGeneralHidden(const QString &general_name) const
 {
     const General *general = getGeneral(general_name);
@@ -732,19 +723,32 @@ bool Engine::isGeneralHidden(const QString &general_name) const
         || extra_hidden_generals.contains(general_name);
 }
 
-QStringList Engine::getGeneralConvertion(const QString &general_name) const
+QStringList Engine::getConvertGenerals(const QString &name) const
 {
-	QStringList name_list;
-    if (sp_convert_pairs.keys().contains(general_name)) {
-        QStringList to_list(sp_convert_pairs.values(general_name));
-		foreach (QString to_gen, to_list) {
-			const General *gen = getGeneral(to_gen);
-			if (gen && !Config.value("Banlist/Roles", "").toStringList().contains(to_gen)
-				&& !Sanguosha->getBanPackages().contains(gen->getPackage()))
-				name_list << to_gen;
-		}
-	}
-	return name_list;
+    if (!getGeneral(name)) return QStringList();
+    QStringList generals;
+    foreach(const QString &name1, sp_convert_pairs.values(name)) {
+        if (!getGeneral(name1)) continue;
+        if (getBanPackages().contains(getGeneral(name1)->getPackage())) continue;
+        generals << name1;
+    }
+
+    QStringList banned_generals = Config.value("Banlist/Generals", "").toStringList();
+    foreach (const QString &banned, banned_generals)
+        generals.removeOne(banned);
+
+    return generals;
+}
+
+QString Engine::getMainGeneral(const QString &name) const
+{
+    if (!getGeneral(name)) return QString();
+    if (!sp_convert_pairs.contains(name)) return name;
+    foreach (const QString &key, sp_convert_pairs.keys()) {
+        foreach (const QString &name1, sp_convert_pairs.values(key))
+            if (name == name1 && getGeneral(key)) return key;
+    }
+    return name;
 }
 
 WrappedCard *Engine::getWrappedCard(int cardId)
@@ -1154,7 +1158,7 @@ QStringList Engine::getLords(bool contain_banned) const
     QStringList general_names = getLimitedGeneralNames();
 	QStringList _copy = general_names;
 	foreach (QString general_name, _copy) {
-		if (findConvertFrom(general_name) != general_name)
+        if (getMainGeneral(general_name) != general_name)
 			general_names.removeOne(general_name);
 	}
 
@@ -1208,7 +1212,7 @@ QStringList Engine::getRandomLords() const
     QStringList nonlord_list;
     foreach (QString nonlord, generals.keys()) {
         if (isGeneralHidden(nonlord) || lord_list.contains(nonlord)) continue;
-		if (findConvertFrom(nonlord) != nonlord) continue;
+        if (getMainGeneral(nonlord) != nonlord) continue;
         const General *general = generals.value(nonlord);
         if (getBanPackages().contains(general->getPackage()))
             continue;
@@ -1264,7 +1268,7 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
     QStringList all_generals = getLimitedGeneralNames(kingdom);
 	QStringList _copy = all_generals;
 	foreach (QString general_name, _copy) {
-		if (findConvertFrom(general_name) != general_name)
+        if (getMainGeneral(general_name) != general_name)
 			all_generals.removeOne(general_name);
 	}
 

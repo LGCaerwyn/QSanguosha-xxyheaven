@@ -22,7 +22,7 @@ return {
 
 	-- 关兴张苞
 	["$fuhun1"] = "将门虎子，承我父志！", -- 使用【杀】
-	["$fuhun2"] = "匡扶汉室，重任在肩！", -- 获得技能
+	["$fuhun2"] = "光复汉室，重任在肩！", -- 获得技能
 	["$guanxingzhangbao-wusheng"] = "一夫当关，万夫莫当！",
 	["$guanxingzhangbao-paoxiao"] = "喝！！",
 	["~guanxingzhangbao"] = "未能手刃仇敌……愧对先父……",

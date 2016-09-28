@@ -874,7 +874,6 @@ end
 
 sgs.ai_choicemade_filter.cardChosen.danshou = sgs.ai_choicemade_filter.cardChosen.snatch
 
-
 sgs.ai_skill_invoke.zongxuan = function(self, data)
     local card_ids = sgs.QList2Table(data:toIntList())
     local up, down = {}, {}
@@ -1064,7 +1063,6 @@ sgs.ai_skill_movecards.zongxuan = function(self, upcards, downcards, min_num, ma
     
     return upcards_copy, down
 end
-
 
 sgs.ai_skill_playerchosen.zhiyan = function(self, targets)
     if sgs.shouldzhiyan == false then return nil end

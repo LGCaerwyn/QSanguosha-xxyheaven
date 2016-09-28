@@ -233,11 +233,15 @@ void PlayerCardContainer::updateAvatar()
     const General *general = NULL;
     if (m_player) {
         general = m_player->getAvatarGeneral();
-        _m_layout->m_screenNameFont.paintText(_m_screenNameItem,
-            _m_layout->m_screenNameArea,
-            Qt::AlignCenter,
-            m_player->screenName());
-    }
+        if (Self != m_player) {
+            updateScreenName(m_player->screenName());
+            if (!_m_screenNameItem->isVisible()) {
+                _m_screenNameItem->show();
+            }
+        }
+    } else if (_m_screenNameItem && _m_screenNameItem->isVisible())
+        _m_screenNameItem->hide();
+
     QGraphicsPixmapItem *avatarIconTmp = _m_avatarIcon;
     if (general != NULL) {
         _m_avatarArea->setToolTip(m_player->getSkillDescription());
@@ -1161,6 +1165,7 @@ void PlayerCardContainer::_createControls()
     _m_floatingArea = new QGraphicsPixmapItem(_m_groupMain);
 
     _m_screenNameItem = new QGraphicsPixmapItem(_getAvatarParent());
+    _m_screenNameItem->hide();
 
     _m_avatarArea = new QGraphicsRectItem(_m_layout->m_avatarArea, _getAvatarParent());
     _m_avatarArea->setPen(Qt::NoPen);

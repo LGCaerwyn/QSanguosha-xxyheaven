@@ -120,23 +120,19 @@ HuangtianCard::HuangtianCard()
 void HuangtianCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
     ServerPlayer *zhangjiao = targets.first();
-    if (zhangjiao->hasLordSkill("huangtian")) {
-        room->setPlayerFlag(zhangjiao, "HuangtianInvoked");
+    room->setPlayerFlag(zhangjiao, "HuangtianInvoked");
+    LogMessage log;
+    log.type = "#InvokeOthersSkill";
+    log.from = source;
+    log.to << zhangjiao;
+    log.arg = "huangtian";
+    room->sendLog(log);
+    room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, source->objectName(), zhangjiao->objectName());
+    zhangjiao->broadcastSkillInvoke("huangtian");
 
-        zhangjiao->broadcastSkillInvoke("huangtian");
-
-        room->notifySkillInvoked(zhangjiao, "huangtian");
-        CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), zhangjiao->objectName(), "huangtian", QString());
-        room->obtainCard(zhangjiao, this, reason);
-        QList<ServerPlayer *> zhangjiaos;
-        QList<ServerPlayer *> players = room->getOtherPlayers(source);
-        foreach (ServerPlayer *p, players) {
-            if (p->hasLordSkill("huangtian") && !p->hasFlag("HuangtianInvoked"))
-                zhangjiaos << p;
-        }
-        if (zhangjiaos.isEmpty())
-            room->setPlayerFlag(source, "ForbidHuangtian");
-    }
+    room->notifySkillInvoked(zhangjiao, "huangtian");
+    CardMoveReason reason(CardMoveReason::S_REASON_GIVE, source->objectName(), zhangjiao->objectName(), "huangtian", QString());
+    room->obtainCard(zhangjiao, this, reason);
 }
 
 bool HuangtianCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
@@ -156,7 +152,11 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return shouldBeVisible(player) && !player->hasFlag("ForbidHuangtian");
+        if (!shouldBeVisible(player) || player->isKongcheng()) return false;
+        foreach(const Player *sib, player->getAliveSiblings())
+            if (sib->hasLordSkill("huangtian") && !sib->hasFlag("HuangtianInvoked"))
+                return true;
+        return false;
     }
 
     virtual bool shouldBeVisible(const Player *Self) const
@@ -228,8 +228,6 @@ public:
             PhaseChangeStruct phase_change = data.value<PhaseChangeStruct>();
             if (phase_change.from != Player::Play)
                 return false;
-            if (player->hasFlag("ForbidHuangtian"))
-                room->setPlayerFlag(player, "-ForbidHuangtian");
             QList<ServerPlayer *> players = room->getOtherPlayers(player);
             foreach (ServerPlayer *p, players) {
                 if (p->hasFlag("HuangtianInvoked"))
@@ -577,8 +575,7 @@ public:
             && ((move.reason.m_reason == CardMoveReason::S_REASON_DISMANTLE
             && move.reason.m_playerId != move.reason.m_targetId)
             || (move.to && move.to != move.from && move.to_place == Player::PlaceHand
-            && move.reason.m_reason != CardMoveReason::S_REASON_GIVE
-            && move.reason.m_reason != CardMoveReason::S_REASON_SWAP))) {
+            && move.reason.m_reason != CardMoveReason::S_REASON_GIVE))) {
             move.from->setFlags("FenjiMoveFrom"); // For AI
             bool invoke = room->askForSkillInvoke(player, objectName(), QVariant::fromValue(move.from));
             move.from->setFlags("-FenjiMoveFrom");
@@ -710,12 +707,12 @@ GuhuoCard::GuhuoCard()
 bool GuhuoCard::guhuo(ServerPlayer *yuji) const
 {
     Room *room = yuji->getRoom();
+
+    CardMoveReason reason1(CardMoveReason::S_REASON_SECRETLY_PUT, yuji->objectName(), QString(), "guhuo", QString());
+    room->moveCardTo(this, NULL, Player::PlaceTable, reason1, false);
+
     QList<ServerPlayer *> players = room->getOtherPlayers(yuji);
 
-    QList<int> used_cards;
-    QList<CardsMoveStruct> moves;
-    foreach(int card_id, getSubcards())
-        used_cards << card_id;
     room->setTag("GuhuoType", user_string);
 
     ServerPlayer *questioned = NULL;
@@ -727,17 +724,10 @@ bool GuhuoCard::guhuo(ServerPlayer *yuji) const
             log.arg = "chanyuan";
             room->sendLog(log);
 
-            //room->notifySkillInvoked(player, "chanyuan");
-            //room->broadcastSkillInvoke("chanyuan");
-            room->setEmotion(player, "no-question");
             continue;
         }
 
         QString choice = room->askForChoice(player, "guhuo", "noquestion+question");
-        if (choice == "question")
-            room->setEmotion(player, "question");
-        else
-            room->setEmotion(player, "no-question");
 
         LogMessage log;
         log.type = "#GuhuoQuery";
@@ -756,33 +746,21 @@ bool GuhuoCard::guhuo(ServerPlayer *yuji) const
     log.card_str = QString::number(subcards.first());
     room->sendLog(log);
 
-    bool success = false;
-    if (!questioned) {
-        success = true;
-        foreach(ServerPlayer *player, players)
-            room->setEmotion(player, ".");
+    const Card *card = Sanguosha->getCard(subcards.first());
 
-        CardMoveReason reason(CardMoveReason::S_REASON_USE, yuji->objectName(), QString(), "guhuo");
-        CardsMoveStruct move(used_cards, yuji, NULL, Player::PlaceUnknown, Player::PlaceTable, reason);
-        moves.append(move);
-        room->moveCardsAtomic(moves, true);
-    } else {
-        const Card *card = Sanguosha->getCard(subcards.first());
+    CardMoveReason reason_ui(CardMoveReason::S_REASON_TURNOVER, yuji->objectName(), QString(), "guhuo", QString());
+    reason_ui.m_extraData = QVariant::fromValue(card);
+    room->showVirtualMove(reason_ui);
+
+    bool success = true;
+    if (questioned) {
         success = card->match(user_string);
 
         if (success) {
-            CardMoveReason reason(CardMoveReason::S_REASON_USE, yuji->objectName(), QString(), "guhuo");
-            CardsMoveStruct move(used_cards, yuji, NULL, Player::PlaceUnknown, Player::PlaceTable, reason);
-            moves.append(move);
-            room->moveCardsAtomic(moves, true);
+            room->acquireSkill(questioned, "chanyuan");
         } else {
             room->moveCardTo(this, yuji, NULL, Player::DiscardPile,
                 CardMoveReason(CardMoveReason::S_REASON_PUT, yuji->objectName(), QString(), "guhuo"), true);
-        }
-        foreach (ServerPlayer *player, players) {
-            room->setEmotion(player, ".");
-            if (success && questioned == player)
-                room->acquireSkill(questioned, "chanyuan");
         }
     }
     room->setPlayerFlag(yuji, "GuhuoUsed");
@@ -860,33 +838,27 @@ const Card *GuhuoCard::validate(CardUseStruct &card_use) const
     log.to = card_use.to;
     log.arg = to_guhuo;
     log.arg2 = "guhuo";
-
     room->sendLog(log);
+
+    const Card *guhuo_card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
+    if (card_use.to.isEmpty())
+        card_use.to = guhuo_card->defaultTargets(room, yuji);
+
+    foreach (ServerPlayer *to, card_use.to)
+        room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, yuji->objectName(), to->objectName());
+
+    CardMoveReason reason_ui(CardMoveReason::S_REASON_USE, yuji->objectName(), QString(), "guhuo", QString());
+    if (card_use.to.size() == 1 && !card_use.card->targetFixed())
+        reason_ui.m_targetId = card_use.to.first()->objectName();
+    reason_ui.m_extraData = QVariant::fromValue(guhuo_card);
+    room->showVirtualMove(reason_ui);
 
     if (guhuo(card_use.from)) {
         const Card *card = Sanguosha->getCard(subcards.first());
         Card *use_card = Sanguosha->cloneCard(to_guhuo, card->getSuit(), card->getNumber());
-        use_card->setSkillName("guhuo");
+        use_card->setSkillName("_guhuo");
         use_card->addSubcard(subcards.first());
         use_card->deleteLater();
-
-        QList<ServerPlayer *> tos = card_use.to;
-        foreach (ServerPlayer *to, tos) {
-            const ProhibitSkill *skill = room->isProhibited(card_use.from, to, use_card);
-            if (skill) {
-                if (skill->isVisible()) {
-                    LogMessage log;
-                    log.type = "#SkillAvoid";
-                    log.from = to;
-                    log.arg = skill->objectName();
-                    log.arg2 = use_card->objectName();
-                    room->sendLog(log);
-
-                    to->broadcastSkillInvoke(skill->objectName());
-                }
-                card_use.to.removeOne(to);
-            }
-        }
         return use_card;
     } else
         return NULL;
@@ -906,10 +878,15 @@ const Card *GuhuoCard::validateInResponse(ServerPlayer *yuji) const
     log.arg2 = "guhuo";
     room->sendLog(log);
 
+    CardMoveReason reason_ui(CardMoveReason::S_REASON_RESPONSE, yuji->objectName(), QString(), "guhuo", QString());
+    const Card *guhuo_card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
+    reason_ui.m_extraData = QVariant::fromValue(guhuo_card);
+    room->showVirtualMove(reason_ui);
+
     if (guhuo(yuji)) {
         const Card *card = Sanguosha->getCard(subcards.first());
         Card *use_card = Sanguosha->cloneCard(to_guhuo, card->getSuit(), card->getNumber());
-        use_card->setSkillName("guhuo");
+        use_card->setSkillName("_guhuo");
         use_card->addSubcard(subcards.first());
         use_card->deleteLater();
         return use_card;
@@ -979,10 +956,10 @@ public:
 
     virtual int getEffectIndex(const ServerPlayer *, const Card *card) const
     {
-        if (!card->isKindOf("GuhuoCard"))
-            return -2;
-        else
+        if (card->isKindOf("GuhuoCard"))
             return -1;
+        else
+            return 0;
     }
 
     virtual bool isEnabledAtNullification(const ServerPlayer *player) const
