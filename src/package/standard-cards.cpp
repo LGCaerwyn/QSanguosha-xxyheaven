@@ -282,11 +282,16 @@ QString Peach::getSubtype() const
 
 void Peach::onUse(Room *room, const CardUseStruct &card_use) const
 {
-    CardUseStruct use = card_use;
-    if (use.to.isEmpty() && !hasFlag("UsedBySecondWay"))
-        use.to << use.from;
-    room->setCardEmotion(use.from, this);
-    BasicCard::onUse(room, use);
+    room->setCardEmotion(card_use.from, this);
+    BasicCard::onUse(room, card_use);
+}
+
+QList<ServerPlayer *> Peach::defaultTargets(Room *, ServerPlayer *source) const
+{
+    QList<ServerPlayer *> targets;
+    if (!hasFlag("UsedBySecondWay"))
+        targets << source;
+    return targets;
 }
 
 void Peach::onEffect(const CardEffectStruct &effect) const
@@ -866,12 +871,9 @@ ExNihilo::ExNihilo(Suit suit, int number)
     target_fixed = true;
 }
 
-void ExNihilo::onUse(Room *room, const CardUseStruct &card_use) const
+QList<ServerPlayer *> ExNihilo::defaultTargets(Room *, ServerPlayer *source) const
 {
-    CardUseStruct use = card_use;
-    if (use.to.isEmpty())
-        use.to << use.from;
-    SingleTargetTrick::onUse(room, use);
+    return QList<ServerPlayer *>() << source;
 }
 
 bool ExNihilo::isAvailable(const Player *player) const

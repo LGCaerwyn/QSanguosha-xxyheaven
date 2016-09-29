@@ -599,7 +599,7 @@ void ChooseGeneralBox::createConvertion(GeneralCardItem *card_item, bool first_r
 {
 	QList<GeneralCardItem *> convert_items;
 	QString	general_name = card_item->objectName();
-    QStringList convert_names = Sanguosha->getGeneralConvertion(general_name);
+    QStringList convert_names = Sanguosha->getConvertGenerals(general_name);
 	for (int i = 0; i < convert_names.length(); ++i) {
 		QString convert_name = convert_names.at(i);
 		GeneralCardItem *general_item = new GeneralCardItem(convert_name, 0);

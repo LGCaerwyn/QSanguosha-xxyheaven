@@ -18,7 +18,7 @@ bool ZhanShuangxiongCard::targetFilter(const QList<const Player *> &targets, con
 void ZhanShuangxiongCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const
 {
     room->setTag("ZhanShuangxiong", true);
-    source->pindian(targets.first(), "zhanshuangxiong", NULL);
+    source->pindian(targets.first(), "zhanshuangxiong");
 }
 
 class GreatYiji : public NosYiji

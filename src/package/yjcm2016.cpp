@@ -1161,8 +1161,15 @@ public:
 
     bool isEnabledAtResponse(const Player *player, const QString &pattern) const
     {
-        if (Sanguosha->currentRoomState()->getCurrentCardUseReason() != CardUseStruct::CARD_USE_REASON_RESPONSE_USE || player->hasFlag("TaoluanInvalid"))
+        if (Sanguosha->currentRoomState()->getCurrentCardUseReason() != CardUseStruct::CARD_USE_REASON_RESPONSE_USE)
             return false;
+
+        if (player->hasFlag("Global_Dying") || player->hasFlag("TaoluanInvalid"))
+            return false;
+        foreach(const Player *sib, player->getAliveSiblings()) {
+            if (sib->hasFlag("Global_Dying"))
+                return false;
+        }
 
 #define TAOLUAN_CAN_USE(x) (player->getMark("Taoluan_" #x) == 0)
 
@@ -1182,7 +1189,13 @@ public:
 
     virtual bool isEnabledAtNullification(const ServerPlayer *player) const
     {
-        if (player->hasFlag("TaoluanInvalid") || (player->isNude() && player->getHandPile().isEmpty())) return false;
+        if (player->hasFlag("Global_Dying") || player->hasFlag("TaoluanInvalid"))
+            return false;
+        foreach(const Player *sib, player->getAliveSiblings()) {
+            if (sib->hasFlag("Global_Dying"))
+                return false;
+        }
+        if (player->isNude() && player->getHandPile().isEmpty()) return false;
         return TAOLUAN_CAN_USE(Nullification);
 
 #undef TAOLUAN_CAN_USE

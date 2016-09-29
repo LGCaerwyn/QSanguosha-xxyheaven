@@ -900,7 +900,7 @@ function SmartAI:cardNeed(card)
     end
     if card:isKindOf("Slash") and (self:getCardsNum("Slash") > 0) then return 4 end
     if card:isKindOf("Crossbow") and self.player:hasSkills("luoshen|yongsi|kurou|keji|wusheng|wushen|chixin") then return 20 end
-    if card:isKindOf("Axe") and self.player:hasSkills("luoyi|jiushi|jiuchi|pojun") then return 15 end
+    if card:isKindOf("Axe") and self.player:hasSkills("luoyi|jiushi|jiuchi|nospojun") then return 15 end
     if card:isKindOf("Weapon") and (not self.player:getWeapon()) and (self:getCardsNum("Slash") > 1) then return 6 end
     if card:isKindOf("Nullification") and self:getCardsNum("Nullification") == 0 then
         if self:willSkipPlayPhase() or self:willSkipDrawPhase() then return 10 end

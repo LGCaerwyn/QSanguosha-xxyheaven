@@ -333,6 +333,7 @@ public:
         const CardMoveReason &reason, bool forceMoveVisible = false);
     void moveCardTo(const Card *card, ServerPlayer *srcPlayer, ServerPlayer *dstPlayer, Player::Place dstPlace,
         const QString &pileName, const CardMoveReason &reason, bool forceMoveVisible = false);
+    void showVirtualMove(const CardMoveReason &reason);
     void swapCards(ServerPlayer *first, ServerPlayer *second, const QString &flags, const QString &skill_name = QString());
     void moveCardsAtomic(QList<CardsMoveStruct> cards_move, bool forceMoveVisible);
     void moveCardsAtomic(CardsMoveStruct cards_move, bool forceMoveVisible);

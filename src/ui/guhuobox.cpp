@@ -91,6 +91,7 @@ void GuhuoBox::popup()
         //return;
     //}
     //RoomSceneInstance->getDasboard()->disableAllCards();
+    RoomSceneInstance->setOkButton(false);
     RoomSceneInstance->current_guhuo_box = this;
     foreach (const QString &key, card_list.keys()) {
         foreach (const QString &card_name, card_list.value(key)) {

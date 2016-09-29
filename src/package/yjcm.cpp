@@ -203,7 +203,7 @@ void JujianCard::onEffect(const CardEffectStruct &effect) const
         choicelist << "recover";
     if (!effect.to->faceUp() || effect.to->isChained())
         choicelist << "reset";
-    QString choice = room->askForChoice(effect.to, "jujian", choicelist.join("+"));
+    QString choice = room->askForChoice(effect.to, "jujian", choicelist.join("+"), QVariant(), QString(), "draw+recover+reset");
 
     if (choice == "draw")
         effect.to->drawCards(2, "jujian");
@@ -720,27 +720,7 @@ public:
 GanluCard::GanluCard()
 {
 }
-/*
-void GanluCard::swapEquip(ServerPlayer *first, ServerPlayer *second) const
-{
-    Room *room = first->getRoom();
 
-    QList<int> equips1, equips2;
-    foreach(const Card *equip, first->getEquips())
-        equips1.append(equip->getId());
-    foreach(const Card *equip, second->getEquips())
-        equips2.append(equip->getId());
-
-    QList<CardsMoveStruct> exchangeMove;
-    CardsMoveStruct move1(equips1, second, Player::PlaceEquip,
-        CardMoveReason(CardMoveReason::S_REASON_SWAP, first->objectName(), second->objectName(), "ganlu", QString()));
-    CardsMoveStruct move2(equips2, first, Player::PlaceEquip,
-        CardMoveReason(CardMoveReason::S_REASON_SWAP, second->objectName(), first->objectName(), "ganlu", QString()));
-    exchangeMove.push_back(move2);
-    exchangeMove.push_back(move1);
-    room->moveCardsAtomic(exchangeMove, false);
-}
-*/
 bool GanluCard::targetsFeasible(const QList<const Player *> &targets, const Player *) const
 {
     return targets.length() == 2;
@@ -768,8 +748,7 @@ void GanluCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &tar
     log.to = targets;
     room->sendLog(log);
 
-	room->swapCards(targets.at(0), targets.at(1), "e", "ganlu");
-    //swapEquip(targets.first(), targets[1]);
+    room->swapCards(targets.at(0), targets.at(1), "e", "ganlu");
 }
 
 class Ganlu : public ZeroCardViewAsSkill

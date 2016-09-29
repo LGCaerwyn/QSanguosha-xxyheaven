@@ -928,8 +928,8 @@ void NewDimengCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> 
 	ServerPlayer *first = targets.at(0);
     ServerPlayer *second = targets.at(1);
 	
-	CardMoveReason reason1(CardMoveReason::S_REASON_SWAP, first->objectName(), second->objectName(), "newdimeng", QString());
-	CardMoveReason reason2(CardMoveReason::S_REASON_SWAP, second->objectName(), first->objectName(), "newdimeng", QString());
+    CardMoveReason reason1(CardMoveReason::S_REASON_SECRETLY_PUT, first->objectName(), second->objectName(), "newdimeng", QString());
+    CardMoveReason reason2(CardMoveReason::S_REASON_SECRETLY_PUT, second->objectName(), first->objectName(), "newdimeng", QString());
 
 	QList<CardsMoveStruct> move_to_table;
 	QList<int> all = first->handCards();

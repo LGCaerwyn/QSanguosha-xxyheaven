@@ -153,9 +153,8 @@ QString GlobalEffect::getSubtype() const
     return "global_effect";
 }
 
-void GlobalEffect::onUse(Room *room, const CardUseStruct &card_use) const
+QList<ServerPlayer *> GlobalEffect::defaultTargets(Room *room, ServerPlayer *source) const
 {
-    ServerPlayer *source = card_use.from;
     QList<ServerPlayer *> targets, all_players = room->getAllPlayers();
     foreach (ServerPlayer *player, all_players) {
         const ProhibitSkill *skill = room->isProhibited(source, player, this);
@@ -174,10 +173,7 @@ void GlobalEffect::onUse(Room *room, const CardUseStruct &card_use) const
         } else
             targets << player;
     }
-
-    CardUseStruct use = card_use;
-    use.to = targets;
-    TrickCard::onUse(room, use);
+    return targets;
 }
 
 bool GlobalEffect::isAvailable(const Player *player) const
@@ -216,11 +212,10 @@ bool AOE::isAvailable(const Player *player) const
     return canUse && TrickCard::isAvailable(player);
 }
 
-void AOE::onUse(Room *room, const CardUseStruct &card_use) const
+QList<ServerPlayer *> AOE::defaultTargets(Room *room, ServerPlayer *source) const
 {
-    ServerPlayer *source = card_use.from;
-    QList<ServerPlayer *> targets, other_players = room->getOtherPlayers(source);
-    foreach (ServerPlayer *player, other_players) {
+    QList<ServerPlayer *> targets, all_players = room->getOtherPlayers(source);
+    foreach (ServerPlayer *player, all_players) {
         const ProhibitSkill *skill = room->isProhibited(source, player, this);
         if (skill) {
             if (skill->isVisible()) {
@@ -237,10 +232,7 @@ void AOE::onUse(Room *room, const CardUseStruct &card_use) const
         } else
             targets << player;
     }
-
-    CardUseStruct use = card_use;
-    use.to = targets;
-    TrickCard::onUse(room, use);
+    return targets;
 }
 
 QString SingleTargetTrick::getSubtype() const

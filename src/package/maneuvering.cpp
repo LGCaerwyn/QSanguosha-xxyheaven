@@ -63,11 +63,16 @@ bool Analeptic::isAvailable(const Player *player) const
 
 void Analeptic::onUse(Room *room, const CardUseStruct &card_use) const
 {
-    CardUseStruct use = card_use;
-    if (use.to.isEmpty() && !hasFlag("UsedBySecondWay"))
-        use.to << use.from;
-    room->setCardEmotion(use.from, this);
-    BasicCard::onUse(room, use);
+    room->setCardEmotion(card_use.from, this);
+    BasicCard::onUse(room, card_use);
+}
+
+QList<ServerPlayer *> Analeptic::defaultTargets(Room *, ServerPlayer *source) const
+{
+    QList<ServerPlayer *> targets;
+    if (!hasFlag("UsedBySecondWay"))
+        targets << source;
+    return targets;
 }
 
 void Analeptic::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const

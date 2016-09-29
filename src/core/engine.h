@@ -130,9 +130,9 @@ public:
     QString getCurrentCardUsePattern();
     CardUseStruct::CardUseReason getCurrentCardUseReason();
 
-    QString findConvertFrom(const QString &general_name) const;
     bool isGeneralHidden(const QString &general_name) const;
-	QStringList getGeneralConvertion(const QString &general_name) const;
+    QStringList getConvertGenerals(const QString &general_name) const;
+    QString getMainGeneral(const QString &name) const;
 
 private:
     void _loadMiniScenarios();

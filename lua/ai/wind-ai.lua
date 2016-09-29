@@ -407,7 +407,6 @@ huangtianv_skill.name = "huangtian_attach"
 table.insert(sgs.ai_skills, huangtianv_skill)
 
 huangtianv_skill.getTurnUseCard = function(self)
-	if self.player:hasFlag("ForbidHuangtian") then return nil end
 	if self.player:getKingdom() ~= "qun" then return nil end
 
 	local cards = self.player:getCards("h")

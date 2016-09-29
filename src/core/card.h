@@ -154,6 +154,7 @@ public:
     virtual const Card *validateInResponse(ServerPlayer *user, QList<ServerPlayer *> &targets) const;
 
     virtual void doPreAction(Room *room, const CardUseStruct &card_use) const;
+    virtual QList<ServerPlayer *> defaultTargets(Room *room, ServerPlayer *source) const;
     virtual void onUse(Room *room, const CardUseStruct &card_use) const;
     virtual void use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &targets) const;
     virtual void use(Room *room, ServerPlayer *source, const Card *target) const;
@@ -166,7 +167,7 @@ public:
     }
     inline virtual QStringList getFlags() const
     {
-        return flags;
+        return flags.empty() ? QStringList() : flags;
     }
 
     inline virtual bool isModified() const

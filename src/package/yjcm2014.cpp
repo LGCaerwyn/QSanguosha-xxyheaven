@@ -929,7 +929,6 @@ public:
                     log.card_str = use.card->toString();
                     room->sendLog(log);
 
-                    room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, player->objectName(), target->objectName());
                     if (use.card->isKindOf("Collateral") && collateral_victim)
                         room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, target->objectName(), collateral_victim->objectName());
 

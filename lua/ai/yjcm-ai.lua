@@ -1109,7 +1109,7 @@ sgs.ai_skill_invoke.zhiman = function(self, data)
 		end
 		return true
 	else
-		if self:hasHeavySlashDamage(self.player, damage.card, target) or self.player:getMark("drank") > 0 then return false end
+		if self:hasHeavySlashDamage(self.player, damage.card, target) then return false end
 		if self:isWeak(target) then return false end
 		if self:doNotDiscard(target, "e", true) then
 			return false
@@ -1258,7 +1258,7 @@ sgs.ai_skill_invoke.pojun = function(self, data)
         end
         return true
     else
-        if self:hasSkills(sgs.lose_equip_skill, target) then
+        if self:hasSkills(sgs.lose_equip_skill, target) or self:needToThrowArmor(target) then
             return true
         end
         return false
@@ -1303,29 +1303,3 @@ sgs.ai_skill_cardschosen.pojun = function(self, who, flags, min_num, max_num, me
         return to_pojun
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -70,7 +70,7 @@ void ServerPlayer::broadcastSkillInvoke(const Card *card) const
         QList<int> types;
         if (index != -1)
         types << index;
-        if (!room->broadcastSkillInvoke(skill_name, this, types)) {
+        if (index == -2 || !room->broadcastSkillInvoke(skill_name, this, types)) {
             if (card->getCommonEffectName().isNull())
                 broadcastSkillInvoke(card->objectName());
             else

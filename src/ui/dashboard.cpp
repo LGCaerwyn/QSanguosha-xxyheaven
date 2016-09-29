@@ -1560,13 +1560,8 @@ void Dashboard::heroSkinButtonMouseOutsideClicked()
         }
 
         QGraphicsItem *parent = heroSKinBtn->parentItem();
-        if (NULL != parent && !parent->isUnderMouse()) {
+        if (NULL != parent && !parent->isUnderMouse())
             heroSKinBtn->hide();
-
-            /*if (Self == m_player && NULL != _m_screenNameItem && _m_screenNameItem->isVisible()) {
-                _m_screenNameItem->hide();
-                }*/
-        }
     }
 }
 

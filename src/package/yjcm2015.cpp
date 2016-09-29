@@ -771,6 +771,9 @@ ZhenshanCard::ZhenshanCard()
 
 bool ZhenshanCard::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
 {
+    if (Sanguosha->currentRoomState()->getCurrentCardUsePattern() == "peach" && to_select->hasFlag("Global_Dying"))
+        return false;
+
     const Card *card = Sanguosha->cloneCard(user_string, Card::NoSuit, 0);
     bool can_exchange = Self->getHandcardNum() > to_select->getHandcardNum();
 
@@ -812,21 +815,11 @@ const Card *ZhenshanCard::validate(CardUseStruct &card_use) const
 
     QString user_str = user_string;
 
-	LogMessage log;
-    log.type = "$ZhenshanExchange";
-    log.from = quancong;
-	log.to << to_exchange;
-    log.arg = "zhenshan";
-	log.arg2 = user_str;
-    room->sendLog(log);
-    quancong->broadcastSkillInvoke("zhenshan");
-
-    swapHands(room, quancong, to_exchange, "zhenshan");
 	room->setPlayerFlag(quancong, "ZhenshanUsed");
+    quancong->tag["ZhenshanTarget"] = QVariant::fromValue(to_exchange);
 
     Card *c = Sanguosha->cloneCard(user_str, Card::NoSuit, 0);
-    c->setSkillName("_zhenshan");
-    c->deleteLater();
+    c->setSkillName("zhenshan");
     return c;
 }
 
@@ -837,70 +830,12 @@ const Card *ZhenshanCard::validateInResponse(ServerPlayer *quancong, QList<Serve
 
     QString user_str = user_string;
 
-	LogMessage log;
-    log.type = "$ZhenshanExchange";
-    log.from = quancong;
-	log.to << to_exchange;
-    log.arg = "zhenshan";
-	log.arg2 = user_str;
-    room->sendLog(log);
-    quancong->broadcastSkillInvoke("zhenshan");
-
-    swapHands(room, quancong, to_exchange, "zhenshan");
-    room->setPlayerFlag(quancong, "ZhenshanUsed");
+	room->setPlayerFlag(quancong, "ZhenshanUsed");
+    quancong->tag["ZhenshanTarget"] = QVariant::fromValue(to_exchange);
 
     Card *c = Sanguosha->cloneCard(user_str, Card::NoSuit, 0);
-    c->setSkillName("_zhenshan");
-    c->deleteLater();
+    c->setSkillName("zhenshan");
     return c;
-}
-
-void ZhenshanCard::swapHands(Room *room, ServerPlayer *from, ServerPlayer *to, QString skill_name) const
-{
-    ServerPlayer *a = from;
-    ServerPlayer *b = to;
-    a->setFlags("DimengTarget");
-    b->setFlags("DimengTarget");
-
-    int n1 = a->getHandcardNum();
-    int n2 = b->getHandcardNum();
-
-    try {
-        foreach(ServerPlayer *p, room->getAlivePlayers())
-        {
-            if (p != a && p != b) {
-                JsonArray arr;
-                arr << a->objectName() << b->objectName();
-                room->doNotify(p, QSanProtocol::S_COMMAND_EXCHANGE_KNOWN_CARDS, arr);
-            }
-        }
-        QList<CardsMoveStruct> exchangeMove;
-        CardsMoveStruct move1(a->handCards(), b, Player::PlaceHand,
-            CardMoveReason(CardMoveReason::S_REASON_SWAP, a->objectName(), b->objectName(), skill_name, QString()));
-        CardsMoveStruct move2(b->handCards(), a, Player::PlaceHand,
-            CardMoveReason(CardMoveReason::S_REASON_SWAP, b->objectName(), a->objectName(), skill_name, QString()));
-        exchangeMove.push_back(move1);
-        exchangeMove.push_back(move2);
-        room->moveCardsAtomic(exchangeMove, false);
-
-        LogMessage log;
-        log.type = "#Dimeng";
-        log.from = a;
-        log.to << b;
-        log.arg = QString::number(n1);
-        log.arg2 = QString::number(n2);
-        room->sendLog(log);
-        room->getThread()->delay();
-
-        a->setFlags("-DimengTarget");
-        b->setFlags("-DimengTarget");
-    } catch (TriggerEvent triggerEvent) {
-        if (triggerEvent == TurnBroken || triggerEvent == StageChange) {
-            a->setFlags("-DimengTarget");
-            b->setFlags("-DimengTarget");
-        }
-        throw triggerEvent;
-    }
 }
 
 class ZhenshanVS : public ZeroCardViewAsSkill
@@ -955,7 +890,7 @@ public:
     Zhenshan() : TriggerSkill("zhenshan")
     {
         view_as_skill = new ZhenshanVS;
-        events << EventPhaseChanging;
+        events << CardExtraCost << EventPhaseChanging;
     }
 
     QString getSelectBox() const
@@ -968,13 +903,25 @@ public:
         return target != NULL;
     }
 
-    bool trigger(TriggerEvent, Room *room, ServerPlayer *, QVariant &data) const
+    bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *quancong, QVariant &data) const
     {
-        if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
-
-        foreach (ServerPlayer *p, room->getAlivePlayers()) {
-            if (p->hasFlag("ZhenshanUsed"))
-                room->setPlayerFlag(p, "-ZhenshanUsed");
+        if (triggerEvent == CardExtraCost) {
+            const Card *card;
+            if (data.canConvert<CardUseStruct>())
+                card = data.value<CardUseStruct>().card;
+            else if (data.canConvert<CardResponseStruct>())
+                card = data.value<CardResponseStruct>().m_card;
+            if (card && card->getSkillName() == "zhenshan") {
+                ServerPlayer *to_exchange = quancong->tag["ZhenshanTarget"].value<ServerPlayer *>();
+                if (to_exchange)
+                    room->swapCards(quancong, to_exchange, "h", "zhenshan");
+            }
+        } else if (triggerEvent == EventPhaseChanging) {
+            if (data.value<PhaseChangeStruct>().to != Player::NotActive) return false;
+            foreach (ServerPlayer *p, room->getAlivePlayers()) {
+                if (p->hasFlag("ZhenshanUsed"))
+                    room->setPlayerFlag(p, "-ZhenshanUsed");
+            }
         }
         return false;
     }

@@ -199,6 +199,7 @@ public:
     static const int S_REASON_REMOVE_FROM_PILE = 0x2A;  //  cards moved out of game go back into discardpile
     static const int S_REASON_JUDGEDONE = 0x3A;         //  judge card move into discardpile
     static const int S_REASON_CHANGE_EQUIP = 0x4A;      //  replace existed equip
+    static const int S_REASON_SECRETLY_PUT = 0x5A;      //  swap cards or guhuo
 
     static const int S_MASK_BASIC_REASON = 0x0F;
 };
