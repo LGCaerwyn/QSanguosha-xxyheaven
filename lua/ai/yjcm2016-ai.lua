@@ -816,18 +816,20 @@ jiyu_skill = {
         return nil
     end,
 }
+table.insert(sgs.ai_skills, jiyu_skill)
 
+sgs.ai_skill_use_func.JiyuCard=function(card, use, self)
+	self:sort(self.enemies)
+    for _,enemy in ipairs(self.enemies) do
+        if not enemy:isKongcheng() and not self.player:hasFlag("jiyu" .. enemy:objectName()) then
+            use.card = card
+            if not use.to then use.to = sgs.SPlayerList() end
+            use.to:append(enemy)
+            return
+        end
+    end
+end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+sgs.ai_use_value.JiyuCard = 6
+sgs.ai_use_priority.JiyuCard = 9.4
+sgs.ai_card_intention.JiyuCard = 50

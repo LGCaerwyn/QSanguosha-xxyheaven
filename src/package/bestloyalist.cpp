@@ -48,6 +48,11 @@ public:
         }
         return false;
     }
+
+    int getPriority(TriggerEvent) const
+    {
+        return 2;
+    }
 };
 
 IncreaseArmy::IncreaseArmy(Card::Suit suit, int number)

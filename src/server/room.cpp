@@ -2807,7 +2807,7 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign, cons
         player->clearSelected();
 
 		int extra = 0;
-		if (isNormalGameMode(mode)) {
+		if (isNormalGameMode(mode) || mode == "08_zdyj") {
 			if (player->getRole() == "renegade") {
 				extra = Config.value("RenegadeExtra_Choice", 0).toInt();
 			} else if (player->getRole() == "loyalist") {

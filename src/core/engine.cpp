@@ -735,6 +735,8 @@ QStringList Engine::getConvertGenerals(const QString &name) const
     }
 
     QStringList banned_generals = Config.value("Banlist/Generals", "").toStringList();
+    if (Config.GameMode == "08_zdyj")
+        banned_generals << Config.BestLoyalistSets["generals_ban"];
     foreach (const QString &banned, banned_generals)
         generals.removeOne(banned);
 

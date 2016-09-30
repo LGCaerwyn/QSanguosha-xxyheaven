@@ -207,7 +207,7 @@ void Settings::init()
 
     QStringList forbid_packages = value("ForbidPackages").toStringList();
     if (forbid_packages.isEmpty()) {
-        forbid_packages << "New3v3Card" << "New3v3_2013Card" << "New1v1Card" << "BossMode" << "JianGeDefense" << "BestLoyalist" << "test";
+        forbid_packages << "New3v3Card" << "New3v3_2013Card" << "New1v1Card" << "BossMode" << "JianGeDefense" << "BestLoyalist" << "test" << "BestLoyalistCard";
 
         setValue("ForbidPackages", forbid_packages);
     }

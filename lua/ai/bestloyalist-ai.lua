@@ -131,19 +131,30 @@ sgs.ai_card_intention.BeatAnother = 60
 
 sgs.dynamic_value.control_usecard.BeatAnother = true
 
-function getHpNum(players, n)
-    local total = 0
-    for _,p in ipairs(players) do
-        if p:getHp() == n then
-            total = total + 1
+sgs.ai_skill_invoke.xunzhi = function(self)
+
+    if self.player:getHp() == 1 then
+        local cards = sgs.QList2Table(self.player:getCards("h"))
+        for _,card in ipairs(cards) do
+            if isCard("Peach", card, self.player) or isCard("Analeptic", card, self.player) then
+                return true
+            end
         end
     end
-    return total
-end
 
-sgs.ai_skill_invoke.xunzhi = function(self)
-    local now = getHpNum(self.player:getHp())
-    local after = getHpNum(self.player:getHp() - 1)
+    function getHpNum(players, n)
+        local total = 0
+        for _,p in ipairs(players) do
+            if p:getHp() == n then
+                total = total + 1
+            end
+        end
+        return total
+    end
+    
+    local players = sgs.QList2Table(self.room:getOtherPlayers(self.player))
+    local now = getHpNum(players, self.player:getHp())
+    local after = getHpNum(players, self.player:getHp() - 1)
     if after >= now then return true end
     return false
 end
