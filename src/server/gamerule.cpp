@@ -1105,16 +1105,43 @@ void GameRule::doBossModeDifficultySettings(ServerPlayer *lord) const
 
 void GameRule::rewardAndPunish(ServerPlayer *killer, ServerPlayer *victim) const
 {
-    if (killer->isDead() || killer->getRoom()->getMode() == "06_XMode"
-        || killer->getRoom()->getMode() == "04_boss"
-        || killer->getRoom()->getMode() == "08_defense")
+    Room *room = killer->getRoom();
+    if (killer->isDead() || room->getMode() == "06_XMode"
+        || room->getMode() == "04_boss"
+        || room->getMode() == "08_defense")
         return;
 
-    if (killer->getRoom()->getMode() == "06_3v3") {
+    if (room->getMode() == "06_3v3") {
         if (Config.value("3v3/OfficialRule", "2013").toString().startsWith("201"))
             killer->drawCards(2, "kill");
         else
             killer->drawCards(3, "kill");
+    } else if (room->getMode() == "08_zdyj") {
+        if (victim->getRole() == "rebel" && killer != victim)
+            killer->drawCards(3, "kill");
+        else if (victim->getRole() == "loyalist") {
+            if (killer->getRole() == "lord" && killer->hasShownRole())
+                killer->throwAllHandCardsAndEquips();
+            bool showLord = true;
+            foreach (ServerPlayer *player, room->getOtherPlayers(victim)) {
+                if (player->getRole() == "loyalist" && player->hasShownRole()) {
+                    showLord = false;
+                    break;
+                }
+            }
+            if (showLord) {
+                ServerPlayer *lord = room->getLord(true);
+                room->broadcastProperty(lord, "role", lord->getRole());
+                QStringList skill_names;
+                const General *general = lord->getGeneral();
+                foreach (const Skill *skill, general->getVisibleSkillList()) {
+                    if (skill->isLordSkill())
+                        skill_names << skill->objectName();
+                }
+                if (!skill_names.isEmpty())
+                    room->handleAcquireDetachSkills(lord, skill_names, true);
+            }
+        }
     } else {
         if (victim->getRole() == "rebel" && killer != victim)
             killer->drawCards(3, "kill");

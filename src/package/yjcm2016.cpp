@@ -800,9 +800,10 @@ public:
     virtual bool onPhaseChange(ServerPlayer *huanghao) const
     {
         Room *room = huanghao->getRoom();
-		if (!isNormalGameMode(room->getMode())) return false;
+		if (!isNormalGameMode(room->getMode()) && room->getMode() != "08_zdyj") return false;
 		if (huanghao->getPhase() != Player::Finish) return false;
 		ServerPlayer *lord = room->getLord();
+        if (lord == NULL) return false;
         QList<ServerPlayer *> targets;
         foreach (ServerPlayer *p, room->getOtherPlayers(huanghao)) {
             if (p->inMyAttackRange(lord) && huanghao->canDiscard(p, "he"))

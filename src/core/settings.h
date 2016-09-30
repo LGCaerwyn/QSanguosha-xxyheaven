@@ -66,6 +66,9 @@ public:
     QMap<QString, QStringList> JianGeDefenseMachine;
     QMap<QString, QStringList> JianGeDefenseSoul;
 
+    QMap<QString, QStringList> BestLoyalistSets;
+    QMap<QString, QStringList> CardsBan;
+
     // client side
     QString HostAddress;
     QString UserName;

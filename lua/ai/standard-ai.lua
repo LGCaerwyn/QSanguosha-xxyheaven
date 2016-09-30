@@ -3241,14 +3241,7 @@ end
 sgs.ai_use_value.ChuliCard = 5
 sgs.ai_use_priority.ChuliCard = 4.6
 
-sgs.ai_card_intention.ChuliCard = function(self, card, from, tos)
-    for _, to in ipairs(tos) do
-        if self.chuli_id_choice and self.chuli_id_choice[to:objectName()] then
-            local em_prompt = { "cardChosen", "chuli", tostring(self.chuli_id_choice[to:objectName()]), from:objectName(), to:objectName() }
-            sgs.ai_choicemade_filter.cardChosen.snatch(self, nil, em_prompt)
-        end
-    end
-end
+sgs.ai_choicemade_filter.cardChosen.chuli = sgs.ai_choicemade_filter.cardChosen.dismantlement
 
 sgs.ai_skill_cardask["@chuli-discard"] = function(self, data)
     local to_discard = self:askForDiscard("chuli", 1, 1, false, true)

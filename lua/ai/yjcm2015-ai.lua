@@ -1065,7 +1065,7 @@ sgs.ai_skill_use_func.HuomoCard = function(card, use, self)
     
     if to_use and pattern then
         local card = sgs.Sanguosha:cloneCard(pattern)
-        if card:isKindOf("Slash") and use.to:isEmpty() then 
+        if card:isKindOf("Slash") and (not use.to or use.to:isEmpty()) then 
             use.card = nil
             return nil 
         end

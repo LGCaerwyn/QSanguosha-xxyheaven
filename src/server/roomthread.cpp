@@ -517,7 +517,7 @@ void RoomThread::actionNormal(GameRule *game_rule)
             LogMessage log;
             log.type = "$AppendSeparator";
             room->sendLog(log);
-			if (room->getCurrent()->isLord()){
+			if (room->getCurrent()->getSeat() == 1){
                 room->incTurn();
                 QVariant data = room->getTurn();
 				foreach(ServerPlayer *p, room->getAllPlayers())

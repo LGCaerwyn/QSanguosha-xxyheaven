@@ -1109,7 +1109,7 @@ public:
     void judge(JudgeStruct &judge_struct);
     void sendJudgeResult(const JudgeStruct *judge);
     QList<int> getNCards(int n, bool update_pile_number = true);
-    ServerPlayer *getLord() const;
+    ServerPlayer *getLord(bool as_shown = false) const;
     void askForGuanxing(ServerPlayer *zhuge, const QList<int> &cards, GuanxingType guanxing_type = GuanxingBothSides);
     AskForMoveCardsStruct askForMoveCards(ServerPlayer *zhuge, const QList<int> &upcards, const QList<int> &downcards, bool visible, const char *reason, const char *pattern, int min_num, int max_num, bool can_refuse = true, bool moverestricted = false, const QList<int> &notify_visible_list = QList<int>());
     void returnToTopDrawPile(const QList<int> &cards);

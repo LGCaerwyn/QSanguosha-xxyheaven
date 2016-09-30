@@ -251,7 +251,7 @@ public:
     virtual int getCorrect(const Player *from, const Player *) const
     {
         if (from->hasSkill(this))
-            return from->getLostHp();
+            return -from->getLostHp();
         else
             return 0;
     }

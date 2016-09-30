@@ -121,7 +121,7 @@ QList<const Skill *> General::getSkillList() const
 			
 		}
 		const Skill *skill = Sanguosha->getSkill(skill_name);
-		if (skill && skill->isLordSkill() && ServerInfo.DuringGame && !isNormalGameMode(ServerInfo.GameMode))
+		if (skill && skill->isLordSkill() && ServerInfo.DuringGame && !(isNormalGameMode(ServerInfo.GameMode) || ServerInfo.GameMode == "08_zdyj"))
 		    continue;
 		skills << skill;
     }
