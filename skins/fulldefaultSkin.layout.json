@@ -118,7 +118,7 @@
     "smallAvatarNameFont": ["@SimLi", [18, 18, 0], 0, [255, 255, 255, 255], 1, 10, [0, 0], [50, 50, 50, 200]],
     "kingdomIconArea": [0, -2, 28, 28],
     "kingdomMaskArea": [4, 12, 18, 80],
-    "screenNameArea": [0, 4, 157, 13],
+    "screenNameArea": [0, 0, 157, 18],
     "screenNameFont": ["SimSun", 12, 0, [255, 255, 255, 255], 0, 10, [0, 0], [20, 20, 20, 155]],
     "magatamasHorizontal": false,
     "magatamaSize": [18, 17],

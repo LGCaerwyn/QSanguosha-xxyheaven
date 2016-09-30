@@ -330,6 +330,7 @@ Engine::Engine(bool isManualMode)
     modes["08pd"] = tr("8 players (2 renegades)");
     modes["08pz"] = tr("8 players (0 renegade)");
     modes["08_defense"] = tr("8 players (JianGe Defense)");
+    modes["08_zdyj"] = tr("8 players (Best Loyalist)");
     modes["09p"] = tr("9 players");
     modes["10pd"] = tr("10 players");
     modes["10p"] = tr("10 players (1 renegade)");
@@ -734,6 +735,8 @@ QStringList Engine::getConvertGenerals(const QString &name) const
     }
 
     QStringList banned_generals = Config.value("Banlist/Generals", "").toStringList();
+    if (Config.GameMode == "08_zdyj")
+        banned_generals << Config.BestLoyalistSets["generals_ban"];
     foreach (const QString &banned, banned_generals)
         generals.removeOne(banned);
 
@@ -1072,6 +1075,8 @@ QString Engine::getRoles(const QString &mode) const
         return "ZFFF";
     } else if (mode == "08_defense") {
         return "FFFFCCCC";
+    } else if (mode == "08_zdyj") {
+        return "ZCCFFFFN";
     }
 
     if (modes.contains(mode) || isNormalGameMode(mode)) { // hidden pz settings?
@@ -1285,7 +1290,8 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
 
     if (isNormalGameMode(ServerInfo.GameMode)
         || ServerInfo.GameMode.contains("_mini_")
-        || ServerInfo.GameMode == "custom_scenario")
+        || ServerInfo.GameMode == "custom_scenario"
+        || ServerInfo.GameMode == "08_zdyj")
         general_set.subtract(Config.value("Banlist/Roles", "").toStringList().toSet());
 
     all_generals = general_set.subtract(ban_set).toList();
@@ -1301,7 +1307,8 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
 
 QList<int> Engine::getRandomCards() const
 {
-    bool exclude_disaters = false, using_2012_3v3 = false, using_2013_3v3 = false;
+    bool exclude_disaters = false, using_2012_3v3 = false, using_2013_3v3 = false, exclude_zdyj = false;
+    QStringList extra_ban = QStringList();
 
     if (Config.GameMode == "06_3v3") {
         using_2012_3v3 = (Config.value("3v3/OfficialRule", "2013").toString() == "2012");
@@ -1311,6 +1318,11 @@ QList<int> Engine::getRandomCards() const
 
     if (Config.GameMode == "04_1v3")
         exclude_disaters = true;
+
+    if (Config.GameMode == "08_zdyj") {
+        exclude_zdyj = true;
+        extra_ban << Config.BestLoyalistSets["cards_ban"];
+    }
 
     QList<int> list;
     foreach (Card *card, cards) {
@@ -1324,6 +1336,8 @@ QList<int> Engine::getRandomCards() const
                 break;
             }
         }
+        if (!removed && extra_ban.contains(card->objectName()))
+            removed = true;
         if (removed)
             continue;
 
@@ -1333,6 +1347,8 @@ QList<int> Engine::getRandomCards() const
         if (card->getPackage() == "New3v3Card" && (using_2012_3v3 || using_2013_3v3))
             list << card->getId();
         else if (card->getPackage() == "New3v3_2013Card" && using_2013_3v3)
+            list << card->getId();
+        else if (card->getPackage() == "BestLoyalistCard" && exclude_zdyj)
             list << card->getId();
 
         if (Config.GameMode == "02_1v1" && !Config.value("1v1/UsingCardExtension", false).toBool()) {

@@ -2281,6 +2281,14 @@ int Room::drawCard()
 
 void Room::prepareForStart()
 {
+    if (mode == "08_zdyj") {
+        Config.EnableHegemony = false;
+        Config.EnableBasara = false;
+        Config.EnableSame = false;
+        Config.Enable2ndGeneral = false;
+        Config.setValue("FreeAssign", false);
+    } 
+
     if (scenario) {
         QStringList generals, roles;
         scenario->assign(generals, roles);
@@ -2740,7 +2748,7 @@ void Room::signup(ServerPlayer *player, const QString &screen_name, const QStrin
         toggleReadyCommand(player, QVariant());
 }
 
-void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
+void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign, const QSet<QString> &ban_set)
 {
     QSet<QString> existed;
     foreach (ServerPlayer *player, m_players) {
@@ -2764,6 +2772,7 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
 
     const int total = Sanguosha->getGeneralCount();
     const int max_available = (total - existed.size()) / to_assign.length();
+    existed = existed.unite(ban_set);
 
     QStringList choices = Sanguosha->getRandomGenerals(total - existed.size(), existed);
 
@@ -2798,7 +2807,7 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
         player->clearSelected();
 
 		int extra = 0;
-		if (isNormalGameMode(mode)) {
+		if (isNormalGameMode(mode) || mode == "08_zdyj") {
 			if (player->getRole() == "renegade") {
 				extra = Config.value("RenegadeExtra_Choice", 0).toInt();
 			} else if (player->getRole() == "loyalist") {
@@ -3017,6 +3026,50 @@ void Room::chooseGeneralsOfJianGeDefenseMode()
     }
 }
 
+void Room::chooseGeneralsOfBestLoyalistMode(QList<ServerPlayer *> players)
+{
+    if (players.isEmpty()) players = m_players;
+    // for lord.
+    int nonlord_num = Config.value("NonLordMaxChoice", 2).toInt();
+    ServerPlayer *the_loyalist;
+    foreach (ServerPlayer *player, players) {
+        if (player->getRole() == "loyalist" && player->hasShownRole()) {
+            the_loyalist = player;
+            break;
+        }
+    }
+
+    QStringList lord_list = Config.BestLoyalistSets["first"];
+    QStringList beixuan_list = Config.BestLoyalistSets["seconds"];
+    QSet<QString> ban_set = Config.BestLoyalistSets["generals_ban"].toSet();
+    ban_set = ban_set.unite(lord_list.toSet());
+
+    if (the_loyalist && players.contains(the_loyalist)) {
+        qShuffle(beixuan_list);
+        lord_list << beixuan_list[0] << beixuan_list[1] << beixuan_list[2];
+        lord_list.append(Sanguosha->getRandomGenerals(2 + nonlord_num, ban_set));
+        QString general = askForGeneral(the_loyalist, lord_list, true, QString(), true);
+        the_loyalist->setGeneralName(general);
+        broadcastProperty(the_loyalist, "general", general);
+    }
+    QList<ServerPlayer *> to_assign = players;
+    if (the_loyalist) to_assign.removeOne(the_loyalist);
+
+    assignGeneralsForPlayers(to_assign, ban_set);
+    foreach(ServerPlayer *player, to_assign)
+        _setupChooseGeneralRequestArgs(player, true, true);
+
+    doBroadcastRequest(to_assign, S_COMMAND_CHOOSE_GENERAL);
+    foreach(ServerPlayer *player, to_assign)
+    {
+        if (player->getGeneral() != NULL) continue;
+        QString generalName = player->getClientReply().toString();
+        if (!player->m_isClientResponseReady || !_setPlayerGeneral(player, generalName, true))
+            _setPlayerGeneral(player, _chooseDefaultGeneral(player), true);
+        broadcastProperty(player, "general", generalName);
+    }
+}
+
 void Room::run()
 {
     // initialize random seed for later use
@@ -3128,6 +3181,9 @@ void Room::run()
             setPlayerProperty(m_players.at(i), "jiange_defense_type", type_list.at(i));
         chooseGeneralsOfJianGeDefenseMode();
         startGame();
+    } else if (mode == "08_zdyj") {
+        chooseGeneralsOfBestLoyalistMode();
+        startGame();
     } else {
         chooseGenerals();
         startGame();
@@ -3142,16 +3198,26 @@ void Room::assignRoles()
     if (mode != "08_defense")
         qShuffle(roles);
 
+    bool first_role_showed = false;
     for (int i = 0; i < n; i++) {
         ServerPlayer *player = m_players[i];
         QString role = roles.at(i);
 
         player->setRole(role);
-        if ((role == "lord" && !ServerInfo.EnableHegemony)
-            || mode == "04_1v3" || mode == "04_boss" || mode == "08_defense")
-            broadcastProperty(player, "role", player->getRole());
-        else
-            notifyProperty(player, player, "role");
+        
+        if (mode == "08_zdyj") {
+            if (role == "loyalist" && !first_role_showed) {
+                broadcastProperty(player, "role", player->getRole());
+                first_role_showed = true;
+            } else
+                notifyProperty(player, player, "role");
+        } else {
+            if ((role == "lord" && !ServerInfo.EnableHegemony)
+                || mode == "04_1v3" || mode == "04_boss" || mode == "08_defense")
+                broadcastProperty(player, "role", player->getRole());
+            else
+                notifyProperty(player, player, "role");
+        }
     }
 }
 
@@ -3188,7 +3254,10 @@ void Room::adjustSeats()
     QList<ServerPlayer *> players;
     int i = 0;
     for (i = 0; i < m_players.length(); i++) {
-        if (m_players.at(i)->getRoleEnum() == Player::Lord)
+        if (mode == "08_zdyj") {
+            if (m_players.at(i)->getRoleEnum() == Player::Loyalist && m_players.at(i)->hasShownRole())
+                break;
+        } else if (m_players.at(i)->getRoleEnum() == Player::Lord)
             break;
     }
     for (int j = i; j < m_players.length(); j++)
@@ -3842,6 +3911,8 @@ void Room::damage(const DamageStruct &data)
 
 bool Room::hasWelfare(const ServerPlayer *player) const
 {
+    if (mode == "08_zdyj")
+        return player->getRole() == "loyalist" && player->hasShownRole();
     if (mode == "06_3v3")
         return player->isLord() || player->getRole() == "renegade";
     else if (Config.EnableHegemony || mode == "06_XMode")
@@ -5521,14 +5592,14 @@ QList<int> Room::getCardIdsOnTable(const QList<int> &card_ids) const
     return r;
 }
 
-ServerPlayer *Room::getLord() const
+ServerPlayer *Room::getLord(bool as_shown) const
 {
     ServerPlayer *the_lord = m_players.first();
-    if (the_lord->getRole() == "lord")
+    if (the_lord->getRole() == "lord" && (as_shown || the_lord->hasShownRole()))
         return the_lord;
 
     foreach (ServerPlayer *player, m_players) {
-        if (player->getRole() == "lord")
+        if (player->getRole() == "lord" && (as_shown || player->hasShownRole()))
             return player;
     }
 
@@ -7053,7 +7124,7 @@ void Room::incTurn()
 bool Room::isSkillValidForPlayer(const ServerPlayer *player, const Skill *skill)
 {
     if (skill->isLordSkill()
-        && (player->getRole() != "lord")) {
+        && (!player->isLord())) {
             return false;
     }
 

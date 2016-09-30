@@ -47,7 +47,7 @@ bool Skill::shouldBeVisible(const Player *Self) const
 
 QString Skill::getDescription() const
 {
-    bool normal_game = ServerInfo.DuringGame && isNormalGameMode(ServerInfo.GameMode);
+    bool normal_game = ServerInfo.DuringGame && (isNormalGameMode(ServerInfo.GameMode) || ServerInfo.GameMode == "08_zdyj");
     QString name = QString("%1%2").arg(objectName()).arg(normal_game ? "_p" : "");
     QString des_src = Sanguosha->translate(":" + name);
     if (normal_game && des_src.startsWith(":"))

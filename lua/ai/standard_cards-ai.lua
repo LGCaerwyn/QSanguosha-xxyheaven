@@ -361,8 +361,15 @@ function SmartAI:slashIsEffective(slash, to, from, ignore_armor)
 		if to:getArmor() and self:hasSkills(sgs.ignore_armor_skill, from) then
 			if not self:isFriend(to) or self:needToThrowArmor(to) then
 				if not (self:isEnemy(to) and self:doNotDiscard(to)) then
-                    local id = self:askForCardChosen(to, "he", "moukui")
-                    if id == to:getArmor():getEffectiveId() then ignore_armor = true end
+                    if from:hasSkill("moukui") then
+                        local id = self:askForCardChosen(to, "he", "moukui")
+                        if id == to:getArmor():getEffectiveId() then ignore_armor = true end
+                    end
+                    if from:hasSkill("pojun") then
+                        local ids = self:askForCardsChosen(to, "he", "pojun", 1, to:getHp())
+                        local armor_id = to:getArmor():getEffectiveId()
+                        if table.contains(ids, id) then ignore_armor = true end
+                    end
 				end
 			end
 		end

@@ -207,7 +207,7 @@ void Settings::init()
 
     QStringList forbid_packages = value("ForbidPackages").toStringList();
     if (forbid_packages.isEmpty()) {
-        forbid_packages << "New3v3Card" << "New3v3_2013Card" << "New1v1Card" << "BossMode" << "JianGeDefense" << "test";
+        forbid_packages << "New3v3Card" << "New3v3_2013Card" << "New1v1Card" << "BossMode" << "JianGeDefense" << "BestLoyalist" << "test" << "BestLoyalistCard";
 
         setValue("ForbidPackages", forbid_packages);
     }
@@ -225,6 +225,10 @@ void Settings::init()
     QVariantMap jiange_defense_soul = GetConfigFromLuaState(lua, "jiange_defense_soul").toMap();
     foreach(QString key, jiange_defense_soul.keys())
         Config.JianGeDefenseSoul[key] = jiange_defense_soul[key].toString().split("+");
+
+    QVariantMap best_loyalist_sets = GetConfigFromLuaState(lua, "best_loyalist_sets").toMap();
+    foreach (QString key, best_loyalist_sets.keys())
+        Config.BestLoyalistSets[key] = best_loyalist_sets[key].toString().split("+");
 
 
     QStringList exp_skills = GetConfigFromLuaState(lua, "bossmode_exp_skills").toStringList();

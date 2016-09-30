@@ -30,6 +30,7 @@ config = {
 		"New3v3Card",
 		"New3v3_2013Card",
 		"New1v1Card",
+        "BestLoyalistCard",
 
 		"Standard",
 		"Wind",
@@ -57,6 +58,7 @@ config = {
 		"NostalYJCM",
 		"NostalYJCM2012",
 		"NostalYJCM2013",
+        "BestLoyalist",
 		"JianGeDefense",
 		"BossMode",
 		"Test"
@@ -363,5 +365,12 @@ config = {
 	jiange_defense_soul = {
 		wei = "jg_soul_caozhen+jg_soul_simayi+jg_soul_xiahouyuan+jg_soul_zhanghe",
 		shu = "jg_soul_liubei+jg_soul_zhugeliang+jg_soul_huangyueying+jg_soul_pangtong",
-	}
+	},
+    
+    best_loyalist_sets = {
+        first = "cuiyan",
+        seconds = "dianwei+caoang+xuchu+zhangfei+zhaoyun+jiangwei+huanggai+zumao+zhoutai+chengong+diaochan+jvshou",
+        generals_ban = "xuhuang+dengai+hanhaoshihuan+yuji+nos_yuji+sp_guanyu+zuoci+yuanshu+huanghao",
+        cards_ban = "snatch+supply_shortage+amazing_grace+ex_nihilo",
+    }
 }
