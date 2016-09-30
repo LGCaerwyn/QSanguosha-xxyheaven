@@ -67,7 +67,7 @@ sgs.ai_card_intention.AllArmy = 50
 sgs.dynamic_value.control_usecard.AllArmy = true
 
 
-function SmartAI:useCardIncreaseArmy(card, use)
+function SmartAI:useCardMoreTroops(card, use)
 	local friends = self:exclude(self.friends, card)
     self:sort(friends)
     for _,friend in ipairs(friends) do
@@ -79,12 +79,12 @@ function SmartAI:useCardIncreaseArmy(card, use)
     end
 end
 
-sgs.ai_use_value.IncreaseArmy = 7
-sgs.ai_keep_value.IncreaseArmy = 4
-sgs.ai_use_priority.IncreaseArmy = 7
-sgs.ai_card_intention.IncreaseArmy = -120
+sgs.ai_use_value.MoreTroops = 7
+sgs.ai_keep_value.MoreTroops = 4
+sgs.ai_use_priority.MoreTroops = 7
+sgs.ai_card_intention.MoreTroops = -120
 
-sgs.dynamic_value.control_usecard.IncreaseArmy = true
+sgs.dynamic_value.control_usecard.MoreTroops = true
 
 
 function SmartAI:useCardBeatAnother(card, use)
@@ -132,15 +132,7 @@ sgs.ai_card_intention.BeatAnother = 60
 sgs.dynamic_value.control_usecard.BeatAnother = true
 
 sgs.ai_skill_invoke.xunzhi = function(self)
-
-    if self.player:getHp() == 1 then
-        local cards = sgs.QList2Table(self.player:getCards("h"))
-        for _,card in ipairs(cards) do
-            if isCard("Peach", card, self.player) or isCard("Analeptic", card, self.player) then
-                return true
-            end
-        end
-    end
+    if self.player:getHp() == 1 then return false end
 
     function getHpNum(players, n)
         local total = 0

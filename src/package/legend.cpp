@@ -87,6 +87,7 @@ public:
 				room->setPlayerFlag(xiahouyuan, "-slashNoDistanceLimit");
 			room->setPlayerMark(xiahouyuan, "ShensuIndex", 0);
 		} else if (triggerEvent == CardExtraCost) {
+            if (!data.canConvert<CardUseStruct>()) return false;
 			CardUseStruct use = data.value<CardUseStruct>();
 			if (use.card->getSkillName() != objectName()) return false;
 			switch (xiahouyuan->getMark("ShensuIndex")) {
