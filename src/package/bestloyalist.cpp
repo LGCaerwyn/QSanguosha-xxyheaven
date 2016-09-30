@@ -217,7 +217,7 @@ void BeatAnother::onUse(Room *room, const CardUseStruct &card_use) const
 
     CardUseStruct new_use = card_use;
     new_use.to.removeAt(1);
-    from->tag["beatAnotherTo"] = QVariant::fromValue(to);
+    this->tag["beatAnotherTo"] = QVariant::fromValue(to);
 
     SingleTargetTrick::onUse(room, new_use);
 }
@@ -227,8 +227,9 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
     ServerPlayer *source = effect.from;
     Room *room = source->getRoom();
     ServerPlayer *killer = effect.to;
-    ServerPlayer *victim = effect.to->tag["beatAnotherTo"].value<ServerPlayer *>();
-    effect.to->tag.remove("beatAnotherTo");
+    ServerPlayer *victim = this->tag["beatAnotherTo"].value<ServerPlayer *>();
+    this->tag.remove("beatAnotherTo");
+    if (victim == NULL) return;
 
     if (source->isKongcheng()) return;
     const Card *card = room->askForCard(source, ".", "@beatanother-give:" + killer->objectName(), QVariant(), Card::MethodNone);

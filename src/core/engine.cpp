@@ -1288,7 +1288,8 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
 
     if (isNormalGameMode(ServerInfo.GameMode)
         || ServerInfo.GameMode.contains("_mini_")
-        || ServerInfo.GameMode == "custom_scenario")
+        || ServerInfo.GameMode == "custom_scenario"
+        || ServerInfo.GameMode == "08_zdyj")
         general_set.subtract(Config.value("Banlist/Roles", "").toStringList().toSet());
 
     all_generals = general_set.subtract(ban_set).toList();
