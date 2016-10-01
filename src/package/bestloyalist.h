@@ -13,13 +13,12 @@ public:
     virtual void takeEffect(ServerPlayer *target) const;
 };
 
-class IncreaseArmy : public SingleTargetTrick
+class MoreTroops : public SingleTargetTrick
 {
     Q_OBJECT
 
 public:
-    Q_INVOKABLE IncreaseArmy(Card::Suit suit, int number);
-
+    Q_INVOKABLE MoreTroops(Card::Suit suit, int number);
     virtual bool targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const;
     virtual void onEffect(const CardEffectStruct &effect) const;
 };

@@ -55,136 +55,6 @@ public:
     }
 };
 
-IncreaseArmy::IncreaseArmy(Card::Suit suit, int number)
-    : SingleTargetTrick(suit, number)
-{
-    setObjectName("increase_army");
-}
-
-bool IncreaseArmy::targetFilter(const QList<const Player *> &targets, const Player *, const Player *Self) const
-{
-    int total_num = 1 + Sanguosha->correctCardTarget(TargetModSkill::ExtraTarget, Self, this);
-    return targets.length() < total_num;
-}
-
-void IncreaseArmy::onEffect(const CardEffectStruct &effect) const
-{
-    Room *room = effect.from->getRoom();
-    effect.to->drawCards(3);
-
-    QList<const Card *> cards = effect.to->getCards("he");
-    QList<const Card *> cardsCopy = cards;
-
-    foreach(const Card *c, cardsCopy)
-    {
-        if (effect.to->isJilei(c))
-            cards.removeOne(c);
-    }
-
-    if (cards.length() == 0)
-        return;
-
-    bool instanceDiscard = false;
-    int instanceDiscardId = -1;
-
-    if (cards.length() == 1)
-        instanceDiscard = true;
-    else if (cards.length() == 2) {
-        bool bothBasic = true;
-        int cardId = -1;
-
-        foreach(const Card *c, cards)
-        {
-            if (c->getTypeId() != Card::TypeBasic)
-                bothBasic = false;
-            else
-                cardId = c->getId();
-        }
-
-        instanceDiscard = bothBasic;
-        instanceDiscardId = cardId;
-    }
-
-    if (instanceDiscard) {
-        DummyCard d;
-        if (instanceDiscardId == -1)
-            d.addSubcards(cards);
-        else
-            d.addSubcard(instanceDiscardId);
-        room->throwCard(&d, effect.to);
-    } else if (!room->askForCard(effect.to, "@@reducecookdiscard!", "@reducecook-discard")) {
-        DummyCard d;
-        qShuffle(cards);
-        int cardId = -1;
-        foreach(const Card *c, cards)
-        {
-            if (c->getTypeId() != Card::TypeBasic) {
-                cardId = c->getId();
-                break;
-            }
-        }
-        if (cardId != -1)
-            d.addSubcard(cardId);
-        else {
-            d.addSubcard(cards.first());
-            d.addSubcard(cards.last());
-        }
-
-        room->throwCard(&d, effect.to);
-    }
-}
-
-class ReduceCookDiscard : public ViewAsSkill
-{
-public:
-    ReduceCookDiscard() : ViewAsSkill("reducecookdiscard")
-    {
-    }
-
-    virtual bool isEnabledAtPlay(const Player *) const
-    {
-        return false;
-    }
-
-    virtual bool isEnabledAtResponse(const Player *, const QString &pattern) const
-    {
-        return pattern == "@@reducecookdiscard!";
-    }
-
-    virtual bool viewFilter(const QList<const Card *> &selected, const Card *to_select) const
-    {
-        if (Self->isJilei(to_select))
-            return false;
-
-        if (selected.length() == 0)
-            return true;
-        else if (selected.length() == 1) {
-            if (selected.first()->getTypeId() != Card::TypeBasic)
-                return false;
-            return true;
-        } else
-            return false;
-
-        return false;
-    }
-
-    virtual const Card *viewAs(const QList<const Card *> &cards) const
-    {
-        bool ok = false;
-        if (cards.length() == 1)
-            ok = cards.first()->getTypeId() != Card::TypeBasic;
-        else if (cards.length() == 2)
-            ok = true;
-
-        if (!ok)
-            return NULL;
-
-        DummyCard *dummy = new DummyCard;
-        dummy->addSubcards(cards);
-        return dummy;
-    }
-};
-
 BeatAnother::BeatAnother(Card::Suit suit, int number)
     : SingleTargetTrick(suit, number)
 {
@@ -296,6 +166,91 @@ public:
         return dummy;
     }
 };
+
+MoreTroops::MoreTroops(Card::Suit suit, int number)
+    : SingleTargetTrick(suit, number)
+{
+    setObjectName("more_troops");
+}
+
+bool MoreTroops::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+{
+    int total_num = 1 + Sanguosha->correctCardTarget(TargetModSkill::ExtraTarget, Self, this);
+    return targets.length() < total_num;
+}
+
+void MoreTroops::onEffect(const CardEffectStruct &effect) const
+{
+    Room *room = effect.from->getRoom();
+    effect.to->drawCards(3);
+    if (!room->askForCard(effect.to, "@@by_stove!", "@by_stove")) {
+        QList<const Card *> cards = effect.to->getCards("he");
+        DummyCard d;
+        qShuffle(cards);
+        int cardId = -1;
+        foreach(const Card *c, cards)
+        {
+            if (c->getTypeId() != Card::TypeBasic) {
+                cardId = c->getId();
+                break;
+            }
+        }
+        if (cardId != -1)
+            d.addSubcard(cardId);
+        else {
+            d.addSubcard(cards.first());
+            d.addSubcard(cards.last());
+        }
+
+        room->throwCard(&d, effect.to);
+    }
+}
+
+class ByStove : public ViewAsSkill
+{
+public:
+    ByStove() : ViewAsSkill("by_stove")
+    {
+    }
+
+    virtual bool isEnabledAtPlay(const Player *) const
+    {
+        return false;
+    }
+
+    virtual bool isEnabledAtResponse(const Player *, const QString &pattern) const
+    {
+        return pattern == "@@by_stove!";
+    }
+
+    virtual bool viewFilter(const QList<const Card *> &selected, const Card *to_select) const
+    {
+        if (Self->isJilei(to_select))
+            return false;
+
+        if (selected.length() < 2)
+            return true;
+
+        return false;
+    }
+
+    virtual const Card *viewAs(const QList<const Card *> &cards) const
+    {
+        bool ok = false;
+        if (cards.length() == 1)
+            ok = cards.first()->getTypeId() != Card::TypeBasic;
+        else if (cards.length() == 2)
+            ok = true;
+
+        if (!ok)
+            return NULL;
+
+        DummyCard *dummy = new DummyCard;
+        dummy->addSubcards(cards);
+        return dummy;
+    }
+};
+
 
 
 
@@ -454,12 +409,12 @@ BestLoyalistCardPackage::BestLoyalistCardPackage()
         << new BeatAnother(Card::Spade, 4)
         << new BeatAnother(Card::Spade, 11);
 
-    cards << new IncreaseArmy(Card::Heart, 3)
-        << new IncreaseArmy(Card::Heart, 4)
-        << new IncreaseArmy(Card::Heart, 7)
-        << new IncreaseArmy(Card::Heart, 8)
-        << new IncreaseArmy(Card::Heart, 9)
-        << new IncreaseArmy(Card::Heart, 11);
+    cards << new MoreTroops(Card::Heart, 3)
+        << new MoreTroops(Card::Heart, 4)
+        << new MoreTroops(Card::Heart, 7)
+        << new MoreTroops(Card::Heart, 8)
+        << new MoreTroops(Card::Heart, 9)
+        << new MoreTroops(Card::Heart, 11);
 
     cards << new BeatAnother(Card::Diamond, 3)
         << new BeatAnother(Card::Diamond, 4);
@@ -467,7 +422,7 @@ BestLoyalistCardPackage::BestLoyalistCardPackage()
     foreach(Card *card, cards)
         card->setParent(this);
 
-    skills << new AllArmyDraw << new ReduceCookDiscard << new BeatAnotherGive;
+    skills << new AllArmyDraw << new ByStove << new BeatAnotherGive;
 }
 
 ADD_PACKAGE(BestLoyalistCard)

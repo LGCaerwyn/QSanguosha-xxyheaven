@@ -121,6 +121,7 @@ public:
     virtual bool trigger(TriggerEvent triggerEvent, Room *, ServerPlayer *player, QVariant &data) const
     {
         if (triggerEvent == CardExtraCost) {
+            if (!data.canConvert<CardUseStruct>()) return false;
             if (data.value<CardUseStruct>().card->getSkillName() == "jiushi")
                 player->turnOver();
         } else if (triggerEvent == PreDamageDone) {
