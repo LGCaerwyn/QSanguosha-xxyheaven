@@ -307,11 +307,12 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
 
 		QList<int> table_cardids = room->getCardIdsOnTable(use.card);
 		if (!table_cardids.isEmpty()) {
-			DummyCard dummy(table_cardids);
+			DummyCard *dummy = new DummyCard(table_cardids);
 			CardMoveReason reason(CardMoveReason::S_REASON_USE, use.from->objectName(), QString(), use.card->getSkillName(), QString());
 			if (use.to.size() == 1) reason.m_targetId = use.to.first()->objectName();
             reason.m_extraData = QVariant::fromValue(use.card);
-			room->moveCardTo(&dummy, use.from, NULL, Player::DiscardPile, reason, true);
+			room->moveCardTo(dummy, use.from, NULL, Player::DiscardPile, reason, true);
+            dummy->deleteLater();
 		}
         break;
     }
@@ -557,7 +558,7 @@ bool GameRule::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *play
                     .arg(slasher).arg(i);
                 asked_jink = room->askForCard(effect.to, "jink", prompt, data, Card::MethodUse, effect.from);
                 if (!room->isJinkEffected(effect.to, asked_jink)) {
-                    delete jink;
+                    jink->deleteLater();
                     room->slashResult(effect, NULL);
                     return false;
                 } else {
@@ -1284,7 +1285,7 @@ bool HulaoPassMode::trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer 
                 dummy->addSubcard(trick);
             CardMoveReason reason(CardMoveReason::S_REASON_NATURAL_ENTER, QString());
             room->throwCard(dummy, reason, NULL);
-            delete dummy;
+            dummy->deleteLater();
         }
         if (!lord->faceUp())
             lord->turnOver();

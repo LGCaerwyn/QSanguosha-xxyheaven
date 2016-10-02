@@ -1546,11 +1546,12 @@ const Card *Room::askForCard(ServerPlayer *player, const QString &pattern, const
             } else if (!isProvision) {
                 QList<int> table_cardids = getCardIdsOnTable(card);
                 if (!table_cardids.isEmpty()) {
-                    DummyCard dummy(table_cardids);
+                    DummyCard *dummy = new DummyCard(table_cardids);
+                    dummy->deleteLater();
                     CardMoveReason reason(CardMoveReason::S_REASON_RESPONSE, player->objectName());
                     reason.m_skillName = card->getSkillName();
                     reason.m_extraData = QVariant::fromValue(card);
-                    moveCardTo(&dummy, player, NULL, Player::DiscardPile, reason, true);
+                    moveCardTo(dummy, player, NULL, Player::DiscardPile, reason, true);
                 }
             }
         }
@@ -5485,6 +5486,7 @@ bool Room::askForDiscard(ServerPlayer *player, const QString &reason, int discar
     if (to_discard.isEmpty()) return false;
 
     DummyCard *dummy_card = new DummyCard(to_discard);
+    dummy_card->deleteLater();
     if (reason == "gamerule") {
         CardMoveReason mreason(CardMoveReason::S_REASON_RULEDISCARD, player->objectName(), QString(), dummy_card->getSkillName(), reason);
         throwCard(dummy_card, mreason, player);
@@ -5497,7 +5499,6 @@ bool Room::askForDiscard(ServerPlayer *player, const QString &reason, int discar
     data = QString("%1:%2:%3").arg("cardDiscard").arg(reason).arg(dummy_card->toString());
     thread->trigger(ChoiceMade, this, player, data);
 
-    delete dummy_card;
     return true;
 }
 
@@ -6892,6 +6893,7 @@ bool Room::askForYiji(ServerPlayer *guojia, QList<int> &cards, const QString &sk
     Q_ASSERT(target != NULL);
 
     DummyCard *dummy_card = new DummyCard;
+    dummy_card->deleteLater();
     foreach (int card_id, ids) {
         cards.removeOne(card_id);
         dummy_card->addSubcard(card_id);
@@ -6918,7 +6920,6 @@ bool Room::askForYiji(ServerPlayer *guojia, QList<int> &cards, const QString &sk
     guojia->setFlags("Global_GongxinOperator");
     moveCardTo(dummy_card, target, Player::PlaceHand, reason, visible);
     guojia->setFlags("-Global_GongxinOperator");
-    delete dummy_card;
 
     return true;
 }

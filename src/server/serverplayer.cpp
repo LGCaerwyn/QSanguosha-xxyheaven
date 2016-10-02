@@ -103,13 +103,13 @@ void ServerPlayer::throwAllEquips()
     if (equips.isEmpty()) return;
 
     DummyCard *card = new DummyCard;
+    card->deleteLater();
     foreach (const Card *equip, equips) {
         if (!isJilei(card))
             card->addSubcard(equip);
     }
     if (card->subcardsLength() > 0)
         room->throwCard(card, this);
-    delete card;
 }
 
 void ServerPlayer::throwAllHandCards()
@@ -144,9 +144,9 @@ void ServerPlayer::clearOnePrivatePile(QString pile_name)
     QList<int> &pile = piles[pile_name];
 
     DummyCard *dummy = new DummyCard(pile);
+    dummy->deleteLater();
     CardMoveReason reason(CardMoveReason::S_REASON_REMOVE_FROM_PILE, this->objectName());
     room->throwCard(dummy, reason, NULL);
-    delete dummy;
     piles.remove(pile_name);
 }
 
@@ -171,11 +171,11 @@ void ServerPlayer::bury()
 void ServerPlayer::throwAllCards()
 {
     DummyCard *card = isKongcheng() ? new DummyCard : wholeHandCards();
+    card->deleteLater();
     foreach(const Card *equip, getEquips())
         card->addSubcard(equip);
     if (card->subcardsLength() != 0)
         room->throwCard(card, this);
-    delete card;
 
     QList<const Card *> tricks = getJudgingArea();
     foreach (const Card *trick, tricks) {
@@ -1349,9 +1349,9 @@ void ServerPlayer::exchangeFreelyFromPrivatePile(const QString &skill_name, cons
     room->setPlayerFlag(this, "-" + tempMovingFlag);
 
     DummyCard *dummy = new DummyCard(will_to_handcard_x);
+    dummy->deleteLater();
     CardMoveReason reason(CardMoveReason::S_REASON_EXCHANGE_FROM_PILE, this->objectName());
     room->obtainCard(this, dummy, reason, false);
-    delete dummy;
 }
 
 void ServerPlayer::gainAnExtraTurn()

@@ -217,7 +217,7 @@
     "cardMoveArea": [-50, 65, 200, 130],
     "skillNameArea": [25, 30, 300, 50],
     "skillNameFont": ["SimLi", 30, 0, [255, 255, 255, 255], 2, 20, [0, 0], [255, 0, 0, 128]],
-    "progressBarArea": ["bottomCenter", "bottomCenter", [-8, 0], [262, 10]],
+    "progressBarArea": ["bottomCenter", "bottomCenter", [-105, 0], [262, 10]],
     "progressBarHorizontal": true,
     "privatePileStartPos": [18, 23],
     "privatePileStep": [2, 2],

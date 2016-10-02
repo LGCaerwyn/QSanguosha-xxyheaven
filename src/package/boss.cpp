@@ -842,7 +842,8 @@ public:
 			if (card != NULL) {
 				to_remain = card->getSubcards();
 			}
-			DummyCard *to_discard = new DummyCard;
+            DummyCard *to_discard = new DummyCard;
+            to_discard->deleteLater();
 			foreach (const Card *c, target->getCards("he")) {
                 if (!target->isJilei(c) && !to_remain.contains(c->getEffectiveId()))
                     to_discard->addSubcard(c);
@@ -851,8 +852,6 @@ public:
 				CardMoveReason mreason(CardMoveReason::S_REASON_THROW, target->objectName(), QString(), objectName(), QString());
                 room->throwCard(to_discard, mreason, target);
 			}
-
-			delete to_discard;
         }
         return false;
     }

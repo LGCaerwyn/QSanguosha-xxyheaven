@@ -255,6 +255,10 @@ void DelayedTrick::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &
 {
     QStringList nullified_list = tag["CardUseNullifiedList"].toStringList();
     bool all_nullified = nullified_list.contains("_ALL_TARGETS");
+    if (room->getCardPlace(getEffectiveId()) != Player::PlaceTable) {
+        CardMoveReason reason(CardMoveReason::S_REASON_USE, source->objectName(), QString(), getSkillName(), QString());
+        room->moveCardTo(this, NULL, Player::PlaceTable, reason, true);
+    }
     if (room->getCardPlace(getEffectiveId()) == Player::PlaceTable) {
 		if (all_nullified || targets.isEmpty()) {
             CardMoveReason reason(CardMoveReason::S_REASON_USE, source->objectName(), QString(), getSkillName(), QString());
