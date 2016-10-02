@@ -418,6 +418,7 @@ public:
     void setTurn(int turn);
     void incTurn();
     inline int getTurn() const { return m_turn; }
+    void setPlayerShwonRole(ServerPlayer *player, bool show);
 
 protected:
     virtual void run();

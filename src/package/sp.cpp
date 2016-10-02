@@ -1194,10 +1194,10 @@ bool MizhaoCard::targetFilter(const QList<const Player *> &targets, const Player
 void MizhaoCard::onEffect(const CardEffectStruct &effect) const
 {
     DummyCard *handcards = effect.from->wholeHandCards();
+    handcards->deleteLater();
     CardMoveReason r(CardMoveReason::S_REASON_GIVE, effect.from->objectName());
     Room *room = effect.from->getRoom();
     room->obtainCard(effect.to, handcards, r, false);
-    delete handcards;
     if (effect.to->isKongcheng()) return;
 
     QList<ServerPlayer *> targets;
@@ -1617,9 +1617,9 @@ public:
 				}
 			}
 			DummyCard *dummy_card = new DummyCard(to_discard);
+            dummy_card->deleteLater();
             CardMoveReason mreason(CardMoveReason::S_REASON_THROW, target->objectName(), QString(), objectName(), QString());
             room->throwCard(dummy_card, mreason, target);
-			delete dummy_card;
 			if (to_discard.length() != 4)
 			    return false;
 			QStringList suitlist;
@@ -1847,13 +1847,13 @@ public:
                 QList<const Card *> equips = target->getEquips();
                 if (!equips.isEmpty()) {
                     DummyCard *dummy = new DummyCard;
+                    dummy->deleteLater();
                     foreach (const Card *equip, equips) {
                         if (player->canDiscard(target, equip->getEffectiveId()))
                             dummy->addSubcard(equip);
                     }
                     if (dummy->subcardsLength() > 0)
                         room->throwCard(dummy, target, player);
-                    delete dummy;
                 }
             }
         }
@@ -2517,8 +2517,8 @@ public:
                     target->broadcastSkillInvoke(objectName());
                     room->recover(to_give, RecoverStruct(target));
                     DummyCard *dummy = new DummyCard(target->getPile("yinbing"));
+                    dummy->deleteLater();
                     room->obtainCard(to_give, dummy);
-                    delete dummy;
                 }
             } else {
 				LogMessage log;
@@ -3135,8 +3135,8 @@ public:
                 foreach (ServerPlayer *p, room->getAllPlayers()) {
                     if (!p->getPile("zhenweipile").isEmpty()) {
                         DummyCard *dummy = new DummyCard(p->getPile("zhenweipile"));
+                        dummy->deleteLater();
                         room->obtainCard(p, dummy);
-                        delete dummy;
                     }
                 }
             }
@@ -3223,6 +3223,7 @@ public:
             player->drawCards(1);
             if (player->objectName() != simalang->objectName() && !player->isKongcheng()) {
                 DummyCard *cards = player->wholeHandCards();
+                cards->deleteLater();
                 CardMoveReason reason = CardMoveReason(CardMoveReason::S_REASON_GIVE, player->objectName());
                 room->moveCardTo(cards, simalang, Player::PlaceHand, reason);
 
@@ -3619,14 +3620,14 @@ void JiqiaoCard::use(Room *room, ServerPlayer *source, QList<ServerPlayer *> &) 
     }
     if (!card_to_gotback.isEmpty()) {
         DummyCard *dummy = new DummyCard(card_to_gotback);
+        dummy->deleteLater();
         room->obtainCard(source, dummy);
-        delete dummy;
     }
     if (!card_to_throw.isEmpty()) {
         DummyCard *dummy2 = new DummyCard(card_to_throw);
+        dummy2->deleteLater();
         CardMoveReason reason(CardMoveReason::S_REASON_NATURAL_ENTER, source->objectName(), "jiqiao", QString());
         room->throwCard(dummy2, reason, NULL);
-        delete dummy2;
     }
 }
 
@@ -3832,12 +3833,12 @@ void LihunCard::onEffect(const CardEffectStruct &effect) const
     Room *room = effect.from->getRoom();
     effect.to->setFlags("LihunTarget");
     DummyCard *dummy_card = new DummyCard(effect.to->handCards());
+    dummy_card->deleteLater();
     if (!effect.to->isKongcheng()) {
         CardMoveReason reason(CardMoveReason::S_REASON_TRANSFER, effect.from->objectName(),
             effect.to->objectName(), "lihun", QString());
         room->moveCardTo(dummy_card, effect.to, effect.from, Player::PlaceHand, reason, false);
     }
-    delete dummy_card;
 }
 
 class LihunSelect : public OneCardViewAsSkill
@@ -3904,7 +3905,7 @@ public:
             CardMoveReason reason(CardMoveReason::S_REASON_GIVE, diaochan->objectName(),
                 target->objectName(), objectName(), QString());
             room->moveCardTo(to_goback, diaochan, target, Player::PlaceHand, reason);
-            delete to_goback;
+            to_goback->deleteLater();
         } else if (triggerEvent == EventPhaseStart && diaochan->getPhase() == Player::NotActive) {
             foreach (ServerPlayer *p, room->getAlivePlayers()) {
                 if (p->hasFlag("LihunTarget"))

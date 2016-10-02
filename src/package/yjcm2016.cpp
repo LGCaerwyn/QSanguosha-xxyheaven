@@ -1011,7 +1011,7 @@ void JiyuCard::onEffect(const CardEffectStruct &effect) const
 	Room *room = source->getRoom();
 	room->setPlayerFlag(source, "jiyu" + target->objectName());
 	if (target->canDiscard(target, "h")) {
-		const Card *c = room->askForCard(target, ".!", "@jiyu-discard");
+		const Card *c = room->askForCard(target, ".!", "@jiyu-discard:" + source->objectName());
         if (c == NULL) {
             c = target->getCards("h").at(0);
             room->throwCard(c, target);

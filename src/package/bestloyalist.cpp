@@ -117,21 +117,21 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
         if (cards.length() == 0)
             return;
         else if (cards.length() <= 2) {
-            DummyCard d;
-            d.addSubcards(cards);
-            room->obtainCard(victim, &d, reason, false);
-            d.deleteLater();
+            DummyCard *dummy = new DummyCard;
+            dummy->deleteLater();
+            dummy->addSubcards(cards);
+            room->obtainCard(victim, dummy, reason, false);
             return;
         }
 
         const Card *to_give = room->askForCard(killer, "@@beatanothergive!", "@beatanother-give2:" + victim->objectName(), QVariant(), Card::MethodNone);
         if (to_give == NULL) {
-            DummyCard d;
+            DummyCard *dummy = new DummyCard;
+            dummy->deleteLater();
             qShuffle(cards);
-            d.addSubcard(cards.first());
-            d.addSubcard(cards.last());
-            room->obtainCard(victim, &d, reason, false);
-            d.deleteLater();
+            dummy->addSubcard(cards.first());
+            dummy->addSubcard(cards.last());
+            room->obtainCard(victim, dummy, reason, false);
         } else
             room->obtainCard(victim, to_give, reason, false);
     }
@@ -173,7 +173,7 @@ MoreTroops::MoreTroops(Card::Suit suit, int number)
     setObjectName("more_troops");
 }
 
-bool MoreTroops::targetFilter(const QList<const Player *> &targets, const Player *to_select, const Player *Self) const
+bool MoreTroops::targetFilter(const QList<const Player *> &targets, const Player *, const Player *Self) const
 {
     int total_num = 1 + Sanguosha->correctCardTarget(TargetModSkill::ExtraTarget, Self, this);
     return targets.length() < total_num;
@@ -185,7 +185,8 @@ void MoreTroops::onEffect(const CardEffectStruct &effect) const
     effect.to->drawCards(3);
     if (!room->askForCard(effect.to, "@@by_stove!", "@by_stove")) {
         QList<const Card *> cards = effect.to->getCards("he");
-        DummyCard d;
+        DummyCard *dummy = new DummyCard;
+        dummy->deleteLater();
         qShuffle(cards);
         int cardId = -1;
         foreach(const Card *c, cards)
@@ -196,13 +197,13 @@ void MoreTroops::onEffect(const CardEffectStruct &effect) const
             }
         }
         if (cardId != -1)
-            d.addSubcard(cardId);
+            dummy->addSubcard(cardId);
         else {
-            d.addSubcard(cards.first());
-            d.addSubcard(cards.last());
+            dummy->addSubcard(cards.first());
+            dummy->addSubcard(cards.last());
         }
 
-        room->throwCard(&d, effect.to);
+        room->throwCard(dummy, effect.to);
     }
 }
 

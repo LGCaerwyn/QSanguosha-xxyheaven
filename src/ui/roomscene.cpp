@@ -1042,7 +1042,7 @@ void RoomScene::updateTable()
     m_playerCardBox->setPos(m_tableCenterPos);
 
     if (NULL != prompt_box_widget)
-        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 300);
+        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, dashboard->getProgressBarSceneBoundingRect().y() - prompt_box_widget->boundingRect().height());
 
     turn_box->setPos(_m_infoPlane.x() - turn_box->boundingRect().width(), 0);
     pausing_text->setPos(m_tableCenterPos - pausing_text->boundingRect().center());
@@ -2533,7 +2533,7 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
 			break;
         }
         case Client::AskForChoice: {
-            prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 300);
+            prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, dashboard->getProgressBarSceneBoundingRect().y() - prompt_box_widget->boundingRect().height());
             m_chooseOptionsBox->clear();
             break;
         }
@@ -2729,7 +2729,7 @@ void RoomScene::updateStatus(Client::Status oldStatus, Client::Status newStatus)
         break;
     }
     case Client::AskForChoice: {
-        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, m_tableCenterPos.y()*2 - 340);
+        prompt_box_widget->setPos(m_tableCenterPos.x() - prompt_box_widget->boundingRect().width() / 2, dashboard->getProgressBarSceneBoundingRect().y() - prompt_box_widget->boundingRect().height() - m_chooseOptionsBox->boundingRect().height());
         ok_button->setEnabled(false);
         cancel_button->setEnabled(false);
         discard_button->setEnabled(false);

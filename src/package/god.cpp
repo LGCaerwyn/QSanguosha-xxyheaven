@@ -187,7 +187,7 @@ public:
 		dummy = new DummyCard(card_to_throw);
 		CardMoveReason reason(CardMoveReason::S_REASON_NATURAL_ENTER, shenlvmeng->objectName(), "shelie", QString());
 		room->throwCard(dummy, reason, NULL);
-		delete dummy;
+		dummy->deleteLater();
         return true;
     }
 };
@@ -756,9 +756,10 @@ void QixingCard::onUse(Room *room, const CardUseStruct &card_use) const
 
     card_use.from->addToPile("stars", to_pile, false);
 
-    DummyCard to_handcard_x(to_handcard);
+    DummyCard *to_handcard_x = new DummyCard(to_handcard);
     CardMoveReason reason(CardMoveReason::S_REASON_EXCHANGE_FROM_PILE, card_use.from->objectName());
-    room->obtainCard(card_use.from, &to_handcard_x, reason, false);
+    room->obtainCard(card_use.from, to_handcard_x, reason, false);
+    to_handcard_x->deleteLater();
 
 }
 

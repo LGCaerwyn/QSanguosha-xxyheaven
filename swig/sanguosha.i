@@ -1250,6 +1250,7 @@ public:
     bool broadcastProperty(ServerPlayer *player, const char *property_name, const char *value = NULL);
 
     int getBossModeExpMult(int level) const;
+    int getTurn() const;
 };
 
 %extend Room {

@@ -60,7 +60,7 @@
     "smallAvatarNameFont": ["@SimLi", [16, 16, 0], 0, [255, 255, 255, 255], 4, 10, [0, 0], [50, 50, 50, 200]],
     "kingdomIconArea": [-3, -3, 28, 28],
     "kingdomMaskArea": [0, 12, 18, 66],
-    "screenNameArea": [0, 0, 131, 15],
+    "screenNameArea": [0, 0, 131, 18],
     "screenNameFont": ["SimSun", 12, 0, [255, 255, 255, 255], 0, 10, [0, 0], [20, 20, 20, 155]],
     "magatamasHorizontal": false,
     "magatamaSize": [18, 17],
@@ -94,6 +94,6 @@
 "dashboard":
 {
     "phaseArea": ["bottomRight", "bottomRight", [-150, 2], [209, 18]],
-    "progressBarArea": ["bottomCenter", "bottomCenter", [-58, 0], [262, 15]]
+    "progressBarArea": ["bottomCenter", "bottomCenter", [-105, 0], [262, 10]]
 }
 }

@@ -78,6 +78,7 @@ Client::Client(QObject *parent, const QString &filename)
     m_callbacks[S_COMMAND_MIRROR_GUANXING_STEP] = &Client::mirrorGuanxingStep;
     m_callbacks[S_COMMAND_MIRROR_MOVECARDS_STEP] = &Client::mirrorMoveCardsStep;
     m_callbacks[S_COMMAND_SET_TURN] = &Client::setTurn;
+    m_callbacks[S_COMMAND_SET_SHOWN_ROLE] = &Client::setShownRole;
     m_callbacks[S_COMMAND_PINDIAN] = &Client::askForPindian;
 
     // interactive methods
@@ -2369,4 +2370,14 @@ void Client::setTurn(const QVariant &arg)
     int turn_num = args[0].toInt();
 
     emit set_turn(turn_num);
+}
+
+void Client::setShownRole(const QVariant &arg)
+{
+    JsonArray args = arg.value<JsonArray>();
+    if (args.size() != 2) return;
+    QString player_name = args[0].toString();
+    bool shown = args[1].toBool();
+
+    getPlayer(player_name)->setShownRole(shown);
 }

@@ -2270,7 +2270,7 @@ public:
 
     virtual bool isEnabledAtPlay(const Player *player) const
     {
-        return player->getMark("dingpan") > 0;
+        return player->getMark("#dingpan") > 0;
     }
 
     virtual const Card *viewAs() const
@@ -2284,19 +2284,25 @@ class Dingpan : public TriggerSkill
 public:
     Dingpan() : TriggerSkill("dingpan")
     {
-        events << PlayCard;
+        events << PlayCard << EventPhaseChanging;
         view_as_skill = new DingpanViewAsSkill;
     }
 
-    virtual bool trigger(TriggerEvent , Room *room, ServerPlayer *player, QVariant &) const
+    virtual bool trigger(TriggerEvent triggerEvent, Room *room, ServerPlayer *player, QVariant &data) const
     {
-        int rebel_num = 0;
-        foreach (ServerPlayer *p, room->getAlivePlayers()) {
-            if (p->getRole() == "rebel")
-                rebel_num++;
+        if (triggerEvent == PlayCard) {
+            int rebel_num = 0;
+            foreach (ServerPlayer *p, room->getAlivePlayers()) {
+                if (p->getRole() == "rebel")
+                    rebel_num++;
+            }
+            if (rebel_num > 0)
+                room->setPlayerMark(player, "#dingpan", rebel_num - player->usedTimes("DingpanCard"));
+        } else {
+            PhaseChangeStruct change = data.value<PhaseChangeStruct>();
+            if (change.from == Player::Play)
+                room->setPlayerMark(player, "#dingpan", 0);
         }
-        if (rebel_num > 0)
-            room->setPlayerMark(player, "dingpan", rebel_num - player->usedTimes("DingpanCard"));
         return false;
     }
 };
