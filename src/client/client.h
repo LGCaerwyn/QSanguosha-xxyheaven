@@ -197,6 +197,7 @@ public:
     void attachSkill(const QVariant &skill);
     void updateSkill(const QVariant &);
     void setTurn(const QVariant &arg);
+    void setShownRole(const QVariant &arg);
 
     inline virtual RoomState *getRoomState()
     {

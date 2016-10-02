@@ -4092,7 +4092,7 @@ bool Room::broadcastProperty(ServerPlayer *player, const char *property_name, co
     if (real_value.isNull()) real_value = player->property(property_name).toString();
 
     if (strcmp(property_name, "role") == 0)
-        player->setShownRole(true);
+        setPlayerShwonRole(player, true);
 
     JsonArray arg;
     arg << player->objectName() << property_name << real_value;
@@ -7120,6 +7120,15 @@ void Room::setTurn(int turn)
 void Room::incTurn()
 {
     setTurn(m_turn + 1);
+}
+
+void Room::setPlayerShwonRole(ServerPlayer *player, bool show)
+{
+    player->setShownRole(show);
+    JsonArray args;
+    args << player->objectName();
+    args << show;
+    doBroadcastNotify(S_COMMAND_SET_SHOWN_ROLE, args);
 }
 
 bool Room::isSkillValidForPlayer(const ServerPlayer *player, const Skill *skill)
