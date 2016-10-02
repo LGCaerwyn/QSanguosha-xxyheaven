@@ -4159,6 +4159,7 @@ function SmartAI:getTurnUse()
     self.weaponUsed = false
     self:fillSkillCards(cards)
     self:sortByUseValue(cards)
+    self:sortByDynamicUsePriority(cards)
 
     if self.player:hasWeapon("crossbow") or #self.player:property("extra_slash_specific_assignee"):toString():split("+") > 1 then
         slashAvail = 100
@@ -4194,6 +4195,8 @@ function SmartAI:getTurnUse()
                 table.insert(turnUse, dummy_use.card)
             end
         end
+        
+        if #cards >= 20 and #turnUse >= 5 then break end
     end
 
     return turnUse
