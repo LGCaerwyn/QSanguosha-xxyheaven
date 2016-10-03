@@ -762,10 +762,9 @@ QString Engine::getMainGeneral(const QString &name) const
 {
     if (!getGeneral(name)) return QString();
     QMultiMap<QString, QString> convert_pairs = getSpConvertPairs();
-    if (convert_pairs.contains(name)) return name;
     if (convert_pairs.values().contains(name))
         return convert_pairs.key(name, NULL);
-    return NULL;
+    return name;
 }
 
 QStringList Engine::getMainGenerals(const QStringList &general_names) const
