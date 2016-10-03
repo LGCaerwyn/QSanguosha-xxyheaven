@@ -79,6 +79,8 @@ Client::Client(QObject *parent, const QString &filename)
     m_callbacks[S_COMMAND_MIRROR_MOVECARDS_STEP] = &Client::mirrorMoveCardsStep;
     m_callbacks[S_COMMAND_SET_TURN] = &Client::setTurn;
     m_callbacks[S_COMMAND_SET_SHOWN_ROLE] = &Client::setShownRole;
+    m_callbacks[S_COMMAND_ADD_BANPACKAGE] = &Client::addBanPackages;
+    m_callbacks[S_COMMAND_ADD_SP_CONVERT] = &Client::addSpConvertPairs;
     m_callbacks[S_COMMAND_PINDIAN] = &Client::askForPindian;
 
     // interactive methods
@@ -2380,4 +2382,22 @@ void Client::setShownRole(const QVariant &arg)
     bool shown = args[1].toBool();
 
     getPlayer(player_name)->setShownRole(shown);
+}
+
+void Client::addBanPackages(const QVariant &arg)
+{
+    QStringList ban_packages = arg.toStringList();
+    foreach (QString package, ban_packages) 
+        Sanguosha->addBanPackage(package);
+}
+
+void Client::addSpConvertPairs(const QVariant &arg)
+{
+    JsonArray args = arg.value<JsonArray>();
+    if (args.size() < 2) return;
+    QString main = args[0].toString();
+    QStringList generals;
+    for (int i = 1; i < args.size(); i++)
+        generals << args[i].toString();
+    Sanguosha->addSpConvertPairs(main, generals);
 }

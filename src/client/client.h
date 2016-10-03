@@ -198,6 +198,8 @@ public:
     void updateSkill(const QVariant &);
     void setTurn(const QVariant &arg);
     void setShownRole(const QVariant &arg);
+    void addBanPackages(const QVariant &arg);
+    void addSpConvertPairs(const QVariant &arg);
 
     inline virtual RoomState *getRoomState()
     {

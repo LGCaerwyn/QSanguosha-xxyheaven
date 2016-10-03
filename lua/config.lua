@@ -370,7 +370,19 @@ config = {
     best_loyalist_sets = {
         first = "cuiyan",
         seconds = "dianwei+caoang+xuchu+zhangfei+zhaoyun+jiangwei+huanggai+zumao+zhoutai+chengong+diaochan+jvshou",
-        generals_ban = "xuhuang+dengai+hanhaoshihuan+yuji+nos_yuji+sp_guanyu+zuoci+yuanshu+huanghao",
         cards_ban = "snatch+supply_shortage+amazing_grace+ex_nihilo",
+    },
+
+    zdyj_ban = {
+        "cuiyan",
+        "xuhuang",
+        "dengai",
+        "hanhaoshihuan",
+        "yuji",
+        "nos_yuji",
+        "sp_guanyu",
+        "zuoci",
+        "yuanshu",
+        "huanghao",
     }
 }

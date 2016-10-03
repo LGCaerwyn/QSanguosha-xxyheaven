@@ -149,6 +149,8 @@ namespace QSanProtocol {
         S_COMMAND_MIRROR_MOVECARDS_STEP,
         S_COMMAND_SET_TURN,
         S_COMMAND_SET_SHOWN_ROLE,
+        S_COMMAND_ADD_BANPACKAGE,
+        S_COMMAND_ADD_SP_CONVERT,
     };
 
     enum GameEventType

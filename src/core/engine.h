@@ -45,6 +45,8 @@ public:
     void addBanPackage(const QString &package_name);
     QList<const Package *> getPackages() const;
     QStringList getBanPackages() const;
+    void addSpConvertPairs(QString main_general, QStringList generals);
+    QMultiMap<QString, QString> getSpConvertPairs(bool get_local = false) const;
     Card *cloneCard(const Card *card) const;
     Card *cloneCard(const QString &name, Card::Suit suit = Card::SuitToBeDecided, int number = -1, const QStringList &flags = QStringList()) const;
     SkillCard *cloneSkillCard(const QString &name) const;
@@ -133,6 +135,7 @@ public:
     bool isGeneralHidden(const QString &general_name) const;
     QStringList getConvertGenerals(const QString &general_name) const;
     QString getMainGeneral(const QString &name) const;
+    QStringList getMainGenerals(const QStringList &general_names) const;
 
 private:
     void _loadMiniScenarios();
@@ -179,6 +182,7 @@ private:
     QHash<QString, const LuaTreasure *> luaTreasures;
 
     QMultiMap<QString, QString> sp_convert_pairs;
+    QMultiMap<QString, QString> server_sp_convert_pairs;
     QStringList extra_hidden_generals;
     QStringList removed_hidden_generals;
     QStringList extra_default_lords;
