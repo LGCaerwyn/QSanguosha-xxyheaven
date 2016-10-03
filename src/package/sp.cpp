@@ -358,7 +358,7 @@ void JuesiCard::onEffect(const CardEffectStruct &effect) const
     ServerPlayer *source = effect.from;
     Room *room = source->getRoom();
     ServerPlayer *target = effect.to;
-	const Card *card = room->askForCard(target, "..", "@juesi-discard", QVariant());
+	const Card *card = room->askForCard(target, "..!", "@juesi-discard:" + source->objectName(), QVariant());
 	if (!card->isKindOf("Slash") && source->getHp() <= target->getHp()) {
 		Duel *duel = new Duel(Card::NoSuit, 0);
 		duel->setSkillName("_juesi");

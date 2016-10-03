@@ -228,12 +228,14 @@ sgs.ai_skill_use_func.JianshuCard = function(card, use, self)
                         if use.to then
                             use.to:append(p)
                             use.to:append(sp)
+                            return
                         end
                     elseif not p:isKongcheng() then
                         use.card = card
                         if use.to then
                             use.to:append(sp)
                             use.to:append(p)
+                            return
                         end
                     end
                 end
@@ -3988,193 +3990,6 @@ sgs.ai_skill_cardask["@mouduan"] = function(self, data)
     if not need_mouduan(self) then return "." end
     local to_discard = self:askForDiscard("mouduan", 1, 1, false, true)
     if #to_discard > 0 then return "$" .. to_discard[1] else return "." end
-end
-
-sgs.ai_skill_playerchosen.zhaolie = function(self, targets)
-    if self.player:hasFlag("AI_doNotInvoke_zhaolie") then
-        self.player:setFlags("-AI_doNotInvoke_zhaolie")
-        return
-    end
-    targets = sgs.QList2Table(targets)
-    self:sort(targets, "hp")
-    for _, target in ipairs(targets) do
-        if self:isEnemy(target) and self:damageIsEffective(target) and sgs.isGoodTarget(target, targets, self) and not self:doNotDiscard(target)
-            and not (self:isWeak() and (target:getHp() > 1 or target:getCardCount() >= 3)) then
-            return target
-        end
-    end
-    return nil
-end
-
-local function will_discard_zhaolie(self, nobasic)
-    local spliubei = self.room:getCurrent()
-    if not spliubei or not spliubei:isAlive() then return true end
-    if not self:damageIsEffective(self.player, sgs.DamageStruct_Normal, spliubei) then return false end
-    local damage_num = nobasic
-    if nobasic > 0 and not spliubei:hasSkill("jueqing") then
-        if self.player:hasSkill("tianxiang") then
-            local dmgStr = { damage = damage_num, nature = sgs.DamageStruct_Normal }
-            local willTianxiang = sgs.ai_skill_use["@@tianxiang"](self, dmgStr, sgs.Card_MethodDiscard)
-            if willTianxiang ~= "." then damage_num = 0 end
-        end
-        if self.player:hasSkill("mingshi") and spliubei:getEquips():length() <= self.player:getEquips():length() and damage_num > 0 then
-            damage_num = damage_num - 1
-        end
-        if self.player:hasArmorEffect("silver_lion") and damage_num > 1 then damage_num = 1 end
-    end
-    if not spliubei:hasSkill("jueqing") and self.player:hasSkill("wuhun") and self.role == "rebel" then
-        local mark = 0
-        local spmark = spliubei:isLord() and spliubei:getMark("@nightmare") or 0
-        for _, ap in sgs.qlist(self.room:getOtherPlayers(spliubei)) do
-            if ap:getMark("@nightmare") > mark then
-                mark = ap:getMark("@nightmare")
-            end
-        end
-        if mark == 0 and spliubei:isLord() then return false end
-        if mark < damage_num + spmark then return false end
-    end
-    if self.player:hasSkill("manjuan") then
-        if self:isFriend(spliubei) then return true
-        else
-            return not (damage_num == 0 or self.player:getHp() - damage_num >= getBestHp(self.player))
-        end
-    end
-    if damage_num == 0 then return false end
-    if damage_num < 2 and self.player:getHp() > 1 then return false else return true end
-end
-
-sgs.ai_skill_discard.zhaolie = function(self, discard_num, min_num, optional, include_equip)
-    if not will_discard_zhaolie(self, discard_num) then return {} end
-
-    local to_discard = {}
-    local cards = sgs.QList2Table(self.player:getCards("he"))
-    local index = 0
-
-    self:sortByKeepValue(cards)
-    cards = sgs.reverse(cards)
-
-    for i = #cards, 1, -1 do
-        local card = cards[i]
-        if not self.player:isJilei(card) then
-            table.insert(to_discard, card:getEffectiveId())
-            table.remove(cards, i)
-            index = index + 1
-            if index == discard_num then break end
-        end
-    end
-    if #to_discard < min_num then return {} else return to_discard end
-end
-
-sgs.ai_skill_invoke.zhaolie_obtain = function(self, data)
-    return will_discard_zhaolie(self, 0)
-end
-
-local function will_invoke_shichou(self)
-    local shu,enemynum = 0, 0
-    local first = self.player:hasFlag("Global_FirstRound")
-    local players = self.room:getOtherPlayers(self.player)
-    local shenguanyu = self.room:findPlayerBySkillName("wuhun");
-    if shenguanyu ~= nil then
-        if shenguanyu:getKingdom() == "shu" then return true end
-    end
-    for _, player in sgs.qlist(players) do
-        if player:getKingdom() == "shu" then
-            shu = shu + 1
-            if self:isEnemy(player) then
-                enemynum = enemynum + 1
-            end
-        end
-    end
-
-    if self.role=="rebel" and self.room:getLord():getKingdom()=="shu" then
-        return true
-    end
-
-    if shu ==0 then return false end
-    if enemynum >0 or shu == 1 then return true end
-
-    if first and shu > 1 and not self:isWeak() then return false end
-    return self:isWeak() and shu >0
-end
-
-local function player_chosen_shichou(self, targets)
-    if not self.room:getLord() then return false end
-
-    targets = sgs.QList2Table(targets)
-    self:sort(targets, "hp")
-    targets = sgs.reverse(targets)
-
-    if self.role=="rebel" and self.room:getLord():getKingdom()=="shu" then
-        return self.room:getLord()
-    end
-
-    for _, target in ipairs(targets) do
-        if target:hasSkill("wuhun") then
-            return target
-        end
-    end
-    for _, target in ipairs(targets) do
-        if self:isEnemy(target) then
-            return target
-        end
-    end
-
-    for _, target in ipairs(targets) do
-        if self:hasSkills("zaiqi|nosenyuan|kofkuanggu|kuanggu|enyuan",target) and target:getHp()>=2 then
-            return target
-        end
-    end
-    return targets[1]
-end
-
-sgs.ai_skill_use["@@shichou"] = function(self, prompt)
-    if will_invoke_shichou(self) then
-        local to_discard = self:askForDiscard("shichou", 2, 2, false, true)
-        if #to_discard == 2 then
-            local shu_generals = sgs.SPlayerList()
-            for _, p in sgs.qlist(self.room:getOtherPlayers(self.player)) do
-                if p:getKingdom() == "shu" then shu_generals:append(p) end
-            end
-            if shu_generals:length() == 0 then return "." end
-            local target = player_chosen_shichou(self, shu_generals)
-            if target then
-                return ("@ShichouCard=%d+%d->%s"):format(to_discard[1], to_discard[2], target:objectName())
-            end
-        end
-    end
-    return "."
-end
-
-sgs.ai_need_damaged.shichou = function(self, attacker, player)
-    if player:hasLordSkill("shichou") then
-        local victim
-        for _, p in sgs.qlist(self.room:getOtherPlayers(player)) do
-            if p:getMark("hate_" .. player:objectName()) > 0 and p:getMark("@hate_to") > 0 then
-                victim = p
-                break
-            end
-        end
-        if victim ~= nil then
-            local role
-            if sgs.isRolePredictable() and sgs.evaluatePlayerRole(player) == "rebel" or sgs.compareRoleEvaluation(player, "rebel", "loyalist") == "rebel" then
-                role = "rebel"
-            end
-            local need_damage = false
-            if (sgs.evaluatePlayerRole(player) == "loyalist" or player:isLord()) and role == "rebel" then need_damage = true end
-            if sgs.evaluatePlayerRole(player) == "rebel" and role ~= "rebel" then need_damage = true end
-            if sgs.evaluatePlayerRole(player) == "renegade" then need_damage = true end
-            if victim:isAlive() and need_damage then
-                return victim:hasSkill("wuhun") and 2 or 1
-            end
-        end
-    end
-    return false
-end
-
-sgs.ai_card_intention.ShichouCard = function(self, card, from, tos)
-    if from:hasSkill("weidi") and tos[1]:isLord() then
-        sgs.updateIntention(from, tos[1], 80)
-    end
 end
 
 sgs.ai_skill_use_func.YanxiaoCard = function(card, use, self)
