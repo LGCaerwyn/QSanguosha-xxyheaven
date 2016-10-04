@@ -3683,8 +3683,9 @@ void RoomScene::updateSkill(const QString &skill_name)
         effectMark = true;
         Self->setMark(effectMarkName, 0);
     }
-    detachSkill(skill_name);
-    attachSkill(skill_name);
+    const Skill *skill = Sanguosha->getSkill(skill_name);
+    if (skill)
+        dashboard->updateSkillButton(skill_name);
     if (effectMark)
         Self->setMark(effectMarkName, 1);
 }

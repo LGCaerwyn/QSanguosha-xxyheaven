@@ -620,6 +620,11 @@ void Dashboard::_createExtraButtons()
     m_trustButton->setEnabled(false);
 }
 
+void Dashboard::updateSkillButton(const QString &skillName)
+{
+    _m_skillDock->updateSkillButtonByName(skillName);
+}
+
 void Dashboard::showSeat()
 {
     const QRect region = G_DASHBOARD_LAYOUT.m_seatIconRegion;

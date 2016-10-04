@@ -479,7 +479,7 @@ sgs.ai_skill_cardask["@longyin"] = function(self, data)
     local slash = use.card
     local slash_num = 0
     if use.from:objectName() == self.player:objectName() then slash_num = self:getCardsNum("Slash") else slash_num = getCardsNum("Slash", use.from, self.player) end
-    if self:isEnemy(use.from) and use.m_addHistory and not self:hasCrossbowEffect(use.from) and slash_num > 0 then return "." end
+    if self:isEnemy(use.from) and use.m_addHistory and not self:hasCrossbowEffect(use.from) then return "." end
     if (slash:isRed() and not hasManjuanEffect(self.player))
         or (use.m_reason == sgs.CardUseStruct_CARD_USE_REASON_PLAY and use.m_addHistory and self:isFriend(use.from) and slash_num >= 1
             and (not self:hasCrossbowEffect(use.from) or slash:isRed())) then

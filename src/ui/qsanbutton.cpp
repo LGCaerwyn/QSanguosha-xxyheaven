@@ -546,3 +546,13 @@ QSanInvokeSkillButton *QSanInvokeSkillDock::getSkillButtonByName(const QString &
     return NULL;
 }
 
+void QSanInvokeSkillDock::updateSkillButtonByName(const QString &skillName)
+{
+    QSanInvokeSkillButton *button = getSkillButtonByName(skillName);
+    Q_ASSERT(button != NULL);
+
+    const Skill *skill = Sanguosha->getSkill(skillName);
+    button->setSkill(skill);
+    update();
+}
+
