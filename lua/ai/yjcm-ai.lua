@@ -277,33 +277,6 @@ function sgs.ai_cardneed.enyuan(to, card, self)
 end
 
 sgs.ai_skill_playerchosen.xuanhuo = function(self, targets)
-	local lord = self.room:getLord()
-	self:sort(self.enemies, "defense")
-	if lord and self:isEnemy(lord) then  --killloyal
-		for _, enemy in ipairs(self.enemies) do
-			if (self:getDangerousCard(lord) or self:getValuableCard(lord))
-				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not enemy:hasSkills("tuntian+zaoxian")
-				and lord:canSlash(enemy) and (enemy:getHp() < 2 and not hasBuquEffect(enemy))
-				and sgs.getDefense(enemy) < 2 then
-
-				return lord
-			end
-		end
-	end
-
-	for _, enemy in ipairs(self.enemies) do --robequip
-		for _, enemy2 in ipairs(self.enemies) do
-			if enemy:canSlash(enemy2) and (self:getDangerousCard(enemy) or self:getValuableCard(enemy))
-				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
-				and not self:needLeiji(enemy2, enemy) and not self:getDamagedEffects(enemy2, enemy)
-				and not self:needToLoseHp(enemy2, enemy, nil, true)
-				or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
-
-				return enemy
-			end
-		end
-	end
-
 	if #self.friends_noself == 0 then return nil end
 	self:sort(self.friends_noself, "defense")
 
@@ -329,6 +302,33 @@ sgs.ai_skill_playerchosen.xuanhuo = function(self, targets)
 	for _, friend in ipairs(self.friends_noself) do
 		if not friend:hasSkill("manjuan") then
 			return friend
+		end
+	end
+	
+	local lord = self.room:getLord()
+	self:sort(self.enemies, "defense")
+	if lord and self:isEnemy(lord) then  --killloyal
+		for _, enemy in ipairs(self.enemies) do
+			if (self:getDangerousCard(lord) or self:getValuableCard(lord))
+				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not enemy:hasSkills("tuntian+zaoxian")
+				and lord:canSlash(enemy) and (enemy:getHp() < 2 and not hasBuquEffect(enemy))
+				and sgs.getDefense(enemy) < 2 then
+
+				return lord
+			end
+		end
+	end
+
+	for _, enemy in ipairs(self.enemies) do --robequip
+		for _, enemy2 in ipairs(self.enemies) do
+			if enemy:canSlash(enemy2) and (self:getDangerousCard(enemy) or self:getValuableCard(enemy))
+				and not self:hasSkills(sgs.lose_equip_skill, enemy) and not (enemy:hasSkill("tuntian") and enemy:hasSkill("zaoxian"))
+				and not self:needLeiji(enemy2, enemy) and not self:getDamagedEffects(enemy2, enemy)
+				and not self:needToLoseHp(enemy2, enemy, nil, true)
+				or (enemy:hasSkill("manjuan") and enemy:getCards("he"):length() > 1 and getCardsNum("Slash", enemy) == 0) then
+
+				return enemy
+			end
 		end
 	end
 	return nil

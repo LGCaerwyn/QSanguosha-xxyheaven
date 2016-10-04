@@ -113,14 +113,13 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
         if (killer->isKongcheng()) return;
         QList<const Card *> cards = killer->getCards("he");
 
-        CardMoveReason reason(CardMoveReason::S_REASON_GIVE, killer->objectName(), victim->objectName(), "beat_another", QString());
         if (cards.length() == 0)
             return;
         else if (cards.length() <= 2) {
             DummyCard *dummy = new DummyCard;
             dummy->deleteLater();
             dummy->addSubcards(cards);
-            room->obtainCard(victim, dummy, reason, false);
+            victim->obtainCard(dummy, false);
             return;
         }
 
@@ -131,9 +130,9 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
             qShuffle(cards);
             dummy->addSubcard(cards.first());
             dummy->addSubcard(cards.last());
-            room->obtainCard(victim, dummy, reason, false);
+            victim->obtainCard(dummy, false);
         } else
-            room->obtainCard(victim, to_give, reason, false);
+            victim->obtainCard(to_give, false);
     }
 }
 

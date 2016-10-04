@@ -574,7 +574,7 @@ private:
 
     static QString generatePlayerName();
     void prepareForStart();
-    void assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign, const QSet<QString> &ban_set = QSet<QString>());
+    void assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign);
     void assignGeneralsForPlayersOfJianGeDefenseMode(const QList<ServerPlayer *> &to_assign);
     void chooseGenerals(QList<ServerPlayer *> players = QList<ServerPlayer *>());
     void chooseGeneralsOfJianGeDefenseMode();

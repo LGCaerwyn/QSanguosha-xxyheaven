@@ -142,7 +142,7 @@ void Settings::init()
 
     BubbleChatBoxKeepTime = value("BubbleChatboxKeepTime", 2000).toInt();
 
-    QStringList roles_ban, kof_ban, hulao_ban, xmode_ban, bossmode_ban, basara_ban, hegemony_ban, pairs_ban;
+    QStringList roles_ban, kof_ban, hulao_ban, xmode_ban, bossmode_ban, basara_ban, hegemony_ban, pairs_ban, zdyj_ban;
 
     roles_ban = GetConfigFromLuaState(lua, "roles_ban").toStringList();
     kof_ban = GetConfigFromLuaState(lua, "kof_ban").toStringList();
@@ -203,6 +203,15 @@ void Settings::init()
             banlist << ban_general;
 
         setValue("Banlist/Pairs", banlist);
+    }
+
+    zdyj_ban = GetConfigFromLuaState(lua, "zdyj_ban").toStringList();
+    banlist = value("Banlist/BestLoyalist").toStringList();
+    if (banlist.isEmpty()) {
+        foreach(QString ban_general, zdyj_ban)
+            banlist << ban_general;
+
+        setValue("Banlist/BestLoyalist", banlist);
     }
 
     QStringList forbid_packages = value("ForbidPackages").toStringList();

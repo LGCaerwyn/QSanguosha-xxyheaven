@@ -534,6 +534,22 @@ QStringList Engine::getBanPackages() const
         return ban_package.toList();
 }
 
+void Engine::addSpConvertPairs(QString main_general, QStringList generals)
+{
+    if (!server_sp_convert_pairs.contains(main_general)) {
+        foreach (QString genral, generals) 
+            server_sp_convert_pairs.insertMulti(main_general, genral);
+    } 
+}
+
+QMultiMap<QString, QString> Engine::getSpConvertPairs(bool get_local) const
+{
+    if (get_local)
+        return sp_convert_pairs;
+    else
+        return server_sp_convert_pairs;
+}
+
 QList<const Package *> Engine::getPackages() const
 {
     return findChildren<const Package *>();
@@ -728,15 +744,14 @@ QStringList Engine::getConvertGenerals(const QString &name) const
 {
     if (!getGeneral(name)) return QStringList();
     QStringList generals;
-    foreach(const QString &name1, sp_convert_pairs.values(name)) {
+    QMultiMap<QString, QString> convert_pairs = getSpConvertPairs();
+    foreach (const QString &name1, convert_pairs.values(name)) {
         if (!getGeneral(name1)) continue;
         if (getBanPackages().contains(getGeneral(name1)->getPackage())) continue;
         generals << name1;
     }
 
     QStringList banned_generals = Config.value("Banlist/Generals", "").toStringList();
-    if (Config.GameMode == "08_zdyj")
-        banned_generals << Config.BestLoyalistSets["generals_ban"];
     foreach (const QString &banned, banned_generals)
         generals.removeOne(banned);
 
@@ -746,12 +761,20 @@ QStringList Engine::getConvertGenerals(const QString &name) const
 QString Engine::getMainGeneral(const QString &name) const
 {
     if (!getGeneral(name)) return QString();
-    if (!sp_convert_pairs.contains(name)) return name;
-    foreach (const QString &key, sp_convert_pairs.keys()) {
-        foreach (const QString &name1, sp_convert_pairs.values(key))
-            if (name == name1 && getGeneral(key)) return key;
-    }
+    QMultiMap<QString, QString> convert_pairs = getSpConvertPairs();
+    if (convert_pairs.values().contains(name))
+        return convert_pairs.key(name, NULL);
     return name;
+}
+
+QStringList Engine::getMainGenerals(const QStringList &general_names) const
+{
+    QStringList main_generals;
+    for (int i = 0; i < general_names.length(); i++) {
+        QString general_name = general_names.at(i);
+        main_generals << getMainGeneral(general_name);
+    }
+    return main_generals;
 }
 
 WrappedCard *Engine::getWrappedCard(int cardId)
@@ -887,7 +910,7 @@ SkillCard *Engine::cloneSkillCard(const QString &name) const
 #ifndef USE_BUILDBOT
 QString Engine::getVersionNumber() const
 {
-    return "20161003";
+    return "20161004";
 }
 #endif
 
@@ -1270,6 +1293,8 @@ QStringList Engine::getLimitedGeneralNames(const QString &kingdom) const
 
 QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, const QString &kingdom) const
 {
+    QSet<QString> main_bans = getMainGenerals(ban_set.toList()).toSet();
+
     QStringList all_generals = getLimitedGeneralNames(kingdom);
 	QStringList _copy = all_generals;
 	foreach (QString general_name, _copy) {
@@ -1287,6 +1312,8 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
         general_set = general_set.subtract(Config.value("Banlist/Hegemony", "").toStringList().toSet());
     if (ServerInfo.GameMode == "04_boss")
         general_set = general_set.subtract(Config.value("Banlist/BossMode", "").toStringList().toSet());
+    if (ServerInfo.GameMode == "08_zdyj")
+        general_set = general_set.subtract(Config.value("Banlist/BestLoyalist", "").toStringList().toSet());
 
     if (isNormalGameMode(ServerInfo.GameMode)
         || ServerInfo.GameMode.contains("_mini_")
@@ -1294,7 +1321,7 @@ QStringList Engine::getRandomGenerals(int count, const QSet<QString> &ban_set, c
         || ServerInfo.GameMode == "08_zdyj")
         general_set.subtract(Config.value("Banlist/Roles", "").toStringList().toSet());
 
-    all_generals = general_set.subtract(ban_set).toList();
+    all_generals = general_set.subtract(main_bans).toList();
 
     // shuffle them
     qShuffle(all_generals);

@@ -2749,7 +2749,7 @@ void Room::signup(ServerPlayer *player, const QString &screen_name, const QStrin
         toggleReadyCommand(player, QVariant());
 }
 
-void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign, const QSet<QString> &ban_set)
+void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign)
 {
     QSet<QString> existed;
     foreach (ServerPlayer *player, m_players) {
@@ -2773,9 +2773,9 @@ void Room::assignGeneralsForPlayers(const QList<ServerPlayer *> &to_assign, cons
 
     const int total = Sanguosha->getGeneralCount();
     const int max_available = (total - existed.size()) / to_assign.length();
-    existed = existed.unite(ban_set);
 
     QStringList choices = Sanguosha->getRandomGenerals(total - existed.size(), existed);
+    choices = Sanguosha->getMainGenerals(choices);
 
     if (Config.EnableHegemony) {
         if (to_assign.first()->getGeneral()) {
@@ -3042,21 +3042,20 @@ void Room::chooseGeneralsOfBestLoyalistMode(QList<ServerPlayer *> players)
 
     QStringList lord_list = Config.BestLoyalistSets["first"];
     QStringList beixuan_list = Config.BestLoyalistSets["seconds"];
-    QSet<QString> ban_set = Config.BestLoyalistSets["generals_ban"].toSet();
-    ban_set = ban_set.unite(lord_list.toSet());
 
     if (the_loyalist && players.contains(the_loyalist)) {
         qShuffle(beixuan_list);
         lord_list << beixuan_list[0] << beixuan_list[1] << beixuan_list[2];
-        lord_list.append(Sanguosha->getRandomGenerals(2 + nonlord_num, ban_set));
-        QString general = askForGeneral(the_loyalist, lord_list, true, QString(), true);
+        lord_list.append(Sanguosha->getRandomGenerals(2 + nonlord_num));
+        QStringList main_generals = Sanguosha->getMainGenerals(lord_list);
+        QString general = askForGeneral(the_loyalist, main_generals, true, QString(), true);
         the_loyalist->setGeneralName(general);
         broadcastProperty(the_loyalist, "general", general);
     }
     QList<ServerPlayer *> to_assign = players;
     if (the_loyalist) to_assign.removeOne(the_loyalist);
 
-    assignGeneralsForPlayers(to_assign, ban_set);
+    assignGeneralsForPlayers(to_assign);
     foreach(ServerPlayer *player, to_assign)
         _setupChooseGeneralRequestArgs(player, true, true);
 

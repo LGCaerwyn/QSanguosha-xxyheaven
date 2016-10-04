@@ -1428,6 +1428,22 @@ void Server::processNewConnection(ClientSocket *socket)
 
     emit server_message(tr("%1 connected").arg(socket->peerName()));
 
+    Packet packet3(S_SRC_ROOM | S_TYPE_NOTIFICATION | S_DEST_CLIENT, S_COMMAND_ADD_BANPACKAGE);
+    packet3.setMessageBody((Config.BanPackages));
+    socket->send((packet3.toJson()));
+
+    Packet packet4(S_SRC_ROOM | S_TYPE_NOTIFICATION | S_DEST_CLIENT, S_COMMAND_ADD_SP_CONVERT);
+    QMultiMap<QString, QString> convert_pairs = Sanguosha->getSpConvertPairs(true);
+    foreach (QString key, convert_pairs.keys()) {
+        JsonArray args;
+        args << key;
+        foreach (QString value, convert_pairs.values(key))
+            args << value;
+        Sanguosha->addSpConvertPairs(key, convert_pairs.values(key));
+        packet4.setMessageBody(args);
+        socket->send((packet4.toJson()));
+    }
+
     connect(socket, SIGNAL(message_got(const char *)), this, SLOT(processRequest(const char *)));
 }
 

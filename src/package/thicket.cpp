@@ -352,12 +352,19 @@ public:
         foreach (ServerPlayer *zhurong, room->getOtherPlayers(player)) {
             if (!TriggerSkill::triggerable(zhurong)) continue;
             bool all_place_table = true;
-            foreach (int id, use.card->getSubcards()) {
-                if (room->getCardPlace(id) != Player::PlaceTable) {
-                    all_place_table = false;
-                    break;
+            if (use.card->isVirtualCard()) {
+                if (use.card->getSubcards().length() == 0) all_place_table = false;
+                foreach (int id, use.card->getSubcards()) {
+                    if (room->getCardPlace(id) != Player::PlaceTable) {
+                        all_place_table = false;
+                        break;
+                    }
                 }
+            } else {
+                if (room->getCardPlace(use.card->getEffectiveId()) != Player::PlaceTable)
+                    all_place_table = false;
             }
+
             if (all_place_table) {
                 room->sendCompulsoryTriggerLog(zhurong, objectName());
                 zhurong->broadcastSkillInvoke(objectName(), 1);
