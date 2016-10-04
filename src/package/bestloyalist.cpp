@@ -119,7 +119,7 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
             DummyCard *dummy = new DummyCard;
             dummy->deleteLater();
             dummy->addSubcards(cards);
-            victim->obtainCard(dummy);
+            victim->obtainCard(dummy, false);
             return;
         }
 
@@ -130,9 +130,9 @@ void BeatAnother::onEffect(const CardEffectStruct &effect) const
             qShuffle(cards);
             dummy->addSubcard(cards.first());
             dummy->addSubcard(cards.last());
-            victim->obtainCard(dummy);
+            victim->obtainCard(dummy, false);
         } else
-            victim->obtainCard(to_give);
+            victim->obtainCard(to_give, false);
     }
 }
 
