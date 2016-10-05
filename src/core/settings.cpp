@@ -238,14 +238,4 @@ void Settings::init()
     QVariantMap best_loyalist_sets = GetConfigFromLuaState(lua, "best_loyalist_sets").toMap();
     foreach (QString key, best_loyalist_sets.keys())
         Config.BestLoyalistSets[key] = best_loyalist_sets[key].toString().split("+");
-
-
-    QStringList exp_skills = GetConfigFromLuaState(lua, "bossmode_exp_skills").toStringList();
-    QMap<QString, int> exp_skill_map;
-    foreach (QString skill, exp_skills) {
-        QString name = skill.split(":").first();
-        int cost = skill.split(":").last().toInt();
-        exp_skill_map.insert(name, cost);
-    }
-    Config.BossExpSkills = exp_skill_map;
 }

@@ -1477,7 +1477,8 @@ function SmartAI:objectiveLevel(player)
             end
             return self:getOverflow() > 0 and 3 or 0
         elseif process:match("rebel") then
-            return target_role == "rebel" and 5 or target_role == "neutral" and 0 or -1
+            if target_role == "rebel" then return rebelish and 5 or -1 end
+            if target_role == "neutral" then return 0 end
         elseif process:match("dilemma") then
             if target_role == "rebel" then return 5
             elseif target_role == "loyalist" or target_role == "renegade" then return 0
@@ -1485,8 +1486,8 @@ function SmartAI:objectiveLevel(player)
             else return 5 end
         elseif process == "loyalish" then
             if self:mayBeLord(player) or target_role == "renegade" then return 0 end
-            if target_role == "loyalist" then return rebelish and 0 or 5
-            elseif target_role == "rebel" then return rebelish and 4 or 0
+            if target_role == "loyalist" then return rebelish and -1 or 5
+            elseif target_role == "rebel" then return rebelish and 4 or -1
             else return 0
             end
         else

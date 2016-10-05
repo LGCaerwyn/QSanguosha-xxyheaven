@@ -136,6 +136,8 @@ public:
     QStringList getConvertGenerals(const QString &general_name) const;
     QString getMainGeneral(const QString &name) const;
     QStringList getMainGenerals(const QStringList &general_names) const;
+    void setExtraGeneralsBan();
+    QStringList getExtraGeneralsBan() const;
 
 private:
     void _loadMiniScenarios();

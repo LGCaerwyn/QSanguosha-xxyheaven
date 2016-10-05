@@ -1155,9 +1155,6 @@ BossModeCustomAssignDialog::BossModeCustomAssignDialog(QWidget *parent)
     box->setLayout(boxvlayout);
 
     // Other settings
-    experience_checkBox = new QCheckBox(tr("Boss Mode Experience Mode"));
-    experience_checkBox->setChecked(Config.value("BossModeExp", false).toBool());
-
     optional_boss_checkBox = new QCheckBox(tr("Boss Mode Optional Boss"));
     optional_boss_checkBox->setChecked(Config.value("OptionalBoss", false).toBool());
 
@@ -1171,7 +1168,6 @@ BossModeCustomAssignDialog::BossModeCustomAssignDialog(QWidget *parent)
 
     QVBoxLayout *vlayout = new QVBoxLayout;
     vlayout->addWidget(box);
-    vlayout->addWidget(experience_checkBox);
     vlayout->addWidget(optional_boss_checkBox);
     vlayout->addWidget(endless_checkBox);
     vlayout->addLayout(HLay(turn_limit_label, turn_limit_spinBox));
@@ -1207,7 +1203,6 @@ void BossModeCustomAssignDialog::config()
         difficulty |= (1 << GameRule::BMDDecMaxHp);
     Config.setValue("BossModeDifficulty", difficulty);
 
-    Config.setValue("BossModeExp", experience_checkBox->isChecked());
     Config.setValue("BossModeEndless", endless_checkBox->isChecked());
     Config.setValue("OptionalBoss", optional_boss_checkBox->isChecked());
 
@@ -1356,6 +1351,7 @@ Server::Server(QObject *parent)
 
     current = NULL;
     if (!createNewRoom()) created_successfully = false;
+    Sanguosha->setExtraGeneralsBan();
 
     connect(server, SIGNAL(new_connection(ClientSocket *)), this, SLOT(processNewConnection(ClientSocket *)));
 }

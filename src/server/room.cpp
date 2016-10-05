@@ -7100,19 +7100,6 @@ void Room::sortByActionOrder(QList<ServerPlayer *> &players)
         qSort(players.begin(), players.end(), ServerPlayer::CompareByActionOrder);
 }
 
-int Room::getBossModeExpMult(int level) const
-{
-    lua_getglobal(L, "bossModeExpMult");
-    lua_pushinteger(L, level);
-    int ret = lua_pcall(L, 1, 1, 0);
-    int res = 0;
-    if (ret == 0) {
-        res = lua_tointeger(L, -1);
-        lua_pop(L, 1);
-    }
-    return res;
-}
-
 void Room::setTurn(int turn)
 {
     m_turn = turn;

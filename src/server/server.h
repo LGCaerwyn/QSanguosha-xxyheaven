@@ -186,7 +186,6 @@ private:
     QCheckBox *diff_incMaxHp_checkBox;
     QCheckBox *diff_decMaxHp_checkBox;
 
-    QCheckBox *experience_checkBox;
     QCheckBox *optional_boss_checkBox;
     QCheckBox *endless_checkBox;
 
