@@ -132,6 +132,8 @@ function setInitialTables()
     sgs.need_maxhp_skill = "yingzi|zaiqi|yinghun|hunzi|juejing|ganlu|zishou|miji|xueji"..
                         "|quji|neojushou|tannang|fangzhu|nosshangshi|nosmiji|shichou"
     sgs.bad_skills = "benghuai|wumou|shiyong|yaowu|zaoyao|chanyuan|chouhai|lianhuo"
+    sgs.get_multi_cards_skills = "hongde|enyuan"
+    sgs.lose_multi_cards_skills = "hongde"
 
     sgs.Friend_All = 0
     sgs.Friend_Draw = 1

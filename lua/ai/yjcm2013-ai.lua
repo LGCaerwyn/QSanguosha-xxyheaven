@@ -916,30 +916,30 @@ function zongxuanchoose(self, upcards, downcards, preJudge)
                 return upcards, downcards
             elseif reason == "indulgence" then
                 for _, card in ipairs(upcards_card) do
-                    if card:getSuit() == sgs.Card_Heart or (friend:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade)
-                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                    if card:getSuit() == sgs.Card_Heart or (nextPlayer:hasSkill("hongyan") and card:getSuit() == sgs.Card_Spade)
+                        and (nextPlayer:hasSkill("tiandu") or not self:isValuableCard(card)) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         break
                     end
                 end
             elseif reason == "supply_shortage" then
                 for _, card in ipairs(upcards_card) do
-                    if card:getSuit() == sgs.Card_Club and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                    if card:getSuit() == sgs.Card_Club and (nextPlayer:hasSkill("tiandu") or not self:isValuableCard(card)) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         break
                     end
                 end
-            elseif reason == "lightning" and not friend:hasSkills("hongyan|wuyan") then
+            elseif reason == "lightning" and not nextPlayer:hasSkills("hongyan|wuyan") then
                 for _, card in ipairs(upcards_card) do
                     if (card:getSuit() ~= sgs.Card_Spade or card:getNumber() == 1 or card:getNumber() > 9)
-                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                        and (nextPlayer:hasSkill("tiandu") or not self:isValuableCard(card)) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         break
                     end
                 end
             elseif reason == "nosmiji" then
                 for _, card in ipairs(upcards_card) do
-                    if card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not friend:hasSkill("hongyan")) then
+                    if card:getSuit() == sgs.Card_Club or (card:getSuit() == sgs.Card_Spade and not nextPlayer:hasSkill("hongyan")) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         if #downcards > 1 then break end
                         break
@@ -947,16 +947,16 @@ function zongxuanchoose(self, upcards, downcards, preJudge)
                 end
             elseif reason == "nosqianxi" or reason == "tuntian" then
                 for _, card in ipairs(upcards_card) do
-                    if (card:getSuit() ~= sgs.Card_Heart and not (card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan")))
-                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                    if (card:getSuit() ~= sgs.Card_Heart and not (card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan")))
+                        and (nextPlayer:hasSkill("tiandu") or not self:isValuableCard(card)) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         break
                     end
                 end
             elseif reason == "tieji" or reason == "caizhaoji_hujia" then
                 for _, card in ipairs(upcards_card) do
-                    if (card:isRed() or card:getSuit() == sgs.Card_Spade and friend:hasSkill("hongyan"))
-                        and (friend:hasSkill("tiandu") or not self:isValuableCard(card)) then
+                    if (card:isRed() or card:getSuit() == sgs.Card_Spade and nextPlayer:hasSkill("hongyan"))
+                        and (nextPlayer:hasSkill("tiandu") or not self:isValuableCard(card)) then
                         moveToGet(card:getEffectiveId(), upcards, downcards)
                         break
                     end
