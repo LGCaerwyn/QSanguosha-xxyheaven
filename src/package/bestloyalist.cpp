@@ -39,7 +39,7 @@ public:
         if (triggerEvent == DrawNCards) {
             int n = data.toInt();
             data = n - 1;
-        } else if (player->getPhase() == Player::Draw) {
+        } else if (player->getPhase() == Player::Draw && !player->isSkipped(Player::Draw)) {
             foreach (ServerPlayer *p, room->getOtherPlayers(player)) {
                 if (p->distanceTo(player) == 1)
                     p->drawCards(1, "all_army");
