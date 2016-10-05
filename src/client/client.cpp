@@ -111,6 +111,7 @@ Client::Client(QObject *parent, const QString &filename)
     m_interactions[S_COMMAND_SURRENDER] = &Client::askForSurrender;
     m_interactions[S_COMMAND_LUCK_CARD] = &Client::askForLuckCard;
 
+    m_callbacks[S_COMMAND_ASK_AMAZING_GRACE] = &Client::askAG;
     m_callbacks[S_COMMAND_FILL_AMAZING_GRACE] = &Client::fillAG;
     m_callbacks[S_COMMAND_TAKE_AMAZING_GRACE] = &Client::takeAG;
     m_callbacks[S_COMMAND_CLEAR_AMAZING_GRACE] = &Client::clearAG;
@@ -279,6 +280,15 @@ void Client::mirrorMoveCardsStep(const QVariant &args)
     } else if (step == S_GUANXING_FINISH) {
         emit mirror_cardchoose_finish();
     }
+}
+
+void Client::askAG(const QVariant &arg)
+{
+    JsonArray args = arg.value<JsonArray>();
+    if (args.size() != 2) return;
+    QString player_name = args[0].toString();
+    QString reason = args[1].toString();
+    emit ag_choosing(player_name, reason);
 }
 
 void Client::signup()

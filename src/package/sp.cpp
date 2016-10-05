@@ -3590,8 +3590,11 @@ public:
             room->recover(player, RecoverStruct(NULL, NULL, recover));
             room->handleAcquireDetachSkills(player, "tiaoxin");
 
-			if (player->hasSkill("kunfen", true))
+            if (player->hasSkill("kunfen", true)) {
+                QString translation = Sanguosha->translate(":kunfen-frequent");
+                Sanguosha->addTranslationEntry(":kunfen", translation.toStdString().c_str());
                 room->doNotify(player, QSanProtocol::S_COMMAND_UPDATE_SKILL, QVariant("kunfen"));
+            }
         }
 
         return false;

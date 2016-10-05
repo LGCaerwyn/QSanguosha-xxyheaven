@@ -428,6 +428,7 @@ private:
 
 private slots:
     void fillCards(const QList<int> &card_ids, const QList<int> &disabled_ids = QList<int>());
+    void askAG(const QString &player_name, const QString &reason);
     void updateSkillButtons(bool isPrepare = false);
     void acquireSkill(const ClientPlayer *player, const QString &skill_name);
     void updateSelectedTargets();

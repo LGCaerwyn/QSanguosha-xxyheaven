@@ -1263,7 +1263,7 @@ function sgs.ai_skill_choice.huashen(self, choices, data, xiaode_choice)
 	else
 		if self.player:getHp() == 1 then
 			if str:matchOne("wuhun") then return "wuhun" end
-			if str:matchOne("buqu") and self.player:getPile("buqu"):length() <= 3 then return "buqu" end
+			if str:matchOne("buqu") and self.player:getPile("buqu_chuang"):length() <= 3 then return "buqu" end
 			for _, askill in ipairs(("wuhun|duanchang|jijiu|longhun|jiushi|jiuchi|buyi|huilei|dushi|buqu|zhuiyi|jincui"):split("|")) do
 				if str:matchOne(askill) then return askill end
 			end

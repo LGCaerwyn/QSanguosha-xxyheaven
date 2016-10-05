@@ -141,6 +141,8 @@ public:
             _m_skillDock->update();
     }
 
+    void updateSkillButton(const QString &skillName);
+
     void showSeat();
 
     inline QRectF getAvatarAreaSceneBoundingRect() const

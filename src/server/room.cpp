@@ -1658,6 +1658,11 @@ int Room::askForAG(ServerPlayer *player, const QList<int> &card_ids, bool refusa
     notifyMoveFocus(player, S_COMMAND_AMAZING_GRACE);
     Q_ASSERT(card_ids.length() > 0);
 
+    JsonArray arg;
+    arg << player->objectName();
+    arg << reason;
+    doBroadcastNotify(S_COMMAND_ASK_AMAZING_GRACE, arg);
+
     int card_id = -1;
     if (card_ids.length() == 1 && !refusable)
         card_id = card_ids.first();

@@ -203,6 +203,7 @@ public:
         return button;
     }
     QSanInvokeSkillButton *getSkillButtonByName(const QString &skillName) const;
+    void updateSkillButtonByName(const QString &skillName);
     void update();
     virtual QRectF boundingRect() const
     {

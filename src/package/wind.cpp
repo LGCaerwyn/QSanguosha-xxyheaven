@@ -526,13 +526,13 @@ public:
         int id = room->drawCard();
         int num = Sanguosha->getCard(id)->getNumber();
         bool duplicate = false;
-        foreach (int card_id, zhoutai->getPile("buqu")) {
+        foreach (int card_id, zhoutai->getPile("buqu_chuang")) {
             if (Sanguosha->getCard(card_id)->getNumber() == num) {
                 duplicate = true;
                 break;
             }
         }
-        zhoutai->addToPile("buqu", id);
+        zhoutai->addToPile("buqu_chuang", id);
         if (duplicate) {
             CardMoveReason reason(CardMoveReason::S_REASON_REMOVE_FROM_PILE, QString(), objectName(), QString());
             room->throwCard(Sanguosha->getCard(id), reason, NULL);
@@ -552,7 +552,7 @@ public:
 
     virtual int getFixed(const Player *target) const
     {
-        int len = target->getPile("buqu").length();
+        int len = target->getPile("buqu_chuang").length();
         if (len > 0)
             return len;
         else

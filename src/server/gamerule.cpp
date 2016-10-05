@@ -1117,36 +1117,10 @@ void GameRule::rewardAndPunish(ServerPlayer *killer, ServerPlayer *victim) const
             killer->drawCards(2, "kill");
         else
             killer->drawCards(3, "kill");
-    } else if (room->getMode() == "08_zdyj") {
-        if (victim->getRole() == "rebel" && killer != victim)
-            killer->drawCards(3, "kill");
-        else if (victim->getRole() == "loyalist") {
-            if (killer->getRole() == "lord" && killer->hasShownRole())
-                killer->throwAllHandCardsAndEquips();
-            bool showLord = true;
-            foreach (ServerPlayer *player, room->getOtherPlayers(victim)) {
-                if (player->getRole() == "loyalist" && player->hasShownRole()) {
-                    showLord = false;
-                    break;
-                }
-            }
-            if (showLord) {
-                ServerPlayer *lord = room->getLord(true);
-                room->broadcastProperty(lord, "role", lord->getRole());
-                QStringList skill_names;
-                const General *general = lord->getGeneral();
-                foreach (const Skill *skill, general->getVisibleSkillList()) {
-                    if (skill->isLordSkill())
-                        skill_names << skill->objectName();
-                }
-                if (!skill_names.isEmpty())
-                    room->handleAcquireDetachSkills(lord, skill_names, true);
-            }
-        }
     } else {
         if (victim->getRole() == "rebel" && killer != victim)
             killer->drawCards(3, "kill");
-        else if (victim->getRole() == "loyalist" && killer->getRole() == "lord")
+        else if (victim->getRole() == "loyalist" && killer->isLord())
             killer->throwAllHandCardsAndEquips();
     }
 }
