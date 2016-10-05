@@ -281,11 +281,15 @@ void ChooseGeneralBox::chooseGeneral(const QStringList &_generals, bool view_onl
 
     general_number = generals.length();
     if (!view_only) {
-        title = single_result ? tr("Your role is %1, Please select one general").arg(Sanguosha->translate(Self->getRole()))
-            : tr("Please select the same nationality generals");
-        if (Self->getSeat() > 0)
-            title.prepend(Sanguosha->translate(QString("SEAT(%1)").arg(Self->getSeat()))
-            + " ");
+        if (reason != QString()) {
+            title = Sanguosha->translate(reason) + ":" + tr("Please select one general");
+        } else {
+            title = single_result ? tr("Your role is %1, Please select one general").arg(Sanguosha->translate(Self->getRole()))
+                : tr("Please select the same nationality generals");
+            if (Self->getSeat() > 0)
+                title.prepend(Sanguosha->translate(QString("SEAT(%1)").arg(Self->getSeat()))
+                + " ");
+        }
     }
 
     prepareGeometryChange();

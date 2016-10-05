@@ -65,6 +65,7 @@ public slots:
     void fillGeneralCards(const QList<CardItem *> &card_items = QList<CardItem *>(), const QList<CardItem *> &disabled_item = QList<CardItem *>());
     void clear();
     void freezeCards(bool is_disable);
+    void setTile(QString new_title);
 
 protected:
     virtual bool _addCardItems(QList<CardItem *> &card_items, const CardsMoveStruct &moveInfo);
@@ -73,6 +74,7 @@ protected:
     int itemCount;
 
     static const int cardInterval = 3;
+    QString title;
 
 private:
     QList<CardItem *> items;

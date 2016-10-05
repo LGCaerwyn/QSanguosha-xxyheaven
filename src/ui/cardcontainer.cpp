@@ -32,7 +32,7 @@
 
 CardContainer::CardContainer()
     : confirm_button(new Button(tr("confirm"), 0.6)),
-    scene_width(0), itemCount(0)
+    scene_width(0), itemCount(0), title(tr("QSanguosha"))
 {
     confirm_button->setParentItem(this);
     confirm_button->hide();
@@ -43,7 +43,7 @@ CardContainer::CardContainer()
 
 void CardContainer::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
-    GraphicsBox::paintGraphicsBoxStyle(painter, tr("QSanguosha"), boundingRect());
+    GraphicsBox::paintGraphicsBoxStyle(painter, title, boundingRect());
 
     const int card_width = G_COMMON_LAYOUT.m_cardNormalWidth;
     const int card_height = G_COMMON_LAYOUT.m_cardNormalHeight;
@@ -257,6 +257,12 @@ void CardContainer::freezeCards(bool is_frozen)
 {
     foreach(CardItem *item, items)
         item->setFrozen(is_frozen);
+}
+
+void CardContainer::setTile(QString new_title)
+{
+    this->title = new_title;
+    update();
 }
 
 QList<CardItem *> CardContainer::removeCardItems(const QList<int> &card_ids, Player::Place)

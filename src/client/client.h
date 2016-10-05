@@ -151,6 +151,7 @@ public:
     void mirrorGuanxingStep(const QVariant &args);
     void mirrorMoveCardsStep(const QVariant &args);
 
+    void askAG(const QVariant &arg);
     void fillAG(const QVariant &cards_str);
     void takeAG(const QVariant &take_str);
     void clearAG(const QVariant &);
@@ -378,6 +379,7 @@ signals:
     void ag_filled(const QList<int> &card_ids, const QList<int> &disabled_ids);
     void ag_taken(ClientPlayer *taker, int card_id, bool move_cards);
     void ag_cleared();
+    void ag_choosing(const QString &player_name, const QString &reason);
 
     void generals_filled(const QStringList &general_names);
     void general_taken(const QString &who, const QString &name, const QString &rule);

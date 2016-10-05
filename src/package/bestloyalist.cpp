@@ -251,6 +251,48 @@ public:
     }
 };
 
+class ShowLord : public TriggerSkill
+{
+public:
+    ShowLord() : TriggerSkill("showlord")
+    {
+        global = true;
+        events << BuryVictim;
+    }
+
+    bool triggerable(const ServerPlayer *target, Room *room) const
+    {
+        return room->getMode() == "08_zdyj" && target != NULL && target->getSeat() == 1;
+    }
+
+    bool trigger(TriggerEvent, Room *room, ServerPlayer *, QVariant &) const
+    {
+        ServerPlayer *lord = room->getLord(true);
+        room->broadcastProperty(lord, "role", lord->getRole());
+        LogMessage log;
+        log.type = "#Showlord";
+        log.to << lord;
+        room->sendLog(log);
+        QStringList skill_names;
+        const General *general = lord->getGeneral();
+        foreach(const Skill *skill, general->getVisibleSkillList())
+        {
+            if (skill->isLordSkill())
+                skill_names << skill->objectName();
+        }
+        general = lord->getGeneral2();
+        if (general != NULL) {
+            foreach (const Skill *skill, general->getVisibleSkillList()) {
+                if (skill->isLordSkill())
+                    skill_names << skill->objectName();
+            }
+        }
+        if (!skill_names.isEmpty())
+            room->handleAcquireDetachSkills(lord, skill_names, true);
+        return false;
+    }
+};
+
 
 
 
@@ -422,7 +464,7 @@ BestLoyalistCardPackage::BestLoyalistCardPackage()
     foreach(Card *card, cards)
         card->setParent(this);
 
-    skills << new AllArmyDraw << new ByStove << new BeatAnotherGive;
+    skills << new ShowLord << new AllArmyDraw << new ByStove << new BeatAnotherGive;
 }
 
 ADD_PACKAGE(BestLoyalistCard)

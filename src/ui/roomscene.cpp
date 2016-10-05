@@ -198,6 +198,7 @@ RoomScene::RoomScene(QMainWindow *main_window)
 
     connect(ClientInstance, &Client::skill_updated, this, &RoomScene::updateSkill);
     connect(ClientInstance, &Client::set_turn, this, &RoomScene::setTurn);
+    connect(ClientInstance, &Client::ag_choosing, this, &RoomScene::askAG);
 
     m_guanxingBox = new GuanxingBox;
     m_guanxingBox->hide();
@@ -3765,6 +3766,16 @@ void RoomScene::fillCards(const QList<int> &card_ids, const QList<int> &disabled
     m_cardContainer->show();
 }
 
+void RoomScene::askAG(const QString &player_name, const QString &reason)
+{
+    QString title = Sanguosha->translate(reason) + ":";
+    if (Self->objectName() == player_name)
+        title += tr("ask_for_choose");
+    else
+        title += tr("wait%1for_choose").arg(ClientInstance->getPlayerName(player_name));
+    m_cardContainer->setTile(title);
+}
+
 void RoomScene::doGongxin(const QList<int> &card_ids, bool enable_heart, QList<int> enabled_ids)
 {
     fillCards(card_ids);
@@ -3793,6 +3804,9 @@ void RoomScene::showPile(const QList<int> &card_ids, const QString &name, const 
         pileContainer->fillCards(card_ids);
     }
     pileContainer->setPos(m_tableCenterPos - QPointF(pileContainer->boundingRect().width() / 2, pileContainer->boundingRect().height() / 2));
+    QString title = ClientInstance->getPlayerName(target->objectName());
+    title += ":" + Sanguosha->translate(name);
+    pileContainer->setTile(title);
     pileContainer->show();
 }
 
