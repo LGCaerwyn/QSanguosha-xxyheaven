@@ -113,6 +113,7 @@ CommonTranslationTable = {
 
 	["#Murder"] = "%from 杀死了 %to ，%to 阵亡 <br/>%to 的身份是 %arg",
 	["#Suicide"] = "%to 阵亡<br/>%to 的身份是 %arg",
+	["#Showlord"] = "主公是 %to",
 	["#SkillEffected"] = "%from 的“%arg”效果生效",
 	["#InvokeSkill"] = "%from 发动了武将技能“%arg”",
 	["#InvokeEquipSkill"] = "%from 发动了装备技能【%arg】",
