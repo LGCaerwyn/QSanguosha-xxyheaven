@@ -1485,8 +1485,8 @@ function SmartAI:objectiveLevel(player)
             else return 5 end
         elseif process == "loyalish" then
             if self:mayBeLord(player) or target_role == "renegade" then return 0 end
-            if target_role == "loyalist" then return rebelish and 0 or 3.5
-            elseif target_role == "rebel" then return rebelish and 3.5 or 0
+            if target_role == "loyalist" then return rebelish and 0 or 5
+            elseif target_role == "rebel" then return rebelish and 4 or 0
             else return 0
             end
         else
@@ -1496,7 +1496,7 @@ function SmartAI:objectiveLevel(player)
     end
 
     if self.player:getRole() == "lord" or self.role == "loyalist" then
-        if self:mayBeLord(player) then return -2 end
+        if self:mayBeLord(player) or (player:hasShownRole() and (player:getRole() == "loyalist" or player:getRole() == "lord")) then return -2 end
 
         if loyal_num == 0 and renegade_num == 0 then return 5 end
 
@@ -2602,12 +2602,13 @@ sgs.ai_skill_discard.gamerule = function(self, discard_num, min_num)
 
     for _, card in ipairs(cards) do
         if self.player:hasSkill("yuhua") and not card:isKindOf("BasicCard") then
-            continue
+            
+        else
+          if not self.player:isCardLimited(card, sgs.Card_MethodDiscard, true) then
+              table.insert(to_discard, card:getId())
+          end
+          if (self.player:hasSkill("qinyin") and #to_discard >= least) or #to_discard >= discard_num or self.player:isKongcheng() then break end
         end
-        if not self.player:isCardLimited(card, sgs.Card_MethodDiscard, true) then
-            table.insert(to_discard, card:getId())
-        end
-        if (self.player:hasSkill("qinyin") and #to_discard >= least) or #to_discard >= discard_num or self.player:isKongcheng() then break end
     end
 
     return to_discard
@@ -4010,25 +4011,44 @@ function SmartAI:willUsePeachTo(dying)
             end
         end
 
-        local buqu = dying:getPile("buqu")
-        local weaklord = 0
-        if not buqu:isEmpty() then
+        --旧不屈
+        if dying:hasSkill("nosbuqu") then
+            local buqu = dying:getPile("nosbuqu")
             local same = false
-            for i, card_id in sgs.qlist(buqu) do
-                for j, card_id2 in sgs.qlist(buqu) do
-                    if i ~= j and sgs.Sanguosha:getCard(card_id):getNumber() == sgs.Sanguosha:getCard(card_id2):getNumber() then
-                        same = true
-                        break
+            if not buqu:isEmpty() then
+                for i, card_id in sgs.qlist(buqu) do
+                    for j, card_id2 in sgs.qlist(buqu) do
+                        if i ~= j and sgs.Sanguosha:getCard(card_id):getNumber() == sgs.Sanguosha:getCard(card_id2):getNumber() then
+                            same = true
+                            break
+                        end
                     end
                 end
             end
             if not same then return "." end
         end
+        --不屈
+        if dying:hasSkill("buqu") then
+            --判断自己是在触发不屈之前询桃还是之后
+            local current = self.room:getCurrent()
+            local find_me, find_dying, before_dying, should_break
+            repeat
+                current = current:getNextAlive()
+                if current:objectName() == self.player:objectName() and not find_me then find_me = true end
+                if current:objectName() == dying:objectName() and not find_dying then find_dying = true end
+                if find_me and not find_dying then before_dying, should_break = true, true end
+                if not find_me and find_dying then before_dying, should_break = false, true end
+            until current:objectName() == self.room:getCurrent():objectName() or should_break
+            --
+            if before_dying and hasBuquEffect(dying) then return "." end
+        end
+
         if dying:hasFlag("Kurou_toDie") and (not dying:getWeapon() or dying:getWeapon():objectName() ~= "Crossbow") then return "." end
         if self.player:objectName() ~= dying:objectName() and dying:hasSkill("jiushi") and dying:faceUp() and dying:getHp()== 0 then
             return "."
         end
 
+        local weaklord = 0
         if (self.player:objectName() == dying:objectName()) then
             card_str = self:getCardId("Analeptic")
             if not card_str then
@@ -6777,7 +6797,7 @@ function SmartAI:findFriendsByType(prompt, player)
 end
 
 function hasBuquEffect(player)
-    return (player:hasSkill("buqu") and player:getPile("buqu"):length() <= 4) or (player:hasSkill("nosbuqu") and player:getPile("nosbuqu"):length() <= 4)
+    return (player:hasSkill("buqu") and player:getPile("buqu_chuang"):length() <= 4) or (player:hasSkill("nosbuqu") and player:getPile("nosbuqu"):length() <= 4)
 end
 
 function SmartAI:adjustAIRole()

@@ -362,7 +362,7 @@ sgs.ai_skill_invoke.qinyin = function(self, data)
 		if self:isWeak(friend) then
 			if friend:isWounded() then up = up + 10 + (friend:isLord() and 20 or 0) end
 			down = down - 10 - (friend:isLord() and 40 or 0)
-			if friend:getHp() <= 1 and not friend:hasSkill("buqu") or friend:getPile("buqu"):length() > 4 then
+			if friend:getHp() <= 1 and not friend:hasSkill("buqu") or friend:getPile("buqu_chuang"):length() > 4 then
 				down = down - 20 - (friend:isLord() and 40 or 0)
 			end
 		end
