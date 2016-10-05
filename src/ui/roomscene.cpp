@@ -3763,6 +3763,7 @@ void RoomScene::fillCards(const QList<int> &card_ids, const QList<int> &disabled
     bringToFront(m_cardContainer);
     m_cardContainer->fillCards(card_ids, disabled_ids);
     m_cardContainer->setPos(m_tableCenterPos - QPointF(m_cardContainer->boundingRect().width() / 2, m_cardContainer->boundingRect().height() / 2));
+    m_cardContainer->setTile(tr("QSanguosha"));
     m_cardContainer->show();
 }
 
