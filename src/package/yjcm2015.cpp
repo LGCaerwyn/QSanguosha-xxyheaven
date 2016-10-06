@@ -469,7 +469,7 @@ const Card *ShifeiCard::validateInResponse(ServerPlayer *user) const
         } else if (most == h)
             mosts << p;
     }
-	if (most > 0 && !mosts.isEmpty() && !mosts.contains(current)){
+	if (most > 0 && !mosts.isEmpty() && (!mosts.contains(current) || mosts.length() > 1)){
 		QList<ServerPlayer *> mosts_copy = mosts;
         foreach (ServerPlayer *p, mosts_copy) {
             if (!user->canDiscard(p, "he"))

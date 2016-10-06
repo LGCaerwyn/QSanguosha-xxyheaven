@@ -306,7 +306,7 @@ function sgs.ai_cardsview_valuable.shifei(self, class_name, player)
         table.insert(most, k)
     end
 
-	local invoke_fail = table.contains(most, self.room:getCurrent():objectName())
+	local invoke_fail = table.contains(most, self.room:getCurrent():objectName()) and #most == 1
     if invoke_fail then
 		if self:isFriend(self.room:getCurrent()) then
 			return "@ShifeiCard=."
@@ -354,7 +354,7 @@ function sgs.ai_slash_prohibit.shifei(self, from, to)
 
         table.insert(most, k)
     end
-	if table.contains(most, current:objectName()) then return false end
+	if table.contains(most, current:objectName()) and #most == 1 then return false end
 
     for _, p in ipairs(most) do
         local _p = findPlayerByObjectName(self.room, p)
