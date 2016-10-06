@@ -589,6 +589,13 @@ bool Player::hasEquip() const
     return weapon != NULL || armor != NULL || defensive_horse != NULL || offensive_horse != NULL || treasure != NULL;
 }
 
+bool Player::hasSameEquipKind(const Card *card) const
+{
+    const EquipCard *equip = qobject_cast<const EquipCard *>(card->getRealCard());
+    int equip_index = static_cast<int>(equip->location());
+    return getEquip(equip_index) != NULL;
+}
+
 WrappedCard *Player::getWeapon() const
 {
     return weapon;

@@ -1030,12 +1030,16 @@ public:
         foreach (ServerPlayer *caifuren, room->getAllPlayers()) {
             if (!TriggerSkill::triggerable(caifuren) || caifuren == player) continue;
             QStringList choices;
-            for (int i = 0; i < S_EQUIP_AREA_LENGTH; i++) {
-                if (player->getEquip(i) && !caifuren->getEquip(i))
-                    choices << QString::number(i);
+            QList<int> disables;
+            foreach (const Card *card, player->getEquips()) {
+                if (!caifuren->hasSameEquipKind(card)) {
+                    if (!choices.contains("move"))
+                        choices << "move";
+                } else
+                    disables << card->getEffectiveId();
             }
             choices << "draw" << "cancel";
-            QString choice = room->askForChoice(caifuren, objectName(), choices.join("+"), QVariant::fromValue(player));
+            QString choice = room->askForChoice(caifuren, objectName(), choices.join("+"), QVariant::fromValue(player), QString(), "move+draw+cancel");
             if (choice == "cancel") {
                 continue;
             } else {
@@ -1049,8 +1053,9 @@ public:
                 if (choice == "draw") {
                     caifuren->drawCards(1, objectName());
                 } else {
-                    int index = choice.toInt();
-                    const Card *card = player->getEquip(index);
+                    int card_id = room->askForCardChosen(caifuren, player, "e", objectName(), false, Card::MethodNone, disables);
+                    if (card_id < 0) return false;
+                    const Card *card = Sanguosha->getCard(card_id);
                     room->moveCardTo(card, caifuren, Player::PlaceEquip);
                 }
             }

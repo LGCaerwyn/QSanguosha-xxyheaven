@@ -617,13 +617,7 @@ end
 sgs.ai_skill_choice.qieting = function(self, choices)
 	local target = self.room:getCurrent()
 	local id = self:askForCardChosen(target, "e", "dummyReason")
-	if id then
-		for i = 0, 4 do
-			if target:getEquip(i) and target:getEquip(i):getEffectiveId() == id and string.find(choices, i) then
-				return i
-			end
-		end
-	end
+	if id > -1 then return "move" end
 	return "draw"
 end
 
