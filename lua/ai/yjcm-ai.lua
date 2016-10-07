@@ -280,6 +280,12 @@ sgs.ai_skill_playerchosen.xuanhuo = function(self, targets)
 	if #self.friends_noself == 0 then return nil end
 	self:sort(self.friends_noself, "defense")
 
+    for _, friend in ipairs(self.friends_noself) do
+        if self:hasSkills(sgs.get_multi_cards_skills, friend) or self:hasSkills(sgs.lose_multi_cards_skills, friend) then
+            return friend
+        end
+    end
+
 	for _, friend in ipairs(self.friends_noself) do
 		if self:hasSkills(sgs.lose_equip_skill, friend) and not friend:getEquips():isEmpty() and not friend:hasSkill("manjuan") then
 			return friend
@@ -345,6 +351,7 @@ sgs.ai_skill_cardask["xuanhuo-slash"] = function(self, data, pattern, t1, t2, pr
 		if p:objectName() == parsedPrompt[3] then victim = p end
 	end
 	if not fazheng or not victim then self.room:writeToConsole(debug.traceback()) return "." end
+    if self:hasSkills(sgs.lose_multi_cards_skills, self.player) then return "." end
 	if fazheng and victim then
 		for _, slash in ipairs(self:getCards("Slash")) do
 			if self:isFriend(victim) and self:slashIsEffective(slash, victim) then

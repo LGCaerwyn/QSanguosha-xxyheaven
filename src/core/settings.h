@@ -60,7 +60,6 @@ public:
     QStringList BossGenerals;
     int BossLevel;
     QStringList BossEndlessSkills;
-    QMap<QString, int> BossExpSkills;
 
     QMap<QString, QString> JianGeDefenseKingdoms;
     QMap<QString, QStringList> JianGeDefenseMachine;

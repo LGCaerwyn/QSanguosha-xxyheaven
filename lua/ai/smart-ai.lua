@@ -132,6 +132,8 @@ function setInitialTables()
     sgs.need_maxhp_skill = "yingzi|zaiqi|yinghun|hunzi|juejing|ganlu|zishou|miji|xueji"..
                         "|quji|neojushou|tannang|fangzhu|nosshangshi|nosmiji|shichou"
     sgs.bad_skills = "benghuai|wumou|shiyong|yaowu|zaoyao|chanyuan|chouhai|lianhuo"
+    sgs.get_multi_cards_skills = "hongde|enyuan"
+    sgs.lose_multi_cards_skills = "hongde"
 
     sgs.Friend_All = 0
     sgs.Friend_Draw = 1
@@ -1477,7 +1479,8 @@ function SmartAI:objectiveLevel(player)
             end
             return self:getOverflow() > 0 and 3 or 0
         elseif process:match("rebel") then
-            return target_role == "rebel" and 5 or target_role == "neutral" and 0 or -1
+            if target_role == "rebel" then return rebelish and 5 or -1 end
+            if target_role == "neutral" then return 0 end
         elseif process:match("dilemma") then
             if target_role == "rebel" then return 5
             elseif target_role == "loyalist" or target_role == "renegade" then return 0
@@ -1485,8 +1488,8 @@ function SmartAI:objectiveLevel(player)
             else return 5 end
         elseif process == "loyalish" then
             if self:mayBeLord(player) or target_role == "renegade" then return 0 end
-            if target_role == "loyalist" then return rebelish and 0 or 5
-            elseif target_role == "rebel" then return rebelish and 4 or 0
+            if target_role == "loyalist" then return rebelish and -1 or 5
+            elseif target_role == "rebel" then return rebelish and 4 or -1
             else return 0
             end
         else
@@ -6468,7 +6471,7 @@ function SmartAI:findPlayerToDraw(include_self, drawnum, count)
     end
 
     local AssistTarget = self:AssistTarget()
-    if AssistTarget and not self:willSkipPlayPhase(AssistTarget) and (AssistTarget:getHandcardNum() < AssistTarget:getMaxCard() * 2 or AssistTarget:getHandcardNum() < self.player:getHandcardNum())then
+    if AssistTarget and not self:willSkipPlayPhase(AssistTarget) and (AssistTarget:getHandcardNum() < AssistTarget:getMaxCards() * 2 or AssistTarget:getHandcardNum() < self.player:getHandcardNum())then
         for _, friend in ipairs(friends) do
             if friend:objectName() == AssistTarget:objectName() and not self:willSkipPlayPhase(friend) then
                 if count then

@@ -1249,7 +1249,6 @@ public:
     bool notifyProperty(ServerPlayer *playerToNotify, const ServerPlayer *propertyOwner, const char *propertyName, const char *value = NULL);
     bool broadcastProperty(ServerPlayer *player, const char *property_name, const char *value = NULL);
 
-    int getBossModeExpMult(int level) const;
     int getTurn() const;
 };
 

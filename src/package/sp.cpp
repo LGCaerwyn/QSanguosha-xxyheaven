@@ -2156,17 +2156,16 @@ public:
                 return false;
 			room->doAnimate(QSanProtocol::S_ANIMATE_INDICATE, panfeng->objectName(), target->objectName());
             panfeng->broadcastSkillInvoke(objectName());
-            int equip_index = room->askForChoice(panfeng, "kuangfu_equip", equiplist.join("+"), QVariant::fromValue(target)).toInt();
-            const Card *card = target->getEquip(equip_index);
-            int card_id = card->getEffectiveId();
+            int card_id = room->askForCardChosen(panfeng, target, "e", objectName());
+            const Card *card = Sanguosha->getCard(card_id);
 
             QStringList choicelist;
+            if (!panfeng->hasSameEquipKind(card))
+                choicelist << "move";
             if (panfeng->canDiscard(target, card_id))
                 choicelist << "throw";
-            if (equip_index > -1 && panfeng->getEquip(equip_index) == NULL)
-                choicelist << "move";
 
-            QString choice = room->askForChoice(panfeng, "kuangfu", choicelist.join("+"));
+            QString choice = room->askForChoice(panfeng, "kuangfu", choicelist.join("+"), QVariant(), QString(), "move+throw");
 
             if (choice == "move") {
                 room->moveCardTo(card, panfeng, Player::PlaceEquip);
@@ -3133,14 +3132,13 @@ public:
             PhaseChangeStruct change = data.value<PhaseChangeStruct>();
             if (change.to == Player::NotActive) {
                 foreach (ServerPlayer *p, room->getAllPlayers()) {
-                    if (!p->getPile("zhenweipile").isEmpty()) {
-                        DummyCard *dummy = new DummyCard(p->getPile("zhenweipile"));
+                    if (!p->getPile("zhenwei_zheng").isEmpty()) {
+                        DummyCard *dummy = new DummyCard(p->getPile("zhenwei_zheng"));
                         dummy->deleteLater();
                         room->obtainCard(p, dummy);
                     }
                 }
             }
-            return false;
         } else {
             CardUseStruct use = data.value<CardUseStruct>();
             if (use.card == NULL || use.to.length() != 1 || !(use.card->isKindOf("Slash") || (use.card->getTypeId() == Card::TypeTrick && use.card->isBlack())))
@@ -3178,12 +3176,12 @@ public:
                 return true;
             } else {
                 room->setCardFlag(use.card, "zhenweinull");
-                use.from->addToPile("zhenweipile", use.card);
+                use.from->addToPile("zhenwei_zheng", use.card);
 
-                use.nullified_list << "_ALL_TARGETS";
+                use.to.clear();
                 data = QVariant::fromValue(use);
+                return true;
             }
-            return false;
         }
         return false;
     }

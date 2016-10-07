@@ -414,7 +414,6 @@ public:
     void updateCardsOnLose(const CardsMoveStruct &move);
     void updateCardsOnGet(const CardsMoveStruct &move);
 
-    int getBossModeExpMult(int level) const;
     void setTurn(int turn);
     void incTurn();
     inline int getTurn() const { return m_turn; }
